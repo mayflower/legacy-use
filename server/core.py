@@ -11,6 +11,7 @@ from typing import Any, Callable, Optional
 import httpx
 from anthropic.types.beta import BetaMessageParam
 from dotenv import load_dotenv
+from environs import env
 
 from server.computer_use import (
     get_default_model_name,
@@ -25,6 +26,8 @@ from server.models.base import (
     APIResponse,
     JobStatus,
 )
+
+env.read_env()
 
 # Set up logging
 logger = logging.getLogger(__name__)
