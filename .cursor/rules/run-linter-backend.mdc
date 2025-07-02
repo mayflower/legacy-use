@@ -1,0 +1,16 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+---
+description: Automatically run linters and formatters for backend code after each task
+alwaysApply: true
+when: "**/*.py"
+---
+
+After completing each task, execute the following commands to ensure code quality:
+- Run Ruff to check and fix issues:
+  ```bash
+  ruff check --fix --config=server/pyproject.toml server/
+    ´´´

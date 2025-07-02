@@ -1,0 +1,25 @@
+{
+  "api_definition": {
+    "name": "WindowsCalc",
+    "description": "Uses the Windows Calculator to add two numbers",
+    "parameters": [
+      {
+        "name": "value_1",
+        "type": "integer",
+        "description": "First value to add",
+        "default": "12"
+      },
+      {
+        "name": "value_2",
+        "type": "integer",
+        "description": "Second value to add",
+        "default": "8"
+      }
+    ],
+    "prompt": "We want to compute the sum of two numbers using the Windows calculator. Here are the steps to do so:\n- On screen you'll see the calculator. Ensure this window has focus, as we'll send keyboard events to it.\n- Now type via the keyboard the number {{value_1}} and press send '+' via keyboard.\n- Now type via the keyboard the number {{value_2}} and press send '=' via keyboard.\n- The result will be displayed on the screen. This is what you shall return",
+    "prompt_cleanup": "Click on the button labeled 'C' to clear the result. There should be a 0 shown in the result field.",
+    "response_example": {
+      "computed_result": 20
+    }
+  }
+}

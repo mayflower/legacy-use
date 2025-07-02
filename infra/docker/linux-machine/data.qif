@@ -1,0 +1,84 @@
+!Account
+NAssets:Accounts Receivable
+TReceivable
+^
+!Account
+NAssets:Checking
+TBank
+^
+!Account
+NIncome:Consulting
+TIncome
+^
+
+!Type:Receivable
+D06/01/2025
+T500.00
+PPAID - Customer A
+NINV-001
+MConsulting Services Invoice #001
+^
+
+D06/02/2025
+T750.00
+PUNPAID - Customer B
+NINV-002
+MConsulting Services Invoice #002
+^
+
+D06/03/2025
+T1200.00
+PPAID - Customer C
+NINV-003
+MConsulting Services Invoice #003
+^
+
+D06/04/2025
+T600.00
+PPAID - Customer D
+NINV-004
+MConsulting Services Invoice #004
+^
+
+D06/05/2025
+T900.00
+PUNPAID - Customer E
+NINV-005
+MConsulting Services Invoice #005
+^
+
+D06/06/2025
+T300.00
+PPAID - Customer F
+NINV-006
+MConsulting Services Invoice #006
+^
+
+!Type:Bank
+D06/07/2025
+T500.00
+PPAID - Customer A
+NINV-001
+MInvoice Payment INV-001
+^
+
+D06/08/2025
+T1200.00
+PPAID - Customer C
+NINV-003
+MInvoice Payment INV-003
+^
+
+D06/09/2025
+T600.00
+PPAID - Customer D
+NINV-004
+MInvoice Payment INV-004
+^
+
+D06/10/2025
+T300.00
+PPAID - Customer F
+NINV-006
+MInvoice Payment INV-006
+^

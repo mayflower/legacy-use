@@ -1,0 +1,12 @@
+{
+  "api_definition": {
+    "name": "FailOnPurpose",
+    "description": "Returns a ui_not_as_expected error",
+    "parameters": [],
+    "prompt": "Bitte nutze den Tool Call ui_not_as_expected mit der Message 'This is a test'.",
+    "prompt_cleanup": "Nichts ist erforderlich",
+    "response_example": {
+      "App": "Ganz spezielle App"
+    }
+  }
+}

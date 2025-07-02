@@ -1,0 +1,36 @@
+Shared Source License Agreement (Custom)  
+Version 0.1  
+Effective Date: 1st of April 2025
+
+This Shared Source License ("License") is a legal agreement between Schuon Technologies GmbH ("Licensor") and the entity ("Licensee") receiving the accompanying software (the "Software").
+
+1. Grant of Rights  
+Licensor grants Licensee a non-exclusive, non-transferable, non-sublicensable license to:  
+- Use, run, and modify the Software solely for Licensee’s internal business purposes;  
+- Use the Software to power Licensee’s own products and services.
+
+2. Restrictions  
+Licensee shall not:  
+- Distribute, sublicense, lease, or otherwise make the Software available to any third party outside of Licensee’s organization;  
+- Use the Software to develop, offer, or assist in creating products or services that compete with Licensor’s offerings, directly or indirectly;  
+- Reverse engineer, decompile, or disassemble the Software, except as permitted by applicable law.
+
+3. Contributions  
+Any feedback, improvements, modifications, or derivative works created by or on behalf of Licensee ("Contributions") shall be promptly disclosed to Licensor.  
+Licensee hereby irrevocably assigns to Licensor all right, title, and interest in and to such Contributions, including all associated intellectual property rights.
+
+4. Ownership  
+All rights not expressly granted under this License are reserved by Licensor. Title to and ownership of the Software and all copies remain with Licensor.
+
+5. Termination  
+This License is effective until terminated. It will terminate automatically if Licensee breaches any term. Upon termination, Licensee must cease all use and destroy all copies of the Software.
+
+6. Disclaimer of Warranty  
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+7. Limitation of Liability  
+IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+Schuon Technologies GmbH  
+sebastian@schuon.tech
+1st of April 2025

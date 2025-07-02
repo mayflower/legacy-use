@@ -1,0 +1,12 @@
+{
+  "api_definition": {
+    "name": "GetWindowTitle",
+    "description": "Tells you the title of the currently open app",
+    "parameters": [],
+    "prompt": "Bitte gib zurück, welche Applikation gerade geöffnet ist.",
+    "prompt_cleanup": "Nichts ist erforderlich",
+    "response_example": {
+      "App": "Ganz spezielle App"
+    }
+  }
+}

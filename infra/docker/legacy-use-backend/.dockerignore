@@ -1,0 +1,13 @@
+# Exclude frontend files from backend build
+app/
+package*.json
+biome.json
+
+# Node modules and frontend artifacts
+node_modules/
+npm-debug.log*
+*.js.map
+
+# Frontend specific files
+public/
+src/

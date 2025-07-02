@@ -1,0 +1,67 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/run-tests.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/run-tests.yml'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+    - name: Set up Python
+      run: uv python install
+      with:
+          python-version-file: "pyproject.toml"
+
+    - name: Install dependencies
+      run: uv sync --locked
+
+    - name: Create directories
+      run: mkdir -p junit
+
+    - name: Run unit tests
+      run: |
+        # Set PYTHONPATH to include the root directory
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        uv run pytest server/tests/test_*.py -v --junitxml=junit/test-results.xml --cov=server --cov-report=xml
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          junit/
+          coverage.xml
+        retention-days: 7
+
+    - name: Test Summary
+      uses: test-summary/action@v2
+      with:
+        paths: "junit/test-results.xml"
+      if: always()
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+      if: success()

@@ -1,0 +1,17 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+---
+description: Automatically run linters and formatters for frontend code after each task
+alwaysApply: true
+when: "**/*.{js,jsx,ts,tsx}"
+---
+
+After completing each task, execute the following commands to ensure code quality:
+
+- Lint the code using biome:
+    ```bash
+    npm run lint:fix && npm run format
+    ´´´
