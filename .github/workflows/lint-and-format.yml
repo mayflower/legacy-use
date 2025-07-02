@@ -37,12 +37,12 @@ jobs:
     - name: Run Ruff linter
       run: |
         echo "Running Ruff linter on Python code..."
-        ruff check server/
+        uv run ruff check server/
 
     - name: Run Ruff formatter check
       run: |
         echo "Checking Python code formatting..."
-        ruff format --check server/
+        uv run ruff format --check server/
 
   lint-frontend:
     name: Lint Frontend Code
