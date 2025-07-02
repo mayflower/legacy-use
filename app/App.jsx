@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
-
-import AppHeader from './components/AppHeader';
-import Dashboard from './components/Dashboard';
+import CircularProgress from '@mui/material/CircularProgress';
+import CssBaseline from '@mui/material/CssBaseline';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+import React, { useEffect, useState } from 'react';
+import { Outlet, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
+import ApiKeyDialog from './components/ApiKeyDialog';
 import ApiList from './components/ApiList';
+import AppHeader from './components/AppHeader';
+import CreateSession from './components/CreateSession';
+import CreateTarget from './components/CreateTarget';
+import Dashboard from './components/Dashboard';
 import EditApiDefinition from './components/EditApiDefinition';
 import JobDetails from './components/JobDetails';
-import SessionList from './components/SessionList';
-import CreateSession from './components/CreateSession';
-import TargetList from './components/TargetList';
-import TargetDetails from './components/TargetDetails';
-import CreateTarget from './components/CreateTarget';
-import VncViewer from './components/VncViewer';
-import ApiKeyDialog from './components/ApiKeyDialog';
 import JobsList from './components/JobsList';
+import SessionList from './components/SessionList';
+import TargetDetails from './components/TargetDetails';
+import TargetList from './components/TargetList';
+import VncViewer from './components/VncViewer';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
-import { setApiKeyHeader, testApiKey, getSessions } from './services/apiService';
+import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
 
 // Create a dark theme
 const darkTheme = createTheme({

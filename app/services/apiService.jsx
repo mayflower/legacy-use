@@ -318,7 +318,7 @@ export const getJobLogs = async (targetId, jobId) => {
     const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/logs/`);
 
     // The response is now a direct array of log objects
-    let logs = response.data || [];
+    const logs = response.data || [];
 
     // Convert log_type to type for compatibility with LogViewer
     return logs.map(log => ({

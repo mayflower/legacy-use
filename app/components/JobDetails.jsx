@@ -1,38 +1,38 @@
-import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Typography,
-  Box,
-  CircularProgress,
-  Button,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Select,
-  MenuItem,
-  FormControl,
-  TextField,
-  DialogContentText,
-} from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControl,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from '@mui/material';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { SessionContext } from '../App';
+import {
+  cancelJob,
+  createJob,
+  getApiDefinitionDetails,
   getJob,
-  getJobLogs,
   getJobHttpExchanges,
-  interruptJob,
+  getJobLogs,
   getSession,
   getTargets,
-  createJob,
+  interruptJob,
   resolveJob,
-  getApiDefinitionDetails,
-  cancelJob,
   resumeJob,
 } from '../services/apiService';
 import JobStatusCard from './JobStatusCard';
 import JobTabs from './JobTabs';
-import { SessionContext } from '../App';
 
 const JobDetails = () => {
   const { targetId, jobId } = useParams();

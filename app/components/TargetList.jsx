@@ -1,40 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
+import BlockIcon from '@mui/icons-material/Block';
+import ComputerIcon from '@mui/icons-material/Computer';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import {
-  Typography,
-  Paper,
+  Alert,
   Box,
+  Button,
   Chip,
   CircularProgress,
-  Tooltip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   FormControlLabel,
-  Switch,
+  Grid,
   IconButton,
-  Button,
+  Paper,
+  Snackbar,
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
   TablePagination,
+  TableRow,
   TextField,
-  Grid,
-  Snackbar,
-  Alert,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import ComputerIcon from '@mui/icons-material/Computer';
-import BlockIcon from '@mui/icons-material/Block';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import { getTargets, deleteTarget, updateTarget, getTarget, getJobs } from '../services/apiService';
+import React, { useEffect, useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { deleteTarget, getJobs, getTarget, getTargets, updateTarget } from '../services/apiService';
 import VPNConfigInputField from './VPNConfigInputField';
 
 const TargetList = () => {

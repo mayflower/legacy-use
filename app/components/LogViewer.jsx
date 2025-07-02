@@ -1,24 +1,24 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Typography, Box, IconButton, Modal, Tooltip } from '@mui/material';
-import ErrorIcon from '@mui/icons-material/Error';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ChatIcon from '@mui/icons-material/Chat';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import BuildIcon from '@mui/icons-material/Build';
-import HttpIcon from '@mui/icons-material/Http';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
-import InfoIcon from '@mui/icons-material/Info';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import MouseIcon from '@mui/icons-material/Mouse';
-import KeyboardIcon from '@mui/icons-material/Keyboard';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import CloseIcon from '@mui/icons-material/Close';
-import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import BuildIcon from '@mui/icons-material/Build';
+import ChatIcon from '@mui/icons-material/Chat';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import ErrorIcon from '@mui/icons-material/Error';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import HttpIcon from '@mui/icons-material/Http';
+import InfoIcon from '@mui/icons-material/Info';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import MouseIcon from '@mui/icons-material/Mouse';
+import PauseCircleIcon from '@mui/icons-material/PauseCircle';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import SettingsIcon from '@mui/icons-material/Settings';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import { Box, IconButton, Modal, Tooltip, Typography } from '@mui/material';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Custom component for displaying logs with syntax highlighting
 const LogViewer = ({ logs }) => {

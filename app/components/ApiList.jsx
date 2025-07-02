@@ -1,55 +1,55 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
-
-import {
-  Typography,
-  Paper,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  TextField,
-  Box,
-  CircularProgress,
-  Alert,
-  IconButton,
-  Collapse,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Tooltip,
-  Snackbar,
-  Chip,
-  Menu,
-  ListItemIcon,
-  ListItemText,
-} from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
+  Archive as ArchiveIcon,
   ContentCopy as ContentCopyIcon,
   Download as DownloadIcon,
+  Edit as EditIcon,
+  FileCopy as FileCopyIcon,
+  MoreVert as MoreVertIcon,
+  PlayArrow as PlayArrowIcon,
+  Settings as SettingsIcon,
+  Unarchive as UnarchiveIcon,
   Upload as UploadIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
-  FileCopy as FileCopyIcon,
-  Archive as ArchiveIcon,
-  Unarchive as UnarchiveIcon,
-  Settings as SettingsIcon,
-  PlayArrow as PlayArrowIcon,
-  MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+
 import {
-  getApiDefinitions,
-  getTargets,
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Collapse,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Paper,
+  Select,
+  Snackbar,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SessionContext } from '../App';
+import {
+  archiveApiDefinition,
   createJob,
   exportApiDefinition,
+  getApiDefinitions,
+  getTargets,
   importApiDefinition,
-  archiveApiDefinition,
   unarchiveApiDefinition,
 } from '../services/apiService';
-import { SessionContext } from '../App';
 import AddApiDialog from './AddApiDialog';
 import DuplicateApiDialog from './DuplicateApiDialog';
 
@@ -98,7 +98,7 @@ const ApiList = () => {
     }).replace(/'/g, "'\\''"); // Escape single quotes for shell command
 
     // Build cURL command
-    let curlCmd = `curl -X POST "${apiUrl}/targets/${selectedTarget}/jobs/" \\
+    const curlCmd = `curl -X POST "${apiUrl}/targets/${selectedTarget}/jobs/" \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: ${apiKey}" \\
   -d '${jsonData}'`;

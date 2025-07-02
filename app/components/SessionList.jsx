@@ -1,33 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link as RouterLink } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
-  Typography,
-  Paper,
   Box,
+  Button,
   Chip,
   CircularProgress,
-  Tooltip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   FormControlLabel,
-  Switch,
   IconButton,
-  Button,
+  Paper,
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
   TablePagination,
+  TableRow,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { getSessions, deleteSession, getTargets } from '../services/apiService';
+import React, { useEffect, useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { deleteSession, getSessions, getTargets } from '../services/apiService';
 
 const SessionList = () => {
   const navigate = useNavigate();

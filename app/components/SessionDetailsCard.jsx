@@ -1,24 +1,24 @@
-import React from 'react';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import {
+  Alert,
+  Box,
+  Button,
   Card,
   CardContent,
-  Grid,
-  Typography,
-  Box,
   Chip,
-  IconButton,
-  Tooltip,
-  Button,
   Collapse,
+  Grid,
+  IconButton,
   Paper,
   Snackbar,
-  Alert,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import React from 'react';
 
 const SessionDetailsCard = ({
   selectedSession,

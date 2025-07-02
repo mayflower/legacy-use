@@ -1,10 +1,9 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import { browserTracingIntegration, replayIntegration } from '@sentry/react';
-import App from './App';
-
 import { PostHogProvider } from 'posthog-js/react';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
 const options = {
   api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',

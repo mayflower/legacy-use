@@ -1,34 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  Cancel as CancelIcon,
+  Clear as ClearIcon,
+  FilterAlt as FilterIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
 import {
   Box,
+  Button,
+  Chip,
+  CircularProgress,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
   TablePagination,
-  Typography,
-  Chip,
-  CircularProgress,
-  IconButton,
+  TableRow,
   Tooltip,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  Grid,
-  Button,
+  Typography,
 } from '@mui/material';
-import {
-  Refresh as RefreshIcon,
-  FilterAlt as FilterIcon,
-  Clear as ClearIcon,
-  Cancel as CancelIcon,
-} from '@mui/icons-material';
-import { getAllJobs, getTargets, getApiDefinitions, cancelJob } from '../services/apiService';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 
 const JobsList = () => {
   const navigate = useNavigate();

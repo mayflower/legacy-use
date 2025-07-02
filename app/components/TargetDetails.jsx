@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link as RouterLink, useLocation } from 'react-router-dom';
-import { Typography, Box, Button, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import React, { useContext, useEffect, useState } from 'react';
+import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
+import { SessionContext } from '../App';
 import {
-  getSessions,
-  getJobs,
-  getTarget,
   deleteSession,
   getJobQueueStatus,
+  getJobs,
+  getSessions,
+  getTarget,
 } from '../services/apiService';
-import { SessionContext } from '../App';
 import DeleteSessionDialog from './DeleteSessionDialog';
-import TargetInfoCard from './TargetInfoCard';
 import JobsSection from './JobsSection';
-import SessionSelector from './SessionSelector';
 import SessionDetailsCard from './SessionDetailsCard';
+import SessionSelector from './SessionSelector';
+import TargetInfoCard from './TargetInfoCard';
 
 const TargetDetails = () => {
   const { targetId } = useParams();

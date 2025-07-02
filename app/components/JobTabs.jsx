@@ -1,7 +1,7 @@
+import { Alert, Box, CircularProgress, Paper, Tab, Tabs, Typography } from '@mui/material';
 import React from 'react';
-import { Typography, Box, Paper, Tabs, Tab, Alert, CircularProgress } from '@mui/material';
-import LogViewer from './LogViewer';
 import HttpExchangeViewer from './HttpExchangeViewer';
+import LogViewer from './LogViewer';
 
 const JobTabs = ({
   activeTab,

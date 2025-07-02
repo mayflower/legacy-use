@@ -1,5 +1,5 @@
+import { Box, Card, CardContent, Chip, Grid, Typography } from '@mui/material';
 import React from 'react';
-import { Card, CardContent, Typography, Grid, Box, Chip } from '@mui/material';
 
 const TargetInfoCard = ({ target, formatDate }) => {
   if (!target) return null;

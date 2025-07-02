@@ -1,19 +1,19 @@
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
+} from '@mui/material';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Typography,
-  Paper,
-  Grid,
-  TextField,
-  Button,
-  Box,
-  CircularProgress,
-  Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material';
 import { createTarget } from '../services/apiService';
 import VPNConfigInputField from './VPNConfigInputField';
 

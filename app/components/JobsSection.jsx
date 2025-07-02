@@ -1,20 +1,20 @@
-import React from 'react';
-import {
-  Box,
-  Tabs,
-  Tab,
-  Chip,
-  Paper,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Button,
-  Tooltip,
-} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import {
+  Box,
+  Button,
+  Chip,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  Paper,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 const JobsSection = ({

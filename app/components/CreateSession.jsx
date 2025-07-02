@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Typography,
-  Paper,
-  Button,
-  Box,
-  CircularProgress,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
+  Box,
+  Button,
+  CircularProgress,
   Container,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
 } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { createSession, getTargets } from '../services/apiService';
 
 // Add browser globals
