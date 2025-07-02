@@ -69,7 +69,7 @@ const TargetDetails = () => {
           if (!sessionToSelect) {
             // Sort sessions by creation date (newest first)
             const sortedSessions = [...filteredSessions].sort(
-              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+              (a, b) => new Date(b.created_at) - new Date(a.created_at),
             );
 
             sessionToSelect = sortedSessions[0];
@@ -154,7 +154,7 @@ const TargetDetails = () => {
         // For executed jobs, filter out queued and blocking jobs
         const blockingIds = new Set(blocking.map(job => job.id));
         const executed = jobsData.filter(
-          job => job.status !== 'queued' && !blockingIds.has(job.id) // Exclude jobs that are in the blocking list
+          job => job.status !== 'queued' && !blockingIds.has(job.id), // Exclude jobs that are in the blocking list
         );
 
         setQueuedJobs(queued);

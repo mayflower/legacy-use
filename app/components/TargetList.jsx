@@ -84,7 +84,7 @@ const TargetList = () => {
               queued_tasks_count: 'Error', // Indicate error or unknown
             };
           }
-        })
+        }),
       );
       setTargetsWithDetails(detailedTargets);
       setLoading(false);

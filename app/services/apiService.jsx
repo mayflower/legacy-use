@@ -44,7 +44,7 @@ apiClient.interceptors.request.use(
   },
   error => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Function to test if an API key is valid

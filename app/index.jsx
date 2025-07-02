@@ -38,5 +38,5 @@ root.render(
     <PostHogProvider apiKey={apiKey} options={options}>
       <App />
     </PostHogProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

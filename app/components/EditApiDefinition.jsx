@@ -311,7 +311,7 @@ const EditApiDefinition = () => {
           } catch {
             // Throw an error to be caught below, preventing save
             throw new Error(
-              `Invalid JSON array in default value for list parameter '${param.name}'.`
+              `Invalid JSON array in default value for list parameter '${param.name}'.`,
             );
           }
         }

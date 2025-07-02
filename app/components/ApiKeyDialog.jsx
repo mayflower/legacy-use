@@ -49,7 +49,7 @@ const ApiKeyDialog = ({ open, onClose }) => {
       setError(
         err.response?.status === 403
           ? 'Invalid API key. Please check and try again.'
-          : 'Error connecting to the server. Please try again.'
+          : 'Error connecting to the server. Please try again.',
       );
       setIsApiKeyValid(false);
     } finally {

@@ -141,7 +141,7 @@ const LogViewer = ({ logs }) => {
       if (!expandedImage || screenshots.length <= 1) return; // No navigation if 0 or 1 screenshot
 
       const currentScreenshotArrayIndex = screenshots.findIndex(
-        s => s.logIndex === expandedImage.logIndex
+        s => s.logIndex === expandedImage.logIndex,
       );
       if (currentScreenshotArrayIndex === -1) return; // Safety check
 
@@ -161,7 +161,7 @@ const LogViewer = ({ logs }) => {
         format: nextScreenshot.format,
       });
     },
-    [expandedImage, screenshots]
+    [expandedImage, screenshots],
   );
 
   // Handle keyboard navigation for the modal
@@ -173,7 +173,7 @@ const LogViewer = ({ logs }) => {
         navigateToScreenshot('next');
       }
     },
-    [navigateToScreenshot]
+    [navigateToScreenshot],
   ); // Depend on the stable navigateToScreenshot function
 
   // Add and remove keyboard listener when modal opens/closes

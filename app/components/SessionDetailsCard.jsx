@@ -152,7 +152,7 @@ const SessionDetailsCard = ({
                               {selectedSession.container_status.health.reason}) <br />
                               Last Check:{' '}
                               {new Date(
-                                selectedSession.container_status.health.timestamp
+                                selectedSession.container_status.health.timestamp,
                               ).toLocaleString()}
                             </Typography>
                           </Box>
@@ -166,7 +166,7 @@ const SessionDetailsCard = ({
                               {JSON.stringify(
                                 selectedSession.container_status.health.raw_response,
                                 null,
-                                2
+                                2,
                               )}
                             </Typography>
                           )}
@@ -197,7 +197,7 @@ const SessionDetailsCard = ({
                               Port Mappings
                             </Typography>
                             {Object.entries(
-                              selectedSession.container_status.network_settings.Ports
+                              selectedSession.container_status.network_settings.Ports,
                             ).map(([port, mapping]) => (
                               <Typography key={port} variant="body2" color="textSecondary">
                                 {port} → {mapping ? mapping[0]?.HostPort : 'Not mapped'}

@@ -86,7 +86,7 @@ const JobDetails = () => {
     const isInitialLoad = !httpExchanges.length || !httpExchangesLoaded;
 
     console.log(
-      `[${new Date().toISOString()}] Starting to fetch HTTP exchanges (initial load: ${isInitialLoad})...`
+      `[${new Date().toISOString()}] Starting to fetch HTTP exchanges (initial load: ${isInitialLoad})...`,
     );
 
     try {
@@ -97,7 +97,7 @@ const JobDetails = () => {
 
       const httpExchangesData = await getJobHttpExchanges(targetId, jobId);
       console.log(
-        `[${new Date().toISOString()}] Completed fetching HTTP exchanges, received ${httpExchangesData.length} exchanges`
+        `[${new Date().toISOString()}] Completed fetching HTTP exchanges, received ${httpExchangesData.length} exchanges`,
       );
       setHttpExchanges(httpExchangesData);
       setHttpExchangesLoaded(true);
@@ -149,7 +149,7 @@ const JobDetails = () => {
       lastRefreshTimeRef.current > 0
     ) {
       console.log(
-        `Throttling refresh requests. Last refresh was ${now - lastRefreshTimeRef.current}ms ago.`
+        `Throttling refresh requests. Last refresh was ${now - lastRefreshTimeRef.current}ms ago.`,
       );
       return;
     }
@@ -281,7 +281,7 @@ const JobDetails = () => {
       // Prevent multiple polling calls from running simultaneously
       if (pollingActiveRef.current) {
         console.log(
-          `[${new Date().toISOString()}] Previous polling operation still in progress, skipping this cycle`
+          `[${new Date().toISOString()}] Previous polling operation still in progress, skipping this cycle`,
         );
         return;
       }
@@ -325,7 +325,7 @@ const JobDetails = () => {
             const isHttpTab = jobData.error ? activeTab === 2 : activeTab === 1;
             if (isHttpTab) {
               console.log(
-                `[${new Date().toISOString()}] Fetching final HTTP exchanges for active tab`
+                `[${new Date().toISOString()}] Fetching final HTTP exchanges for active tab`,
               );
               await fetchJobHttpExchanges();
             }
@@ -361,7 +361,7 @@ const JobDetails = () => {
       } catch (err) {
         console.error(
           `[${new Date().toISOString()}] Error checking job status during polling:`,
-          err
+          err,
         );
       } finally {
         pollingActiveRef.current = false;

@@ -48,7 +48,7 @@ const JobStatusCard = ({
           setLoadingVersion(true);
           const version = await getApiDefinitionVersion(
             job.api_name,
-            job.api_definition_version_id
+            job.api_definition_version_id,
           );
           setVersionInfo(version);
           setLoadingVersion(false);
