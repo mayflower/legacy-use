@@ -251,7 +251,7 @@ const AppLayout = () => {
       isJobDetail ||
       isTargetDetail ||
       (location.pathname === '/apis' && selectedSessionId)) &&
-    !(currentSession && currentSession.is_archived) &&
+    !currentSession?.is_archived &&
     currentSession &&
     currentSession.state === 'ready';
 

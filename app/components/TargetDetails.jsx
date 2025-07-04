@@ -1,6 +1,6 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
 import { SessionContext } from '../App';
 import {
@@ -217,11 +217,7 @@ const TargetDetails = () => {
 
   const getDockerImageName = () => {
     // Only use the image information from container status
-    if (
-      selectedSession &&
-      selectedSession.container_status &&
-      selectedSession.container_status.image
-    ) {
+    if (selectedSession?.container_status?.image) {
       return selectedSession.container_status.image;
     }
 

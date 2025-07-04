@@ -36,7 +36,7 @@ const CreateTarget = () => {
     host: '',
     username: '',
     password: '',
-    port: DEFAULT_PORTS['vnc'],
+    port: DEFAULT_PORTS.vnc,
     vpn_config: '',
     vpn_username: '',
     vpn_password: '',
@@ -68,7 +68,7 @@ const CreateTarget = () => {
       }));
     } else {
       const portValue = parseInt(value, 10);
-      if (!isNaN(portValue)) {
+      if (!Number.isNaN(portValue)) {
         setTargetData(prev => ({
           ...prev,
           port: portValue,
@@ -80,7 +80,7 @@ const CreateTarget = () => {
   const handleResolutionChange = e => {
     const { name, value } = e.target;
     const numValue = parseInt(value, 10);
-    if (!isNaN(numValue)) {
+    if (!Number.isNaN(numValue)) {
       setTargetData(prev => ({
         ...prev,
         [name]: numValue,
@@ -118,16 +118,16 @@ const CreateTarget = () => {
 
     if (
       targetData.port !== null &&
-      (isNaN(targetData.port) || targetData.port < 1 || targetData.port > 65535)
+      (Number.isNaN(targetData.port) || targetData.port < 1 || targetData.port > 65535)
     ) {
       errors.port = 'Port must be a valid number between 1 and 65535';
     }
 
-    if (!targetData.width || isNaN(targetData.width) || targetData.width < 1) {
+    if (!targetData.width || Number.isNaN(targetData.width) || targetData.width < 1) {
       errors.width = 'Width must be a positive number';
     }
 
-    if (!targetData.height || isNaN(targetData.height) || targetData.height < 1) {
+    if (!targetData.height || Number.isNaN(targetData.height) || targetData.height < 1) {
       errors.height = 'Height must be a positive number';
     }
 

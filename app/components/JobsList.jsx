@@ -377,7 +377,7 @@ const JobsList = () => {
                         }}
                       >
                         {job.error ||
-                          (job.result && JSON.stringify(job.result).slice(0, 100) + '...')}
+                          (job.result && `${JSON.stringify(job.result).slice(0, 100)}...`)}
                       </Box>
                       {(job.status === 'queued' || job.status === 'pending') && (
                         <Tooltip title="Cancel Job">

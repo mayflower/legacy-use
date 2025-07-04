@@ -246,7 +246,7 @@ const SessionList = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {session.container_status && session.container_status.health ? (
+                        {session.container_status?.health ? (
                           <Tooltip
                             title={session.container_status.health.reason || 'No reason provided'}
                           >

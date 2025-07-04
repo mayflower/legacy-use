@@ -160,7 +160,7 @@ const JobsSection = ({
     {activeTab === 2 &&
       (queuedJobs.length > 0 ? (
         <>
-          {queueStatus && queueStatus.running_job && (
+          {queueStatus?.running_job && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Currently Running:

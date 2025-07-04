@@ -203,7 +203,7 @@ const JobDetails = () => {
   // Effect to update the VNC viewer context
   useEffect(() => {
     // If the job has a session_id, update the context for VNC viewer
-    if (job && job.session_id) {
+    if (job?.session_id) {
       const fetchSessionDetails = async () => {
         try {
           const sessionData = await getSession(job.session_id);
@@ -528,7 +528,7 @@ const JobDetails = () => {
       const fetchApiExample = async () => {
         try {
           const apiDefinition = await getApiDefinitionDetails(job.api_name);
-          if (apiDefinition && apiDefinition.response_example) {
+          if (apiDefinition?.response_example) {
             setResolveResult(apiDefinition.response_example);
           } else {
             setResolveResult({});

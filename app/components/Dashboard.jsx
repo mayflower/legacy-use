@@ -40,7 +40,7 @@ const Dashboard = () => {
         setTargets(targetsData);
 
         // Properly handle the paginated response from the API
-        const jobsData = jobsResponse && jobsResponse.jobs ? jobsResponse.jobs : [];
+        const jobsData = jobsResponse?.jobs ? jobsResponse.jobs : [];
 
         // Sort jobs by created_at in descending order and take the most recent 5
         const sortedJobs = [...jobsData]

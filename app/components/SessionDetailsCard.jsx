@@ -189,21 +189,20 @@ const SessionDetailsCard = ({
                             </Typography>
                           </Box>
                         )}
-                      {selectedSession.container_status.network_settings &&
-                        selectedSession.container_status.network_settings.Ports && (
-                          <Box mt={1}>
-                            <Typography variant="subtitle2" gutterBottom>
-                              Port Mappings
+                      {selectedSession.container_status.network_settings?.Ports && (
+                        <Box mt={1}>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Port Mappings
+                          </Typography>
+                          {Object.entries(
+                            selectedSession.container_status.network_settings.Ports,
+                          ).map(([port, mapping]) => (
+                            <Typography key={port} variant="body2" color="textSecondary">
+                              {port} → {mapping ? mapping[0]?.HostPort : 'Not mapped'}
                             </Typography>
-                            {Object.entries(
-                              selectedSession.container_status.network_settings.Ports,
-                            ).map(([port, mapping]) => (
-                              <Typography key={port} variant="body2" color="textSecondary">
-                                {port} → {mapping ? mapping[0]?.HostPort : 'Not mapped'}
-                              </Typography>
-                            ))}
-                          </Box>
-                        )}
+                          ))}
+                        </Box>
+                      )}
                     </Paper>
                   </Collapse>
                 </Grid>
