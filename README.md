@@ -151,6 +151,14 @@ Find your VM's IP address:
 
 ---
 
+## ✍️ Writing Effective Prompts
+
+Creating custom automation scripts for your applications? Check out our comprehensive guide:
+
+📖 **[HOW_TO_PROMPT.md](HOW_TO_PROMPT.md)** - Learn the best practices for writing prompts that work reliably with legacy-use.
+
+---
+
 ## 🛠️ Supported connectivity
 
 | Technology | Category | Status |
