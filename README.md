@@ -64,7 +64,7 @@ git clone https://github.com/legacy-use/legacy-use
 cd legacy-use
 
 # 2. Create and configure environment file
-cp .env.example .env
+cp .env.template .env
 # Edit .env file with your favorite editor and add:
 # ANTHROPIC_API_KEY=sk-your-anthropic-key-here
 # API_KEY=your-generated-api-key-here
@@ -125,7 +125,16 @@ Find your VM's IP address:
 **Alternative - From host machine:**
 - Check your VM software's network settings for the assigned IP
 
-### Step 4: Add Target in Legacy-Use
+### Step 4: Configure VM Display Settings
+For optimal performance, configure your VM's display resolution:
+
+**Recommended Screen Resolutions:**
+- **1024 × 768**
+- **1280 × 800**
+
+**Note**: Larger resolutions can be used, but performance may degrade—especially when working with very small UI elements.
+
+### Step 5: Add Target in Legacy-Use
 1. Open the legacy-use web interface: `http://localhost:3000`
 2. Navigate to **Targets** → **New Target**
 3. Fill in the details:
