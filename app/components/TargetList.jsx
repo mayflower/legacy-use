@@ -174,7 +174,7 @@ const TargetList = () => {
     navigate(`/targets/${target.id}`);
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_event, newPage) => {
     setPage(newPage);
   };
 

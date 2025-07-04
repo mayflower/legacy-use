@@ -47,7 +47,7 @@ const JobsSection = ({
       </Tooltip>
     </Box>
     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-      <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+      <Tabs value={activeTab} onChange={(_e, newValue) => setActiveTab(newValue)}>
         <Tab label="All Jobs" />
         <Tab
           label={

@@ -139,7 +139,7 @@ const SessionList = () => {
     }
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_event, newPage) => {
     setPage(newPage);
   };
 
