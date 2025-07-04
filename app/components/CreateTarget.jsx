@@ -356,6 +356,36 @@ const CreateTarget = () => {
               />
             </Grid>
 
+            {/* Resolution recommendation warning */}
+            <Grid item xs={12}>
+              {(targetData.width !== 1024 || targetData.height !== 768) && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Resolution Recommendation
+                  </Typography>
+                  <Typography variant="body2">
+                    For optimal results, we recommend using the standard 1024x768 resolution. Other
+                    resolutions may result in suboptimal performance, display issues, or
+                    compatibility problems with certain applications and VNC/RDP clients.
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    <strong>Current:</strong> {targetData.width}x{targetData.height} |
+                    <strong> Recommended:</strong> 1024x768
+                  </Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setTargetData(prev => ({ ...prev, width: 1024, height: 768 }))}
+                      disabled={loading}
+                    >
+                      Use Recommended Resolution (1024x768)
+                    </Button>
+                  </Box>
+                </Alert>
+              )}
+            </Grid>
+
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button variant="outlined" onClick={() => navigate('/targets')} disabled={loading}>
                 Cancel
