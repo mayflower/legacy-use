@@ -18,7 +18,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React from 'react';
 
 const SessionDetailsCard = ({
   selectedSession,

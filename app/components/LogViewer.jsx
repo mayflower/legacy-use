@@ -18,7 +18,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import { Box, IconButton, Modal, Tooltip, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Custom component for displaying logs with syntax highlighting
 const LogViewer = ({ logs }) => {

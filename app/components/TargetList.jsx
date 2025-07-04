@@ -32,7 +32,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { deleteTarget, getJobs, getTarget, getTargets, updateTarget } from '../services/apiService';
 import VPNConfigInputField from './VPNConfigInputField';

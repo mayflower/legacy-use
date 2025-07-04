@@ -1,6 +1,6 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box, Card, CardContent, Chip, Divider, IconButton, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 // Add browser globals
 const { URL } = globalThis;
