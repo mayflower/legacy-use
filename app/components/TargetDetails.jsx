@@ -204,6 +204,7 @@ const TargetDetails = () => {
       case 'canceled':
         return 'default';
       case 'pending':
+        return 'default';
       default:
         return 'default';
     }
