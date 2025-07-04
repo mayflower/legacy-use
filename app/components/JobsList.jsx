@@ -90,7 +90,10 @@ const JobsList = () => {
       // Only include non-empty filters
       const activeFilters = Object.entries(filters)
         .filter(([, value]) => value !== '')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+        .reduce((acc, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        }, {});
 
       const response = await getAllJobs(rowsPerPage, page * rowsPerPage, activeFilters);
       setJobs(response.jobs);
