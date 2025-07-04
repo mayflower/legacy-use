@@ -237,8 +237,8 @@ const Dashboard = () => {
         </Box>
         <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
           {apis.length > 0 ? (
-            apis.slice(0, 3).map((api, index) => (
-              <React.Fragment key={index}>
+            apis.slice(0, 3).map(api => (
+              <React.Fragment key={api.id}>
                 <ListItem button component={RouterLink} to="/apis">
                   <ListItemText
                     primary={api.name}
