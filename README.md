@@ -64,7 +64,7 @@ git clone https://github.com/legacy-use/legacy-use
 cd legacy-use
 
 # 2. Create and configure environment file
-cp .env.example .env
+cp .env.template .env
 # Edit .env file with your favorite editor and add:
 # ANTHROPIC_API_KEY=sk-your-anthropic-key-here
 # API_KEY=your-generated-api-key-here
@@ -125,7 +125,16 @@ Find your VM's IP address:
 **Alternative - From host machine:**
 - Check your VM software's network settings for the assigned IP
 
-### Step 4: Add Target in Legacy-Use
+### Step 4: Configure VM Display Settings
+For optimal performance, configure your VM's display resolution:
+
+**Recommended Screen Resolutions:**
+- **1024 × 768**
+- **1280 × 800**
+
+**Note**: Larger resolutions can be used, but performance may degrade—especially when working with very small UI elements.
+
+### Step 5: Add Target in Legacy-Use
 1. Open the legacy-use web interface: `http://localhost:3000`
 2. Navigate to **Targets** → **New Target**
 3. Fill in the details:
@@ -148,6 +157,14 @@ Find your VM's IP address:
 2. **APIs → Import** → select `sample_prompts/WindowsCalc.json`.  
 3. Choose your session & click **Execute**.  
 4. Integrate via REST ➜ three-dot menu → **cURL**.
+
+---
+
+## ✍️ Writing Effective Prompts
+
+Creating custom automation scripts for your applications? Check out our comprehensive guide:
+
+📖 **[HOW_TO_PROMPT.md](HOW_TO_PROMPT.md)** - Learn the best practices for writing prompts that work reliably with legacy-use.
 
 ---
 
