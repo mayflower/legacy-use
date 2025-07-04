@@ -13,8 +13,8 @@ const HttpExchangeViewer = ({ exchanges }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
-      {exchanges.map((exchange, index) => (
-        <HttpExchangeItem key={index} exchange={exchange} />
+      {exchanges.map(exchange => (
+        <HttpExchangeItem key={exchange.id} exchange={exchange} />
       ))}
     </Box>
   );
