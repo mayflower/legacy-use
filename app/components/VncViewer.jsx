@@ -1,5 +1,5 @@
 import { Box, CircularProgress, Paper, Typography } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SessionContext } from '../App';
 
@@ -44,6 +44,7 @@ const VncViewer = () => {
       const maxAge = 60 * 60 * 24 * 1; // 1 day
       const secure = window.location.protocol === 'https:' ? 'Secure' : '';
       if (apiKey) {
+        // biome-ignore lint/suspicious/noDocumentCookie: use cookie for vnc auth
         document.cookie = `${cookieName}=${apiKey}; Max-Age=${maxAge}; ${secure}; Path=/`;
         // Set cookieSet to true after the cookie is set
         setCookieSet(true);

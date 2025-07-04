@@ -1,5 +1,4 @@
 import { Box, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
-import React from 'react';
 
 const SessionSelector = ({ targetSessions, selectedSession, handleSessionChange }) => (
   <Box sx={{ mb: 3 }}>

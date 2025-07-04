@@ -24,7 +24,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { deleteSession, getSessions, getTargets } from '../services/apiService';
 
@@ -139,7 +139,7 @@ const SessionList = () => {
     }
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_event, newPage) => {
     setPage(newPage);
   };
 
@@ -246,7 +246,7 @@ const SessionList = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {session.container_status && session.container_status.health ? (
+                        {session.container_status?.health ? (
                           <Tooltip
                             title={session.container_status.health.reason || 'No reason provided'}
                           >

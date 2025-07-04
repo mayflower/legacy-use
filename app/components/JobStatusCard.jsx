@@ -15,7 +15,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getApiDefinitionVersion } from '../services/apiService';
 
@@ -43,7 +43,7 @@ const JobStatusCard = ({
   // Fetch version information if available
   useEffect(() => {
     const fetchVersionInfo = async () => {
-      if (job && job.api_definition_version_id && job.api_name && !versionInfo) {
+      if (job?.api_definition_version_id && job.api_name && !versionInfo) {
         try {
           setLoadingVersion(true);
           const version = await getApiDefinitionVersion(

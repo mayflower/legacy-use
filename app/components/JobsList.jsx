@@ -26,7 +26,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 
@@ -90,7 +90,10 @@ const JobsList = () => {
       // Only include non-empty filters
       const activeFilters = Object.entries(filters)
         .filter(([, value]) => value !== '')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+        .reduce((acc, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        }, {});
 
       const response = await getAllJobs(rowsPerPage, page * rowsPerPage, activeFilters);
       setJobs(response.jobs);
@@ -111,7 +114,7 @@ const JobsList = () => {
     fetchFilterOptions();
   }, []);
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_event, newPage) => {
     setPage(newPage);
   };
 
@@ -377,7 +380,7 @@ const JobsList = () => {
                         }}
                       >
                         {job.error ||
-                          (job.result && JSON.stringify(job.result).slice(0, 100) + '...')}
+                          (job.result && `${JSON.stringify(job.result).slice(0, 100)}...`)}
                       </Box>
                       {(job.status === 'queued' || job.status === 'pending') && (
                         <Tooltip title="Cancel Job">

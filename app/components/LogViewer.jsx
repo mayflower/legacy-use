@@ -18,7 +18,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import { Box, IconButton, Modal, Tooltip, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Custom component for displaying logs with syntax highlighting
 const LogViewer = ({ logs }) => {
@@ -320,13 +320,13 @@ const LogViewer = ({ logs }) => {
         }
 
         // Check for extraction tool result in combined log entry
-        if (log.tool_result && log.tool_result.content && log.content.name === 'extraction') {
+        if (log.tool_result?.content && log.content.name === 'extraction') {
           try {
             // Try to extract and format the extraction result
             const resultContent = log.tool_result.content;
             if (Array.isArray(resultContent)) {
               const textBlock = resultContent.find(item => item.type === 'text');
-              if (textBlock && textBlock.text) {
+              if (textBlock?.text) {
                 try {
                   const jsonData = JSON.parse(textBlock.text);
                   return `Extraction data: ${JSON.stringify(jsonData, null, 2)}`;
@@ -382,14 +382,13 @@ const LogViewer = ({ logs }) => {
       // Handle tool_use results
       if (log.type === 'tool_use') {
         // Check for ui_not_as_expected tool results
-        if (log.content && log.content.output) {
+        if (log.content?.output) {
           return log.content.output;
         }
 
         // Check for extraction tool results specifically
         if (
-          log.content &&
-          log.content.tool_id &&
+          log.content?.tool_id &&
           typeof log.content.tool_id === 'string' &&
           log.content.tool_id.includes('extraction')
         ) {
@@ -397,7 +396,7 @@ const LogViewer = ({ logs }) => {
             // Try to extract and format the JSON data from the result
             if (Array.isArray(log.content.content) && log.content.content.length > 0) {
               const textContent = log.content.content.find(item => item.type === 'text');
-              if (textContent && textContent.text) {
+              if (textContent?.text) {
                 try {
                   const jsonData = JSON.parse(textContent.text);
                   return `Extraction result: ${JSON.stringify(jsonData, null, 2)}`;

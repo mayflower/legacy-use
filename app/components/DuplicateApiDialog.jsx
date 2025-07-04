@@ -8,7 +8,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getApiDefinitionDetails, importApiDefinition } from '../services/apiService';
 

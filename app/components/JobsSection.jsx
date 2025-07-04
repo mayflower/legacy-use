@@ -14,7 +14,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 const JobsSection = ({
@@ -48,7 +47,7 @@ const JobsSection = ({
       </Tooltip>
     </Box>
     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-      <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+      <Tabs value={activeTab} onChange={(_e, newValue) => setActiveTab(newValue)}>
         <Tab label="All Jobs" />
         <Tab
           label={
@@ -161,7 +160,7 @@ const JobsSection = ({
     {activeTab === 2 &&
       (queuedJobs.length > 0 ? (
         <>
-          {queueStatus && queueStatus.running_job && (
+          {queueStatus?.running_job && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Currently Running:

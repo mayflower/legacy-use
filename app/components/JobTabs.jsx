@@ -1,5 +1,4 @@
 import { Alert, Box, CircularProgress, Paper, Tab, Tabs, Typography } from '@mui/material';
-import React from 'react';
 import HttpExchangeViewer from './HttpExchangeViewer';
 import LogViewer from './LogViewer';
 

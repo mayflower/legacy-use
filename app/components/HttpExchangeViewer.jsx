@@ -1,6 +1,6 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box, Card, CardContent, Chip, Divider, IconButton, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 // Add browser globals
 const { URL } = globalThis;
@@ -13,8 +13,8 @@ const HttpExchangeViewer = ({ exchanges }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
-      {exchanges.map((exchange, index) => (
-        <HttpExchangeItem key={index} exchange={exchange} />
+      {exchanges.map(exchange => (
+        <HttpExchangeItem key={exchange.id} exchange={exchange} />
       ))}
     </Box>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 // Add browser globals for linter
 const { localStorage } = globalThis;

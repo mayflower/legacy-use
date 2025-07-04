@@ -20,7 +20,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   getApiDefinitionDetails,
@@ -483,7 +483,7 @@ const EditApiDefinition = () => {
         {apiDefinition.parameters && apiDefinition.parameters.length > 0 ? (
           <Grid container spacing={2}>
             {apiDefinition.parameters.map((param, index) => (
-              <Grid item xs={12} key={index}>
+              <Grid item xs={12} key={param.id}>
                 <Card variant="outlined" sx={{ p: 2 }}>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>

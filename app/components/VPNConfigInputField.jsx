@@ -1,5 +1,5 @@
 import { Box, TextField } from '@mui/material';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const VPNConfigInputField = ({ targetData, validationErrors, loading, handleChange }) => {
   const [dragOver, setDragOver] = useState(false);
