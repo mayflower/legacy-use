@@ -19,6 +19,9 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str
 
+    ENVIRONMENT: str = 'development'
+    API_SENTRY_DSN: str | None = None
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
         extra='allow',

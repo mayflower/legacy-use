@@ -37,10 +37,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Initialize Sentry
-sentry_dsn = os.getenv('API_SENTRY_DSN')
-if sentry_dsn:
+if settings.API_SENTRY_DSN:
     sentry_sdk.init(
-        dsn=sentry_dsn,
+        dsn=settings.API_SENTRY_DSN,
         integrations=[
             FastApiIntegration(),
             AsyncioIntegration(),
@@ -52,7 +51,7 @@ if sentry_dsn:
         # of sampled transactions.
         profiles_sample_rate=0.0,
         # Environment
-        environment=os.getenv('ENVIRONMENT', 'development'),
+        environment=settings.ENVIRONMENT,
     )
     logger.info('Sentry initialized for backend')
 else:
