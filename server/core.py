@@ -3,20 +3,16 @@ Core functionality for AI chat processing, shared between FastAPI and Streamlit 
 """
 
 import logging
-import os
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Callable, Optional
 
 import httpx
 from anthropic.types.beta import BetaMessageParam
-from dotenv import load_dotenv
 
 from server.computer_use import (
     get_default_model_name,
     get_tool_version,
     sampling_loop,
-    validate_provider,
 )
 from server.computer_use.tools import ToolResult
 from server.database import db
@@ -25,24 +21,16 @@ from server.models.base import (
     APIResponse,
     JobStatus,
 )
+from server.settings import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env file
-env_path = Path(__file__).parent / '.env'
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
-    logger.info(f'Loaded environment variables from {env_path}')
-else:
-    logger.warning(f'No .env file found at {env_path}')
-
 
 class APIGatewayCore:
     def __init__(self):
-        provider_str = os.getenv('API_PROVIDER', 'anthropic')
-        self.provider = validate_provider(provider_str)
-        self.api_key = os.getenv('ANTHROPIC_API_KEY', '')
+        self.provider = settings.API_PROVIDER
+        self.api_key = settings.ANTHROPIC_API_KEY
         # Set the model based on the provider
         self.model = get_default_model_name(self.provider)
         self.tool_version = get_tool_version(self.model)

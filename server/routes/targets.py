@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from server.database import db
 from server.models.base import Target, TargetCreate, TargetUpdate
-from server.utils.auth import HIDE_INTERNAL_API_ENDPOINTS_IN_DOC
+from server.settings import settings
 from server.utils.telemetry import (
     capture_target_created,
     capture_target_deleted,
@@ -95,7 +95,8 @@ async def delete_target(target_id: UUID, request: Request):
 
 
 @target_router.delete(
-    '/{target_id}/hard', include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC
+    '/{target_id}/hard',
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def hard_delete_target(target_id: UUID, request: Request):
     """Permanently delete a target (hard delete)."""

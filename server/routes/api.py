@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from server.core import APIGatewayCore
 from server.database import db
 from server.models.base import APIDefinition, Parameter
-from server.utils.auth import HIDE_INTERNAL_API_ENDPOINTS_IN_DOC
+from server.settings import settings
 from server.utils.telemetry import (
     capture_api_created,
     capture_api_deleted,
@@ -148,7 +148,7 @@ async def export_api_definition(api_name: str):
     '/definitions/{api_name}/versions',
     response_model=Dict[str, List[Dict[str, Any]]],
     tags=['API Definitions'],
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def get_api_definition_versions(api_name: str):
     """Get all versions of a specific API definition."""
@@ -198,7 +198,7 @@ async def get_api_definition_versions(api_name: str):
     '/definitions/{api_name}/versions/{version_id}',
     response_model=Dict[str, Dict[str, Any]],
     tags=['API Definitions'],
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def get_api_definition_version(api_name: str, version_id: str):
     """Get a specific version of an API definition."""

@@ -4,7 +4,6 @@ Agentic sampling loop that calls the Anthropic API and local implementation of a
 
 import asyncio
 import json
-import os
 from typing import Any, Callable, Optional, cast
 from uuid import UUID
 
@@ -53,6 +52,7 @@ from server.computer_use.utils import (
 from server.database.service import DatabaseService
 
 # Import the centralized health check function
+from server.settings import settings
 from server.utils.docker_manager import check_target_container_health
 
 # Initialize db service - This might cause issues if DB is not ready globally.
@@ -174,10 +174,10 @@ async def sampling_loop(
         elif provider == APIProvider.BEDROCK:
             # AWS credentials should be set in environment variables
             # by the server.py initialization
-            aws_region = os.getenv('AWS_REGION', 'us-east-1')
-            aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
-            aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-            aws_session_token = os.getenv('AWS_SESSION_TOKEN')
+            aws_region = settings.AWS_REGION
+            aws_access_key = settings.AWS_ACCESS_KEY_ID
+            aws_secret_key = settings.AWS_SECRET_ACCESS_KEY
+            aws_session_token = settings.AWS_SESSION_TOKEN
 
             # Initialize with available credentials
             bedrock_kwargs = {'aws_region': aws_region}

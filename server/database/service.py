@@ -1,12 +1,12 @@
 import logging
-import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from dotenv import load_dotenv
 from sqlalchemy import Integer, cast, create_engine, func
 from sqlalchemy.orm import sessionmaker
+
+from server.settings import settings
 
 from .models import (
     APIDefinition,
@@ -19,23 +19,15 @@ from .models import (
     Target,
 )
 
-# Load environment variables
-load_dotenv()
-
 
 class DatabaseService:
     def __init__(self, db_url=None):
         if db_url is None:
-            db_url = self._get_db_url_from_env()
+            db_url = settings.DATABASE_URL
 
         self.engine = create_engine(db_url)
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
-
-    def _get_db_url_from_env(self):
-        """Get database URL from environment variables"""
-        # Use DATABASE_URL from environment or fall back to default SQLite
-        return os.getenv('DATABASE_URL', 'sqlite:///server/server.db')
 
     # Target methods
     def create_target(self, target_data):
