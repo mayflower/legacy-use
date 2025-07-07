@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
 
+    VITE_PUBLIC_POSTHOG_HOST: str = 'https://eu.i.posthog.com'
+    VITE_PUBLIC_POSTHOG_KEY: str = 'phc_i1lWRELFSWLrbwV8M8sddiFD83rVhWzyZhP27T3s6V8'
+    VITE_PUBLIC_DISABLE_TRACKING: bool = False
+
     LOG_RETENTION_DAYS: int = 7
     SHOW_DOCS: bool = True
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
