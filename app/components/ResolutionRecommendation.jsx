@@ -24,16 +24,20 @@ const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick,
   return (
     <Alert severity="warning" sx={{ mb: 2 }}>
       <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-        Resolution Recommendation
+        Recommended Screen Resolution
       </Typography>
       <Typography variant="body2">
-        For optimal results, we recommend using 1024x768 or 1280x800 resolution. Other resolutions
-        may result in suboptimal performance and reduced reliability.
+        We recommend using one of the standard resolutions below for the best experience. These
+        resolutions are optimized for computer automation tasks and provide better reliability and
+        performance.
       </Typography>
-      <Typography variant="body2" sx={{ mt: 1 }}>
-        <strong>Current:</strong> {width}x{height}
+      <Typography variant="body2" sx={{ mt: 1, mb: 1 }}>
+        <strong>Current resolution:</strong> {width} × {height}
       </Typography>
-      <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+        Choose a recommended resolution:
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 1 }}>
         {recommendedResolutions.map(({ width, height }) => (
           <Button
             key={`${width}x${height}`}
@@ -42,7 +46,7 @@ const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick,
             onClick={() => onRecommendedResolutionClick({ width, height })}
             disabled={disabled}
           >
-            Use {width} x {height}
+            {width} × {height}
           </Button>
         ))}
       </Box>
