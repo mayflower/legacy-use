@@ -13,7 +13,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from starlette.status import HTTP_401_UNAUTHORIZED
-from .settings import ROOT_DIR
 
 from server.computer_use import APIProvider, validate_provider
 from server.database import db
@@ -28,6 +27,8 @@ from server.utils.auth import (
 from server.utils.job_execution import job_queue_initializer
 from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
+
+from .settings import settings
 
 # Set up logging
 logging.basicConfig(
@@ -59,7 +60,7 @@ else:
         'API_SENTRY_DSN not found in environment variables. Sentry is disabled.'
     )
 
-print(ROOT_DIR)
+print(settings.model_dump_json())
 
 # API Key security
 API_KEY = os.getenv('API_KEY', 'your_secret_api_key')
