@@ -19,7 +19,10 @@ class Settings(BaseSettings):
     app_name: str = 'Awesome API'
     items_per_user: int = 50
 
-    model_config = SettingsConfigDict(env_file=ENV_FILE_PATH, extra='allow')
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE_PATH,
+        extra='allow',
+    )
 
 
 settings = Settings()
