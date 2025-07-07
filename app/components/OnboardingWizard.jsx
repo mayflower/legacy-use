@@ -207,8 +207,8 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       {/* Main signup section */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6">Signup for Credits</Typography>
+          <RocketIcon sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="h6">Signup for free</Typography>
         </Box>
 
         <Grid container spacing={2}>
@@ -256,7 +256,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
           disabled={loading}
           sx={{ mt: 3 }}
         >
-          {loading ? 'Processing...' : 'Sign Up for $5 Credits'}
+          {loading ? 'Processing...' : 'Get $5 Credits for free'}
         </Button>
       </Paper>
 
@@ -268,18 +268,12 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       </Divider>
 
       {/* Secondary option */}
-      <Paper elevation={1} sx={{ p: 3, bgcolor: 'grey.50' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <SettingsIcon sx={{ mr: 1, color: 'text.secondary' }} />
-          <Typography variant="h6">Configure Your Own Keys</Typography>
-        </Box>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          Already have API keys? Skip the credits and configure your own provider credentials.
-        </Typography>
-        <Button variant="outlined" onClick={handleNext} startIcon={<KeyIcon />}>
-          Configure Provider
-        </Button>
-      </Paper>
+      <Typography variant="body2" color="text.secondary" paragraph align="center">
+        Already have API keys? Skip the credits and configure your own provider credentials.
+      </Typography>
+      <Button variant="outlined" onClick={handleNext} startIcon={<KeyIcon />} fullWidth>
+        Configure Custom Provider
+      </Button>
     </Box>
   );
 
