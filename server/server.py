@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from starlette.status import HTTP_401_UNAUTHORIZED
+from .settings import ROOT_DIR
 
 from server.computer_use import APIProvider, validate_provider
 from server.database import db
@@ -57,6 +58,8 @@ else:
     logger.warning(
         'API_SENTRY_DSN not found in environment variables. Sentry is disabled.'
     )
+
+print(ROOT_DIR)
 
 # API Key security
 API_KEY = os.getenv('API_KEY', 'your_secret_api_key')
