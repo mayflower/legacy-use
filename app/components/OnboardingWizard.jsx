@@ -168,10 +168,6 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     }
   };
 
-  const handleSkipToProvider = () => {
-    setActiveStep(2);
-  };
-
   const renderWelcomeStep = () => (
     <Box sx={{ textAlign: 'center', py: 4 }}>
       <RocketIcon sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
@@ -193,9 +189,6 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       <Box sx={{ mt: 4 }}>
         <Button variant="contained" size="large" onClick={handleNext} sx={{ mr: 2 }}>
           Get Started
-        </Button>
-        <Button variant="outlined" size="large" onClick={handleSkipToProvider}>
-          Skip to Configuration
         </Button>
       </Box>
     </Box>
