@@ -5,9 +5,8 @@ repos:
       - id: ruff
         name: ruff
         entry: uv
-        args: ["run", "ruff", "check", "server/", "--fix"]
+        args: ["run", "ruff", "check", ".", "--fix"]
         language: system
-        files: server/
         types: [python]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -16,7 +15,7 @@ repos:
       - id: ruff-format
         name: ruff-format
         entry: uv
-        args: ["run", "ruff", "format", "server/"]
+        args: ["run", "ruff", "format", "."]
         language: system
         types: [python]
 

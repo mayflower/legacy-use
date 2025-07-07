@@ -36,3 +36,6 @@ dev = [
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.ruff]
+# Add include/exclude settings here if needed in the future
