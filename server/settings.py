@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     FASTAPI_SERVER_HOST: str = '0.0.0.0'
     FASTAPI_SERVER_PORT: int = 8088
 
+    DATABASE_URL: str = 'sqlite:///server/server.db'
+
     API_KEY: str = 'not-secure-api-key'
     API_KEY_NAME: str = 'X-API-Key'
 

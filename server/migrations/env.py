@@ -1,5 +1,3 @@
-import os
-
 # Import the Base from our models
 import sys
 from logging.config import fileConfig
@@ -8,6 +6,8 @@ from pathlib import Path
 from alembic import context
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
+
+from server.settings import settings
 
 # Add the parent directory to the path so we can import the server package
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -23,15 +23,8 @@ load_dotenv()
 config = context.config
 
 
-# Get database URL from environment variables
-def get_db_url_from_env():
-    """Get database URL from environment variables"""
-    # Use DATABASE_URL from environment or fall back to default SQLite
-    return os.getenv('DATABASE_URL', 'sqlite:///server/server.db')
-
-
 # Override the SQLAlchemy URL with the one from environment variables
-config.set_main_option('sqlalchemy.url', get_db_url_from_env())
+config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
