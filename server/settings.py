@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     FASTAPI_SERVER_PORT: int = 8088
 
     API_KEY: str = 'not-secure-api-key'
-    API_KEY_NAME = 'X-API-Key'
+    API_KEY_NAME: str = 'X-API-Key'
 
     API_PROVIDER: APIProvider = APIProvider.ANTHROPIC
 
