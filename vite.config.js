@@ -8,7 +8,6 @@ export default defineConfig({
     outDir: 'build',
   },
   server: {
-    port: 3000,
     host: '0.0.0.0',
     watch: {
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
