@@ -4,8 +4,8 @@ repos:
     hooks:
       - id: ruff
         name: ruff
-        entry: ruff
-        args: ["check", "--fix", "--config=server/pyproject.toml"]
+        entry: uv
+        args: ["run", "ruff", "check", "server/", "--fix"]
         language: system
         files: server/
         types: [python]
@@ -15,8 +15,8 @@ repos:
     hooks:
       - id: ruff-format
         name: ruff-format
-        entry: ruff
-        args: ["format", "--config=server/pyproject.toml"]
+        entry: uv
+        args: ["run", "ruff", "format", "server/"]
         language: system
         types: [python]
 

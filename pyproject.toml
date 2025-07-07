@@ -30,9 +30,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest-cov>=6.2.1",
     "pytest-github-actions-annotate-failures>=0.3.0",
     "ruff>=0.12.1",
+    "pre-commit>=4.2.0"
 ]
 
 [tool.ruff.format]

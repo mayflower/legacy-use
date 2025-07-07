@@ -32,17 +32,17 @@ jobs:
         python-version-file: "pyproject.toml"
 
     - name: Install dependencies
-      run: uv sync --locked
+      run: uv sync --locked --extra dev
 
     - name: Run Ruff linter
       run: |
         echo "Running Ruff linter on Python code..."
-        uv run ruff check server/
+        pre-commit run ruff
 
     - name: Run Ruff formatter check
       run: |
         echo "Checking Python code formatting..."
-        uv run ruff format --check server/
+        pre-commit run ruff-format
 
   lint-frontend:
     name: Lint Frontend Code
