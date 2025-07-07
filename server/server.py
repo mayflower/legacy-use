@@ -60,10 +60,6 @@ else:
     )
 
 
-# API Key security
-API_KEY = os.getenv('API_KEY', 'your_secret_api_key')
-API_KEY_NAME = 'X-API-Key'
-
 # Handle provider-specific environment variables
 if settings.API_PROVIDER == APIProvider.BEDROCK:
     if not all(
@@ -141,7 +137,7 @@ async def auth_middleware(request: Request, call_next):
             return await call_next(request)
 
     api_key = await get_api_key(request)
-    if api_key == API_KEY:
+    if api_key == settings.API_KEY:
         return await call_next(request)
 
     raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail='Invalid API Key')
@@ -190,7 +186,7 @@ app.openapi_components = {
         'ApiKeyAuth': {
             'type': 'apiKey',
             'in': 'header',
-            'name': API_KEY_NAME,
+            'name': settings.API_KEY_NAME,
             'description': "API key authentication. Enter your API key in the format: 'your_api_key'",
         }
     }

@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     FASTAPI_SERVER_HOST: str = '0.0.0.0'
     FASTAPI_SERVER_PORT: int = 8088
 
+    API_KEY: str = 'not-secure-api-key'
+    API_KEY_NAME = 'X-API-Key'
+
     API_PROVIDER: APIProvider = APIProvider.ANTHROPIC
 
     AWS_ACCESS_KEY_ID: str
