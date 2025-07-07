@@ -2,7 +2,7 @@
 Settings management routes.
 """
 
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -14,6 +14,22 @@ from server.computer_use.config import (
 from server.settings import settings
 
 
+def obscure_api_key(api_key: Optional[str]) -> Optional[str]:
+    """
+    Obscure an API key by showing only the last 4 characters.
+
+    Args:
+        api_key: The API key to obscure
+
+    Returns:
+        Obscured API key showing only last 4 digits, or None if key is None/empty
+    """
+    if not api_key or len(api_key) < 4:
+        return None
+
+    return f'****{api_key[-4:]}'
+
+
 class ProviderConfiguration(BaseModel):
     """Configuration for a VLM provider."""
 
@@ -22,6 +38,7 @@ class ProviderConfiguration(BaseModel):
     default_model: str
     available: bool
     description: str
+    api_key: Optional[str] = None  # Obscured API key
 
 
 class ProvidersResponse(BaseModel):
@@ -45,6 +62,7 @@ async def get_providers():
             'name': 'Anthropic',
             'description': 'Anthropic Claude models via direct API',
             'available': bool(getattr(settings, 'ANTHROPIC_API_KEY', None)),
+            'api_key': getattr(settings, 'ANTHROPIC_API_KEY', None),
         },
         APIProvider.BEDROCK: {
             'name': 'Amazon Bedrock',
@@ -56,6 +74,7 @@ async def get_providers():
                     getattr(settings, 'AWS_REGION', None),
                 ]
             ),
+            'api_key': getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
         },
         APIProvider.VERTEX: {
             'name': 'Google Vertex AI',
@@ -66,6 +85,7 @@ async def get_providers():
                     getattr(settings, 'VERTEX_PROJECT_ID', None),
                 ]
             ),
+            'api_key': getattr(settings, 'VERTEX_PROJECT_ID', None),
         },
     }
 
@@ -79,6 +99,7 @@ async def get_providers():
                 default_model=get_default_model_name(provider_enum),
                 available=config['available'],
                 description=config['description'],
+                api_key=obscure_api_key(config.get('api_key')),
             )
         )
 
