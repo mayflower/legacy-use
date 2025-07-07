@@ -29,7 +29,7 @@ from pydantic import BaseModel
 from server.core import APIGatewayCore
 from server.database.service import DatabaseService
 from server.models.base import Job, JobCreate, JobStatus
-from server.utils.auth import HIDE_INTERNAL_API_ENDPOINTS_IN_DOC
+from server.settings import settings
 from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
@@ -286,7 +286,7 @@ async def get_queue_status():
 
 @job_router.post(
     '/targets/{target_id}/jobs/{job_id}/interrupt/',
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def interrupt_job(target_id: UUID, job_id: UUID, request: Request):
     """Interrupt a running, queued, or pending job."""
@@ -484,7 +484,7 @@ async def cancel_job(target_id: UUID, job_id: UUID, request: Request):
 @job_router.get(
     '/targets/{target_id}/jobs/{job_id}/logs/',
     response_model=List[JobLogEntry],
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def get_job_logs(target_id: UUID, job_id: UUID, request: Request):
     """Get logs for a specific job."""
@@ -506,7 +506,7 @@ async def get_job_logs(target_id: UUID, job_id: UUID, request: Request):
 @job_router.get(
     '/targets/{target_id}/jobs/{job_id}/http_exchanges/',
     response_model=List[HttpExchangeLog],
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def get_job_http_exchanges(target_id: UUID, job_id: UUID):
     """
@@ -549,7 +549,7 @@ async def get_job_http_exchanges(target_id: UUID, job_id: UUID):
 
 @job_router.post(
     '/targets/{target_id}/jobs/{job_id}/resolve/',
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def resolve_job(
     target_id: UUID,
@@ -679,7 +679,7 @@ async def resync_queue():
     '/targets/{target_id}/jobs/{job_id}/resume/',
     response_model=Job,
     tags=['Jobs'],
-    include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def resume_job(target_id: UUID, job_id: UUID, request: Request):
     """Resumes a paused or error job by setting its status to queued."""

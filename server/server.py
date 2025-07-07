@@ -19,11 +19,7 @@ from server.database import db
 from server.routes import api_router, job_router, target_router
 from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
-from server.utils.auth import (
-    HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
-    SHOW_DOCS,
-    get_api_key,
-)
+from server.utils.auth import get_api_key
 from server.utils.job_execution import job_queue_initializer
 from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
@@ -99,7 +95,7 @@ app = FastAPI(
     title='AI API Gateway',
     description='API Gateway for AI-powered endpoints',
     version='1.0.0',
-    redoc_url='/redoc' if SHOW_DOCS else None,
+    redoc_url='/redoc' if settings.SHOW_DOCS else None,
     # Disable automatic redirect from /path to /path/
     redirect_slashes=False,
 )
@@ -125,7 +121,7 @@ async def auth_middleware(request: Request, call_next):
         r'^/sitemap\.xml$',  # Sitemap requests
     ]
 
-    if SHOW_DOCS:
+    if settings.SHOW_DOCS:
         whitelist_patterns.append(
             r'^/redoc(/.*)?$'
         )  # Matches /redoc and /redoc/anything
@@ -200,7 +196,8 @@ app.include_router(api_router)
 # Include core routers
 app.include_router(target_router)
 app.include_router(
-    session_router, include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC
+    session_router,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 app.include_router(job_router)
 
@@ -209,7 +206,8 @@ app.include_router(websocket_router)
 
 # Include diagnostics router
 app.include_router(
-    diagnostics_router, include_in_schema=not HIDE_INTERNAL_API_ENDPOINTS_IN_DOC
+    diagnostics_router,
+    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 
 

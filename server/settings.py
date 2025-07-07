@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     API_SENTRY_DSN: str | None = None
 
     LOG_RETENTION_DAYS: int = 7
+    SHOW_DOCS: bool = True
+    HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
