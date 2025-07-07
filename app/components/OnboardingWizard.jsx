@@ -40,6 +40,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [selectedProvider, setSelectedProvider] = useState('');
   const [_providerCredentials, _setProviderCredentials] = useState({});
   const [signupCompleted, setSignupCompleted] = useState(false);
+  const [activationCode, setActivationCode] = useState('');
 
   // Signup form state
   const [signupData, setSignupData] = useState({
@@ -86,6 +87,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       fetchProviders();
       // Reset signup state when dialog opens
       setSignupCompleted(false);
+      setActivationCode('');
       setError('');
     }
   }, [open]);
@@ -119,6 +121,31 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       setSignupCompleted(true);
     } catch (_err) {
       setError('Failed to process signup. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleActivationSubmit = async () => {
+    if (!activationCode.trim()) {
+      setError('Please enter your activation code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Here you would typically validate the activation code with your API
+      console.log('Activation code:', activationCode);
+
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Complete the onboarding
+      onComplete();
+    } catch (_err) {
+      setError('Invalid activation code. Please check your email and try again.');
     } finally {
       setLoading(false);
     }
@@ -218,8 +245,8 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         </Box>
 
         <Typography variant="body1" paragraph>
-          We've sent an email to <strong>{signupData.email}</strong> with your $5 credit code and
-          instructions on how to get started.
+          We've sent an email to <strong>{signupData.email}</strong> with your $5 credit activation
+          code and instructions on how to get started.
         </Typography>
 
         <Typography variant="body2" color="text.secondary">
@@ -227,9 +254,39 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         </Typography>
       </Paper>
 
-      <Button variant="contained" size="large" onClick={() => onComplete()} sx={{ mt: 2 }}>
-        Continue to Dashboard
-      </Button>
+      <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Enter Activation Code
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          Enter the activation code from your email to claim your $5 credits and continue.
+        </Typography>
+
+        <TextField
+          fullWidth
+          label="Activation Code"
+          value={activationCode}
+          onChange={e => setActivationCode(e.target.value)}
+          variant="outlined"
+          placeholder="Enter your activation code"
+          sx={{ mb: 2 }}
+          onKeyPress={e => {
+            if (e.key === 'Enter' && !loading && activationCode.trim()) {
+              handleActivationSubmit();
+            }
+          }}
+        />
+
+        <Button
+          fullWidth
+          variant="contained"
+          size="large"
+          onClick={handleActivationSubmit}
+          disabled={loading || !activationCode.trim()}
+        >
+          {loading ? 'Verifying...' : 'Activate Credits & Continue'}
+        </Button>
+      </Paper>
     </Box>
   );
 
