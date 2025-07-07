@@ -1,7 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
-from server.computer_use.config import APIProvider
 
 ROOT_DIR = Path(__file__).parent.parent
 ENV_FILE_PATH = ROOT_DIR / '.env'
@@ -16,7 +15,7 @@ class Settings(BaseSettings):
     API_KEY: str = 'not-secure-api-key'
     API_KEY_NAME: str = 'X-API-Key'
 
-    API_PROVIDER: APIProvider = APIProvider.ANTHROPIC
+    API_PROVIDER: str = 'anthropic'
 
     AWS_ACCESS_KEY_ID: str
     AWS_SECRET_ACCESS_KEY: str
