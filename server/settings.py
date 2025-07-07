@@ -14,8 +14,6 @@ print('API_KEY', env('API_KEY'))
 
 print('Env', env.dump())
 
-print('FAIL', env('FAIL'))
-
 
 class Settings(BaseSettings):
     app_name: str = 'Awesome API'
