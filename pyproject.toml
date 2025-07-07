@@ -30,7 +30,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest-github-actions-annotate-failures>=0.3.0",
     "ruff>=0.12.1",
     "pre-commit>=4.2.0"
 ]
