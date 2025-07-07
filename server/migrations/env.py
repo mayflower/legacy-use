@@ -6,12 +6,12 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from server.settings import settings
 
 # Add the parent directory to the path so we can import the server package
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-# Import Base from our models
+# Import settings and Base from our models
+from server.settings import settings
 from server.database.models import Base
 
 
