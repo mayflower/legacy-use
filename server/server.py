@@ -234,7 +234,7 @@ async def prune_old_logs():
             await asyncio.sleep(sleep_seconds)
 
             # Prune logs
-            days_to_keep = int(os.environ.get('LOG_RETENTION_DAYS', '7'))
+            days_to_keep = settings.LOG_RETENTION_DAYS
             deleted_count = db.prune_old_logs(days=days_to_keep)
             logger.info(f'Pruned {deleted_count} logs older than {days_to_keep} days')
         except Exception as e:

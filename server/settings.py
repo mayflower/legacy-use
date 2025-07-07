@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
 
+    LOG_RETENTION_DAYS: int = 7
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
         extra='allow',
