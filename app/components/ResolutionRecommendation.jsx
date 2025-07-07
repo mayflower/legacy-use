@@ -13,13 +13,12 @@ const recommendedResolutions = [
 ];
 
 const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick, disabled }) => {
-  // Check if current resolution is not the recommended 1024x768
-  const isNonStandardResolution = !recommendedResolutions.some(
+  const isRecommendedResolution = recommendedResolutions.some(
     resolution => resolution.width === width && resolution.height === height,
   );
 
-  if (!isNonStandardResolution) {
-    return null; // Don't show warning for standard resolution
+  if (isRecommendedResolution) {
+    return null; // Don't show warning for recommended resolution
   }
 
   return (
