@@ -53,7 +53,7 @@
   - Used to authenticate requests to your legacy-use instance
 
 #### For Development Only
-Want to contribute or modify the code? You'll need Node.js and Python locally for development.  
+Want to contribute or modify the code? You'll need Node.js and Python locally for development.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete development setup guide.
 
 ### Setup Steps
@@ -79,7 +79,7 @@ LEGACY_USE_DEBUG=1 ./start_docker.sh
 
 Once the setup completes:
 
-1. **Frontend**: Open <http://localhost:3000> - you should see the legacy-use dashboard
+1. **Frontend**: Open <http://localhost:5173> - you should see the legacy-use dashboard
 2. **API Documentation**: Visit <http://localhost:8088/redoc> - to explore the REST API
 🎉 **You're all set!** The complete setup usually takes 2-5 minutes depending on your internet connection.
 
@@ -87,7 +87,7 @@ Once the setup completes:
 
 **Docker not starting?**
 - Ensure Docker Desktop is running
-- Check if ports 3000 and 8088 are available: `lsof -i :3000` and `lsof -i :8088`
+- Check if ports 5173 and 8088 are available: `lsof -i :5173` and `lsof -i :8088`
 
 **Build failing?**
 - Ensure you have sufficient disk space (~2GB)
@@ -135,7 +135,7 @@ For optimal performance, configure your VM's display resolution:
 **Note**: Larger resolutions can be used, but performance may degrade—especially when working with very small UI elements.
 
 ### Step 5: Add Target in Legacy-Use
-1. Open the legacy-use web interface: `http://localhost:3000`
+1. Open the legacy-use web interface: `http://localhost:5173`
 2. Navigate to **Targets** → **New Target**
 3. Fill in the details:
    ```
@@ -153,9 +153,9 @@ For optimal performance, configure your VM's display resolution:
 
 ## ✅ Run your first job (Windows Calculator)
 
-1. **Sessions → Create Session** for your target.  
-2. **APIs → Import** → select `sample_prompts/WindowsCalc.json`.  
-3. Choose your session & click **Execute**.  
+1. **Sessions → Create Session** for your target.
+2. **APIs → Import** → select `sample_prompts/WindowsCalc.json`.
+3. Choose your session & click **Execute**.
 4. Integrate via REST ➜ three-dot menu → **cURL**.
 
 ---
@@ -185,10 +185,10 @@ Creating custom automation scripts for your applications? Check out our comprehe
 
 We collect minimal anonymous usage data to improve the product. This helps us understand:
 - Which features are most useful
-- Performance bottlenecks  
+- Performance bottlenecks
 - Common error patterns
 
-**What we collect**: Usage statistics, error logs, feature interactions  
+**What we collect**: Usage statistics, error logs, feature interactions
 **What we DON'T collect**: Your API keys, target machine data, or sensitive information
 
 **Disable anytime** by adding to your `.env` file:
@@ -196,7 +196,7 @@ We collect minimal anonymous usage data to improve the product. This helps us un
 VITE_PUBLIC_DISABLE_TRACKING=true
 ```
 
-**Full transparency**: See exactly what we track in the code:  
+**Full transparency**: See exactly what we track in the code:
 `app/index.jsx`, `app/services/telemetryService.jsx`, `server/server.py`, `server/utils/telemetry.py`
 
 ---

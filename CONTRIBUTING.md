@@ -37,8 +37,8 @@ We welcome contributions through GitHub pull requests. This document outlines ou
 
 - The first thing you'll touch is our React-based frontend. With it you can set up targets, create API endpoints, and inspect running or past jobs.
 - Our FastAPI server powers the frontend and, more importantly, acts as the gateway between you and the machines you want to automate. Once a target is set up and a Session created, the server spins up a Docker container that hosts that session solely for the target.
-- Flow of a call: 
-    - One sends a POST request to the /targets/{target_id}/jobs/ endpoint. 
+- Flow of a call:
+    - One sends a POST request to the /targets/{target_id}/jobs/ endpoint.
     - The server will then spin up a Docker container that hosts the session, creating and maintaining a connection to the target.
     - The server adds the job to the target-specific job queue and returns a job ID.
         - Once the job leaves the queue it runs asynchronously, navigating the target machine.
@@ -48,11 +48,11 @@ We welcome contributions through GitHub pull requests. This document outlines ou
 ### Repository Structure
 
 - [app](./app)
-    
+
 - [server](./server)
     - Have a look at the [core.py](./server/core.py) file to get an overview of the flow of a call.
     - Have a look at the [sampling_loop.py](./server/computer_use/sampling_loop.py) file to get an overview of the agentic loop.
-    
+
 - [infra](./infra)
 
 ## Getting setup for development
@@ -110,10 +110,8 @@ Following the steps in the [README.md](./README.md) file will get you up and run
    ```bash
    npm run dev              # or: bun run dev
    ```
-   Visit http://localhost:3000 and start hacking!  
+   Visit http://localhost:5173 and start hacking!
 
 ## Contact us via Discord
 
 We have a dedicated Discord server for contributors and users. You can join it [here](https://link.browser-use.com/discord).
-
-

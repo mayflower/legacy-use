@@ -68,6 +68,6 @@ echo "Starting development server"\n\
 exec npm start' > $HOME/entrypoint.sh && \
     chmod +x $HOME/entrypoint.sh
 
-EXPOSE 3000
+EXPOSE 5173
 
 ENTRYPOINT ["./entrypoint.sh"]
