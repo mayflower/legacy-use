@@ -264,5 +264,6 @@ async def startup_event():
 if __name__ == '__main__':
     import uvicorn
 
-    port = int(os.getenv('FASTAPI_SERVER_PORT', '8088'))
-    uvicorn.run('server.server:app', host='0.0.0.0', port=port, reload=True)
+    host = settings.FASTAPI_SERVER_HOST
+    port = settings.FASTAPI_SERVER_PORT
+    uvicorn.run('server.server:app', host=host, port=port, reload=True)

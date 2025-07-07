@@ -8,8 +8,8 @@ ENV_FILE_PATH = ROOT_DIR / '.env'
 
 
 class Settings(BaseSettings):
-    app_name: str = 'Awesome API'
-    items_per_user: int = 50
+    FASTAPI_SERVER_HOST: str = '0.0.0.0'
+    FASTAPI_SERVER_PORT: int = 8088
 
     API_PROVIDER: APIProvider = APIProvider.ANTHROPIC
 
