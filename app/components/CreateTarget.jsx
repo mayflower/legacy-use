@@ -15,6 +15,7 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTarget } from '../services/apiService';
+import ResolutionRecommendation from './ResolutionRecommendation';
 import VPNConfigInputField from './VPNConfigInputField';
 
 // Default ports for different target types
@@ -95,6 +96,10 @@ const CreateTarget = () => {
       type: newType,
       port: DEFAULT_PORTS[newType] || null,
     }));
+  };
+
+  const handleRecommendedResolutionClick = ({ width, height }) => {
+    setTargetData(prev => ({ ...prev, width, height }));
   };
 
   const validateForm = () => {
@@ -353,6 +358,16 @@ const CreateTarget = () => {
                 disabled={loading}
                 required
                 InputProps={{ inputProps: { min: 1 } }}
+              />
+            </Grid>
+
+            {/* Resolution recommendation warning */}
+            <Grid item xs={12}>
+              <ResolutionRecommendation
+                width={targetData.width}
+                height={targetData.height}
+                onRecommendedResolutionClick={handleRecommendedResolutionClick}
+                disabled={loading}
               />
             </Grid>
 

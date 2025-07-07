@@ -35,6 +35,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { deleteTarget, getJobs, getTarget, getTargets, updateTarget } from '../services/apiService';
+import ResolutionRecommendation from './ResolutionRecommendation';
 import VPNConfigInputField from './VPNConfigInputField';
 
 const TargetList = () => {
@@ -226,6 +227,10 @@ const TargetList = () => {
         [name]: numValue,
       }));
     }
+  };
+
+  const handleEditRecommendedResolutionClick = ({ width, height }) => {
+    setEditFormData(prev => ({ ...prev, width, height }));
   };
 
   const validateEditForm = () => {
@@ -648,6 +653,16 @@ const TargetList = () => {
                 required
                 margin="normal"
                 InputProps={{ inputProps: { min: 1 } }}
+              />
+            </Grid>
+
+            {/* Resolution recommendation warning */}
+            <Grid item xs={12}>
+              <ResolutionRecommendation
+                width={editFormData.width || 1024}
+                height={editFormData.height || 768}
+                onRecommendedResolutionClick={handleEditRecommendedResolutionClick}
+                disabled={editInProgress}
               />
             </Grid>
           </Grid>
