@@ -19,6 +19,9 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str
 
+    VERTEX_REGION: str
+    VERTEX_PROJECT_ID: str
+
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
 

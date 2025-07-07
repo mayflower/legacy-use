@@ -85,19 +85,17 @@ if settings.API_PROVIDER == APIProvider.BEDROCK:
         )
 elif settings.API_PROVIDER == APIProvider.VERTEX:
     # Get Vertex-specific environment variables
-    VERTEX_REGION = os.getenv('VERTEX_REGION')
-    VERTEX_PROJECT_ID = os.getenv('VERTEX_PROJECT_ID')
 
-    if not all([VERTEX_REGION, VERTEX_PROJECT_ID]):
+    if not all([settings.VERTEX_REGION, settings.VERTEX_PROJECT_ID]):
         logger.warning(
             'Using Vertex provider but required environment variables are missing.'
         )
     else:
         # Ensure these are set in environment for the AnthropicVertex client
-        os.environ['CLOUD_ML_REGION'] = VERTEX_REGION
-        os.environ['ANTHROPIC_VERTEX_PROJECT_ID'] = VERTEX_PROJECT_ID
+        os.environ['CLOUD_ML_REGION'] = settings.VERTEX_REGION
+        os.environ['ANTHROPIC_VERTEX_PROJECT_ID'] = settings.VERTEX_PROJECT_ID
         logger.info(
-            f'Vertex credentials loaded (region: {VERTEX_REGION}, project: {VERTEX_PROJECT_ID})'
+            f'Vertex credentials loaded (region: {settings.VERTEX_REGION}, project: {settings.VERTEX_PROJECT_ID})'
         )
 
 
