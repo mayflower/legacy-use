@@ -60,7 +60,6 @@ else:
         'API_SENTRY_DSN not found in environment variables. Sentry is disabled.'
     )
 
-print(settings.model_dump_json())
 
 # API Key security
 API_KEY = os.getenv('API_KEY', 'your_secret_api_key')
