@@ -229,12 +229,8 @@ const TargetList = () => {
     }
   };
 
-  const handleEditRecommendedResolutionClick = () => {
-    setEditFormData(prev => ({
-      ...prev,
-      width: 1024,
-      height: 768,
-    }));
+  const handleEditRecommendedResolutionClick = ({ width, height }) => {
+    setEditFormData(prev => ({ ...prev, width, height }));
   };
 
   const validateEditForm = () => {

@@ -98,12 +98,8 @@ const CreateTarget = () => {
     }));
   };
 
-  const handleRecommendedResolutionClick = () => {
-    setTargetData(prev => ({
-      ...prev,
-      width: 1024,
-      height: 768,
-    }));
+  const handleRecommendedResolutionClick = ({ width, height }) => {
+    setTargetData(prev => ({ ...prev, width, height }));
   };
 
   const validateForm = () => {

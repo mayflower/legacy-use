@@ -27,22 +27,24 @@ const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick,
         Resolution Recommendation
       </Typography>
       <Typography variant="body2">
-        For optimal results, we recommend using the standard 1024x768 resolution. Other resolutions
-        may result in suboptimal performance, display issues, or compatibility problems with certain
-        applications and VNC/RDP clients.
+        For optimal results, we recommend using 1024x768 or 1280x800 resolution. Other resolutions
+        may result in suboptimal performance and reduced reliability.
       </Typography>
       <Typography variant="body2" sx={{ mt: 1 }}>
-        <strong>Current:</strong> {width}x{height} |<strong> Recommended:</strong> 1024x768
+        <strong>Current:</strong> {width}x{height}
       </Typography>
-      <Box sx={{ mt: 2 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={onRecommendedResolutionClick}
-          disabled={disabled}
-        >
-          Use Recommended Resolution (1024x768)
-        </Button>
+      <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+        {recommendedResolutions.map(({ width, height }) => (
+          <Button
+            key={`${width}x${height}`}
+            variant="outlined"
+            size="small"
+            onClick={() => onRecommendedResolutionClick({ width, height })}
+            disabled={disabled}
+          >
+            Use {width} x {height}
+          </Button>
+        ))}
       </Box>
     </Alert>
   );
