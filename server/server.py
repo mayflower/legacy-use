@@ -14,7 +14,7 @@ from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from server.computer_use import APIProvider, validate_provider
+from server.computer_use import APIProvider
 from server.database import db
 from server.routes import api_router, job_router, target_router
 from server.routes.diagnostics import diagnostics_router
@@ -71,15 +71,12 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION')
 
-# Export AWS credentials to environment if using Bedrock
-provider_str = os.getenv('API_PROVIDER', 'anthropic')
-provider = validate_provider(provider_str)
-
 # Handle provider-specific environment variables
-if provider == APIProvider.BEDROCK:
+if settings.API_PROVIDER == APIProvider.BEDROCK:
     if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION]):
         logger.warning('Using Bedrock provider but AWS credentials are missing.')
     else:
+        # Export AWS credentials to environment if using Bedrock
         # Ensure these are set in environment for the AnthropicBedrock client
         os.environ['AWS_ACCESS_KEY_ID'] = AWS_ACCESS_KEY_ID
         os.environ['AWS_SECRET_ACCESS_KEY'] = AWS_SECRET_ACCESS_KEY
@@ -87,7 +84,7 @@ if provider == APIProvider.BEDROCK:
         logger.info(
             f'AWS credentials loaded for Bedrock provider (region: {AWS_REGION})'
         )
-elif provider == APIProvider.VERTEX:
+elif settings.API_PROVIDER == APIProvider.VERTEX:
     # Get Vertex-specific environment variables
     VERTEX_REGION = os.getenv('VERTEX_REGION')
     VERTEX_PROJECT_ID = os.getenv('VERTEX_PROJECT_ID')
