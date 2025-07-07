@@ -52,7 +52,7 @@ fi
 npm start | cat &
 
 echo "✨ legacy-use is ready!"
-echo "➡️  Open http://localhost:3000 in your browser to begin"
+echo "➡️  Open http://localhost:5173 in your browser to begin"
 
 # Keep the container running
 tail -f /tmp/fastapi_stdout.log

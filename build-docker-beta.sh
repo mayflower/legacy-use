@@ -109,7 +109,7 @@ services:
     pull_policy: always
     container_name: legacy-use-frontend
     ports:
-      - "3000:3000"
+      - "5173:5173"
     env_file:
       - .env
     environment:
@@ -229,7 +229,7 @@ sleep 5
 if docker compose ps --format json | grep -q "running"; then
     echo -e "\${GREEN}Legacy Use is now running!\${NC}"
     echo -e "\nAccess points:"
-    echo -e "\${BLUE}Frontend:\${NC} http://localhost:3000"
+    echo -e "\${BLUE}Frontend:\${NC} http://localhost:5173"
     echo -e "\${BLUE}API Documentation:\${NC} http://localhost:8088/docs"
     echo -e "\${BLUE}Linux Machine (VNC):\${NC} http://localhost:6080"
     echo ""
@@ -237,11 +237,11 @@ if docker compose ps --format json | grep -q "running"; then
 
     # Open the frontend in the browser
     if command -v open >/dev/null 2>&1; then
-        open http://localhost:3000/targets?startup
+        open http://localhost:5173/targets?startup
     elif command -v xdg-open >/dev/null 2>&1; then
-        xdg-open http://localhost:3000/targets?startup
+        xdg-open http://localhost:5173/targets?startup
     else
-        echo "Please open http://localhost:3000/targets?startup in your browser"
+        echo "Please open http://localhost:5173/targets?startup in your browser"
     fi
 
     echo ""
@@ -306,14 +306,14 @@ if errorlevel 1 (
     echo Legacy Use is now running!
     echo.
     echo Access points:
-    echo Frontend: http://localhost:3000
+    echo Frontend: http://localhost:5173
     echo API Documentation: http://localhost:8088/docs
     echo Linux Machine [VNC]: http://localhost:6080
     echo.
     echo Opening the application in your browser...
 
     :: Open the frontend in the browser
-    start http://localhost:3000/targets?startup
+    start http://localhost:5173/targets?startup
 
     echo.
     echo Setup complete! This window will close in 10 seconds...

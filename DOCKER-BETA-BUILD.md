@@ -30,8 +30,8 @@ The script creates `build/legacy-use-beta.zip` containing:
 **To distribute:** Simply share the `legacy-use-beta.zip` file. Users can:
 1. Extract the zip
 2. Double-click the startup script for their OS
-3. The app will automatically start at `http://localhost:3000`
+3. The app will automatically start at `http://localhost:5173`
 
 ## Updating Images
 
-To push updated images to Docker Hub, just run the build script again with the same username. 
+To push updated images to Docker Hub, just run the build script again with the same username.
