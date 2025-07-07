@@ -37,12 +37,12 @@ jobs:
     - name: Run Ruff linter
       run: |
         echo "Running Ruff linter on Python code..."
-        pre-commit run ruff
+        uv run pre-commit run ruff
 
     - name: Run Ruff formatter check
       run: |
         echo "Checking Python code formatting..."
-        pre-commit run ruff-format
+        uv run pre-commit run ruff-format
 
   lint-frontend:
     name: Lint Frontend Code
