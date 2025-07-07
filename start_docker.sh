@@ -23,7 +23,7 @@ DOCKER_CMD="docker run -u root \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $HOME/.config/gcloud/application_default_credentials.json:/home/legacy-use-mgmt/.config/gcloud/application_default_credentials.json \
     -p 8088:8088 \
-    -p 3000:3000 \
+    -p 5173:5173 \
     -e LEGACY_USE_DEBUG=$LEGACY_USE_DEBUG"
 
 # Configure database connection if in AWS and production mode
