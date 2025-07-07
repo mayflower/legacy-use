@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Do not generate any extra summary nor documentation markdown files.
