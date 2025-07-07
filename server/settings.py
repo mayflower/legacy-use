@@ -11,11 +11,13 @@ class Settings(BaseSettings):
     app_name: str = 'Awesome API'
     items_per_user: int = 50
 
-    API_PROVIDER: APIProvider
+    API_PROVIDER: APIProvider = APIProvider.ANTHROPIC
 
     AWS_ACCESS_KEY_ID: str
     AWS_SECRET_ACCESS_KEY: str
     AWS_REGION: str
+
+    ANTHROPIC_API_KEY: str
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
