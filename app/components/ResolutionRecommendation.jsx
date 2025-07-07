@@ -1,9 +1,22 @@
 import { Alert, Box, Button, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
 
+const recommendedResolutions = [
+  {
+    width: 1024,
+    height: 768,
+  },
+  {
+    width: 1280,
+    height: 800,
+  },
+];
+
 const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick, disabled }) => {
   // Check if current resolution is not the recommended 1024x768
-  const isNonStandardResolution = width !== 1024 || height !== 768;
+  const isNonStandardResolution = !recommendedResolutions.some(
+    resolution => resolution.width === width && resolution.height === height,
+  );
 
   if (!isNonStandardResolution) {
     return null; // Don't show warning for standard resolution
