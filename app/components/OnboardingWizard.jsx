@@ -1,9 +1,9 @@
 import {
+  CheckCircle as CheckCircleIcon,
   Close as CloseIcon,
-  CreditCard as CreditCardIcon,
+  Email as EmailIcon,
   Key as KeyIcon,
   Rocket as RocketIcon,
-  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -39,6 +39,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [providers, setProviders] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState('');
   const [_providerCredentials, _setProviderCredentials] = useState({});
+  const [signupCompleted, setSignupCompleted] = useState(false);
 
   // Signup form state
   const [signupData, setSignupData] = useState({
@@ -61,7 +62,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
   const steps = ['Welcome', 'Get Started', 'Configure Provider'];
 
-  // Fetch providers on component mount
+  // Fetch providers on component mount and reset state
   useEffect(() => {
     const fetchProviders = async () => {
       try {
@@ -83,6 +84,9 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
     if (open) {
       fetchProviders();
+      // Reset signup state when dialog opens
+      setSignupCompleted(false);
+      setError('');
     }
   }, [open]);
 
@@ -111,7 +115,8 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      handleNext();
+      // Mark signup as completed to show success message
+      setSignupCompleted(true);
     } catch (_err) {
       setError('Failed to process signup. Please try again.');
     } finally {
@@ -194,88 +199,129 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     </Box>
   );
 
-  const renderSignupStep = () => (
-    <Box sx={{ py: 2 }}>
-      <Typography variant="h4" component="h2" gutterBottom align="center">
-        Get Started with $5 Credits for free
+  const renderSignupSuccessMessage = () => (
+    <Box sx={{ py: 4, textAlign: 'center' }}>
+      <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+      <Typography variant="h4" component="h2" gutterBottom>
+        Welcome to Legacy Use!
       </Typography>
-      <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-        Sign up with your email to receive $5 in credits for free to explore Legacy Use's automation
-        capabilities.
+      <Typography variant="h6" color="text.secondary" paragraph>
+        Your signup was successful
       </Typography>
 
-      {/* Main signup section */}
-      <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <RocketIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6">Signup for free</Typography>
+      <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: 'success.50' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+          <EmailIcon sx={{ mr: 1, color: 'success.main' }} />
+          <Typography variant="h6" color="success.main">
+            Check Your Email
+          </Typography>
         </Box>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Email Address"
-              type="email"
-              required
-              value={signupData.email}
-              onChange={e => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-              variant="outlined"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="What software do you want to automate?"
-              multiline
-              rows={3}
-              required
-              value={signupData.description}
-              onChange={e => setSignupData(prev => ({ ...prev, description: e.target.value }))}
-              variant="outlined"
-              placeholder="e.g., Automate data entry in Excel, manage social media posts, process invoices..."
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Referral Code (Optional)"
-              value={signupData.referralCode}
-              onChange={e => setSignupData(prev => ({ ...prev, referralCode: e.target.value }))}
-              variant="outlined"
-              placeholder="Enter referral code if you have one"
-            />
-          </Grid>
-        </Grid>
+        <Typography variant="body1" paragraph>
+          We've sent an email to <strong>{signupData.email}</strong> with your $5 credit code and
+          instructions on how to get started.
+        </Typography>
 
-        <Button
-          fullWidth
-          variant="contained"
-          size="large"
-          onClick={handleSignupSubmit}
-          disabled={loading}
-          sx={{ mt: 3 }}
-        >
-          {loading ? 'Processing...' : 'Get $5 Credits for free'}
-        </Button>
+        <Typography variant="body2" color="text.secondary">
+          Don't see the email? Check your spam folder or contact support if you need help.
+        </Typography>
       </Paper>
 
-      {/* Divider */}
-      <Divider sx={{ my: 3 }}>
-        <Typography variant="body2" color="text.secondary">
-          OR
-        </Typography>
-      </Divider>
-
-      {/* Secondary option */}
-      <Typography variant="body2" color="text.secondary" paragraph align="center">
-        Already have API keys? Skip the credits and configure your own provider credentials.
-      </Typography>
-      <Button variant="outlined" onClick={handleNext} startIcon={<KeyIcon />} fullWidth>
-        Configure Custom Provider
+      <Button variant="contained" size="large" onClick={() => onComplete()} sx={{ mt: 2 }}>
+        Continue to Dashboard
       </Button>
     </Box>
   );
+
+  const renderSignupStep = () => {
+    // Show success message if signup is completed
+    if (signupCompleted) {
+      return renderSignupSuccessMessage();
+    }
+
+    return (
+      <Box sx={{ py: 2 }}>
+        <Typography variant="h4" component="h2" gutterBottom align="center">
+          Get Started with $5 Credits for free
+        </Typography>
+        <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
+          Sign up with your email to receive $5 in credits for free to explore Legacy Use's
+          automation capabilities.
+        </Typography>
+
+        {/* Main signup section */}
+        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <RocketIcon sx={{ mr: 1, color: 'primary.main' }} />
+            <Typography variant="h6">Signup for free</Typography>
+          </Box>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email Address"
+                type="email"
+                required
+                value={signupData.email}
+                onChange={e => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="What software do you want to automate?"
+                multiline
+                rows={3}
+                required
+                value={signupData.description}
+                onChange={e => setSignupData(prev => ({ ...prev, description: e.target.value }))}
+                variant="outlined"
+                placeholder="e.g., Automate data entry in Excel, manage social media posts, process invoices..."
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Referral Code (Optional)"
+                value={signupData.referralCode}
+                onChange={e => setSignupData(prev => ({ ...prev, referralCode: e.target.value }))}
+                variant="outlined"
+                placeholder="Enter referral code if you have one"
+              />
+            </Grid>
+          </Grid>
+
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            onClick={handleSignupSubmit}
+            disabled={loading}
+            sx={{ mt: 3 }}
+          >
+            {loading ? 'Processing...' : 'Get $5 Credits for free'}
+          </Button>
+        </Paper>
+
+        {/* Divider */}
+        <Divider sx={{ my: 3 }}>
+          <Typography variant="body2" color="text.secondary">
+            OR
+          </Typography>
+        </Divider>
+
+        {/* Secondary option */}
+        <Typography variant="body2" color="text.secondary" paragraph align="center">
+          Already have API keys? Skip the credits and configure your own provider credentials.
+        </Typography>
+        <Button variant="outlined" onClick={handleNext} startIcon={<KeyIcon />} fullWidth>
+          Configure Custom Provider
+        </Button>
+      </Box>
+    );
+  };
 
   const renderProviderStep = () => (
     <Box sx={{ py: 2 }}>
