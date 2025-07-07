@@ -197,10 +197,11 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const renderSignupStep = () => (
     <Box sx={{ py: 2 }}>
       <Typography variant="h4" component="h2" gutterBottom align="center">
-        Get Started with $5 Credits
+        Get Started with $5 Credits for free
       </Typography>
       <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-        Sign up to receive $5 in credits to explore Legacy Use's automation capabilities
+        Sign up with your email to receive $5 in credits for free to explore Legacy Use's automation
+        capabilities.
       </Typography>
 
       {/* Main signup section */}
