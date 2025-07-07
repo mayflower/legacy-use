@@ -2,7 +2,7 @@
 Settings management routes.
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -38,7 +38,7 @@ class ProviderConfiguration(BaseModel):
     default_model: str
     available: bool
     description: str
-    api_key: Optional[str] = None  # Obscured API key
+    credentials: Dict[str, Optional[str]]
 
 
 class ProvidersResponse(BaseModel):
@@ -62,7 +62,11 @@ async def get_providers():
             'name': 'Anthropic',
             'description': 'Anthropic Claude models via direct API',
             'available': bool(getattr(settings, 'ANTHROPIC_API_KEY', None)),
-            'api_key': getattr(settings, 'ANTHROPIC_API_KEY', None),
+            'credentials': {
+                'api_key': obscure_api_key(
+                    getattr(settings, 'ANTHROPIC_API_KEY', None)
+                ),
+            },
         },
         APIProvider.BEDROCK: {
             'name': 'Amazon Bedrock',
@@ -74,7 +78,15 @@ async def get_providers():
                     getattr(settings, 'AWS_REGION', None),
                 ]
             ),
-            'api_key': getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
+            'credentials': {
+                'access_key_id': obscure_api_key(
+                    getattr(settings, 'AWS_ACCESS_KEY_ID', None)
+                ),
+                'secret_access_key': obscure_api_key(
+                    getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+                ),
+                'region': getattr(settings, 'AWS_REGION', None),
+            },
         },
         APIProvider.VERTEX: {
             'name': 'Google Vertex AI',
@@ -85,7 +97,12 @@ async def get_providers():
                     getattr(settings, 'VERTEX_PROJECT_ID', None),
                 ]
             ),
-            'api_key': getattr(settings, 'VERTEX_PROJECT_ID', None),
+            'credentials': {
+                'region': getattr(settings, 'VERTEX_REGION', None),
+                'project_id': obscure_api_key(
+                    getattr(settings, 'VERTEX_PROJECT_ID', None)
+                ),
+            },
         },
     }
 
@@ -99,7 +116,7 @@ async def get_providers():
                 default_model=get_default_model_name(provider_enum),
                 available=config['available'],
                 description=config['description'],
-                api_key=obscure_api_key(config.get('api_key')),
+                credentials=config['credentials'],
             )
         )
 
