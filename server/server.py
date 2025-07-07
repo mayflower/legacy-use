@@ -64,23 +64,24 @@ else:
 API_KEY = os.getenv('API_KEY', 'your_secret_api_key')
 API_KEY_NAME = 'X-API-Key'
 
-# AWS credentials for Bedrock
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = os.getenv('AWS_REGION')
-
 # Handle provider-specific environment variables
 if settings.API_PROVIDER == APIProvider.BEDROCK:
-    if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION]):
+    if not all(
+        [
+            settings.AWS_ACCESS_KEY_ID,
+            settings.AWS_SECRET_ACCESS_KEY,
+            settings.AWS_REGION,
+        ]
+    ):
         logger.warning('Using Bedrock provider but AWS credentials are missing.')
     else:
         # Export AWS credentials to environment if using Bedrock
         # Ensure these are set in environment for the AnthropicBedrock client
-        os.environ['AWS_ACCESS_KEY_ID'] = AWS_ACCESS_KEY_ID
-        os.environ['AWS_SECRET_ACCESS_KEY'] = AWS_SECRET_ACCESS_KEY
-        os.environ['AWS_REGION'] = AWS_REGION
+        os.environ['AWS_ACCESS_KEY_ID'] = settings.AWS_ACCESS_KEY_ID
+        os.environ['AWS_SECRET_ACCESS_KEY'] = settings.AWS_SECRET_ACCESS_KEY
+        os.environ['AWS_REGION'] = settings.AWS_REGION
         logger.info(
-            f'AWS credentials loaded for Bedrock provider (region: {AWS_REGION})'
+            f'AWS credentials loaded for Bedrock provider (region: {settings.AWS_REGION})'
         )
 elif settings.API_PROVIDER == APIProvider.VERTEX:
     # Get Vertex-specific environment variables
