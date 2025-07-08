@@ -76,7 +76,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     // Start the resend timer (60 seconds)
     setResendTimer(60);
 
-    const response = await fetch(`${VITE_LEGACYUSE_PROXY_BASE_URL}/signup`, {
+    const response = await fetch(`${import.meta.env.VITE_LEGACYUSE_PROXY_BASE_URL}/signup`, {
       method: 'POST',
       body: JSON.stringify(signupData),
     });
