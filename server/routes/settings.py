@@ -104,6 +104,16 @@ async def get_providers():
                 ),
             },
         },
+        APIProvider.LEGACYUSE_PROXY: {
+            'name': 'Legacy Use Cloud',
+            'description': 'Anthropic Claude models via Legacy Use Cloud',
+            'available': bool(getattr(settings, 'LEGACYUSE_PROXY_API_KEY', None)),
+            'credentials': {
+                'proxy_api_key': obscure_api_key(
+                    getattr(settings, 'LEGACYUSE_PROXY_API_KEY', None)
+                ),
+            },
+        },
     }
 
     # Build provider list
