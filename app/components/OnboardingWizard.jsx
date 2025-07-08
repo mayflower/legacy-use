@@ -135,8 +135,6 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // For now, we'll simulate success and move to the next step
       console.log('Signup data:', signupData);
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
       await signupOrResend();
 
       // Mark signup as completed to show success message
