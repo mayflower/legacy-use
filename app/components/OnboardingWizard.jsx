@@ -142,6 +142,12 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      const response = await fetch('/signup', {
+        method: 'POST',
+        body: JSON.stringify(signupData),
+      });
+      console.log('signup', response);
+
       // Complete the onboarding
       onComplete();
     } catch (_err) {
