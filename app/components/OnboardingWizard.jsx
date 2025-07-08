@@ -29,7 +29,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useApiKey } from '../contexts/ApiKeyContext';
-import { getProviders, testApiKey } from '../services/apiService';
+import { getProviders, testApiKey, updateProviderSettings } from '../services/apiService';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const { setApiKey, setIsApiKeyValid } = useApiKey();
@@ -168,6 +168,11 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // TODO: validate activation code
+
+      // Call backend (server) and setup legacyuse provider with the entered activation code as legacy use cloud api key
+      await updateProviderSettings('legacyuse', {
+        proxy_api_key: activationCode.trim(),
+      });
 
       // Complete the onboarding
       onComplete();
