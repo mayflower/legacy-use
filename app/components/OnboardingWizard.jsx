@@ -28,17 +28,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useApiKey } from '../contexts/ApiKeyContext';
-import { getProviders, testApiKey, updateProviderSettings } from '../services/apiService';
+import { getProviders, updateProviderSettings } from '../services/apiService';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
-  const { setApiKey, setIsApiKeyValid } = useApiKey();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [providers, setProviders] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState('');
-  const [_providerCredentials, _setProviderCredentials] = useState({});
   const [signupCompleted, setSignupCompleted] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
@@ -202,27 +199,35 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
           return;
         }
         credentials.api_key = apiKeyInput;
-
-        // Test the API key
-        await testApiKey(apiKeyInput);
-        setApiKey(apiKeyInput);
-        setIsApiKeyValid(true);
       } else if (selectedProvider === 'bedrock') {
         if (!awsCredentials.accessKeyId || !awsCredentials.secretAccessKey) {
           setError('Please enter your AWS credentials');
           return;
         }
-        credentials = awsCredentials;
+        credentials = {
+          access_key_id: awsCredentials.accessKeyId,
+          secret_access_key: awsCredentials.secretAccessKey,
+          region: awsCredentials.region,
+        };
       } else if (selectedProvider === 'vertex') {
         if (!vertexCredentials.projectId) {
           setError('Please enter your Google Cloud Project ID');
           return;
         }
-        credentials = vertexCredentials;
+        credentials = {
+          project_id: vertexCredentials.projectId,
+          region: vertexCredentials.region,
+        };
+      } else if (selectedProvider === 'legacyuse') {
+        if (!apiKeyInput.trim()) {
+          setError('Please enter your Legacy Use API key');
+          return;
+        }
+        credentials.proxy_api_key = apiKeyInput;
       }
 
-      // Here you would typically save the provider configuration
-      console.log('Provider setup:', { provider: selectedProvider, credentials });
+      // Use the new backend logic to configure the provider
+      await updateProviderSettings(selectedProvider, credentials);
 
       // Complete the onboarding
       onComplete();
