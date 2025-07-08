@@ -17,15 +17,15 @@ class Settings(BaseSettings):
 
     API_PROVIDER: str = 'anthropic'
 
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    AWS_REGION: str
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
+    AWS_REGION: str | None = None
     AWS_SESSION_TOKEN: str | None = None
 
-    ANTHROPIC_API_KEY: str
+    ANTHROPIC_API_KEY: str | None = None
 
-    VERTEX_REGION: str
-    VERTEX_PROJECT_ID: str
+    VERTEX_REGION: str | None = None
+    VERTEX_PROJECT_ID: str | None = None
 
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
