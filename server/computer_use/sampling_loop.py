@@ -27,6 +27,7 @@ from anthropic.types.beta import (
     BetaTextBlockParam,
 )
 
+from server.computer_use.client import LegacyUseClient
 from server.computer_use.config import (
     PROMPT_CACHING_BETA_FLAG,
     APIProvider,
@@ -190,7 +191,8 @@ async def sampling_loop(
             # Use AsyncAnthropicBedrock instead of AnthropicBedrock
             client = AsyncAnthropicBedrock(**bedrock_kwargs)
             logger.info(f'Using AsyncAnthropicBedrock client with region: {aws_region}')
-
+        elif provider == APIProvider.LEGACYUSE:
+            client = LegacyUseClient(api_key=settings.LEGACYUSE_PROVIDER_API_KEY)
         if enable_prompt_caching:
             betas.append(PROMPT_CACHING_BETA_FLAG)
             _inject_prompt_caching(

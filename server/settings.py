@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     VERTEX_REGION: str
     VERTEX_PROJECT_ID: str
 
+    LEGACYUSE_PROVIDER_URL: str
+    LEGACYUSE_PROVIDER_API_KEY: str
+
+
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
 
