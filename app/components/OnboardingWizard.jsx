@@ -41,6 +41,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [_providerCredentials, _setProviderCredentials] = useState({});
   const [signupCompleted, setSignupCompleted] = useState(false);
   const [activationCode, setActivationCode] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
 
   // Signup form state
   const [signupData, setSignupData] = useState({
@@ -62,6 +63,28 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   });
 
   const steps = ['Welcome', 'Get Started', 'Configure Provider'];
+
+  // Timer effect for resend countdown
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const signupOrResend = async () => {
+    // Start the resend timer (60 seconds)
+    setResendTimer(60);
+
+    const response = await fetch('/signup', {
+      method: 'POST',
+      body: JSON.stringify(signupData),
+    });
+    console.log('signup', response);
+  };
 
   // Fetch providers on component mount and reset state
   useEffect(() => {
@@ -89,6 +112,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       setSignupCompleted(false);
       setActivationCode('');
       setError('');
+      setResendTimer(0);
     }
   }, [open]);
 
@@ -142,11 +166,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const response = await fetch('/signup', {
-        method: 'POST',
-        body: JSON.stringify(signupData),
-      });
-      console.log('signup', response);
+      await signupOrResend();
 
       // Complete the onboarding
       onComplete();
@@ -256,7 +276,16 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         </Typography>
 
         <Typography variant="body2" color="text.secondary">
-          Don't see the email? Check your spam folder or contact support if you need help.
+          Don't see the email? Check your spam folder or{' '}
+          <Button
+            variant="text"
+            size="small"
+            onClick={signupOrResend}
+            disabled={loading || resendTimer > 0}
+          >
+            {resendTimer > 0 ? `resend in ${resendTimer}s` : 'resend the email'}
+          </Button>
+          .
         </Typography>
       </Paper>
 
