@@ -4,7 +4,7 @@ Settings management routes.
 
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from server.computer_use.config import (
@@ -46,6 +46,13 @@ class ProvidersResponse(BaseModel):
 
     current_provider: str
     providers: List[ProviderConfiguration]
+
+
+class UpdateProviderRequest(BaseModel):
+    """Request model for updating provider configuration."""
+
+    provider: str
+    credentials: Dict[str, str]
 
 
 # Create router
@@ -133,3 +140,61 @@ async def get_providers():
     return ProvidersResponse(
         current_provider=settings.API_PROVIDER, providers=providers
     )
+
+
+@settings_router.post('/providers', response_model=Dict[str, str])
+async def update_provider_settings(request: UpdateProviderRequest):
+    """Update provider configuration and set as active provider."""
+
+    # Validate provider
+    try:
+        provider_enum = APIProvider(request.provider)
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail=f'Invalid provider: {request.provider}'
+        )
+
+    # Update settings based on provider type
+    if provider_enum == APIProvider.ANTHROPIC:
+        if 'api_key' not in request.credentials:
+            raise HTTPException(
+                status_code=400, detail='API key is required for Anthropic provider'
+            )
+        settings.ANTHROPIC_API_KEY = request.credentials['api_key']
+
+    elif provider_enum == APIProvider.BEDROCK:
+        required_fields = ['access_key_id', 'secret_access_key', 'region']
+        for field in required_fields:
+            if field not in request.credentials:
+                raise HTTPException(
+                    status_code=400, detail=f'{field} is required for Bedrock provider'
+                )
+        settings.AWS_ACCESS_KEY_ID = request.credentials['access_key_id']
+        settings.AWS_SECRET_ACCESS_KEY = request.credentials['secret_access_key']
+        settings.AWS_REGION = request.credentials['region']
+
+    elif provider_enum == APIProvider.VERTEX:
+        required_fields = ['project_id', 'region']
+        for field in required_fields:
+            if field not in request.credentials:
+                raise HTTPException(
+                    status_code=400, detail=f'{field} is required for Vertex provider'
+                )
+        settings.VERTEX_PROJECT_ID = request.credentials['project_id']
+        settings.VERTEX_REGION = request.credentials['region']
+
+    elif provider_enum == APIProvider.LEGACYUSE_PROXY:
+        if 'proxy_api_key' not in request.credentials:
+            raise HTTPException(
+                status_code=400,
+                detail='API key is required for Legacy Use Cloud provider',
+            )
+        settings.LEGACYUSE_PROXY_API_KEY = request.credentials['proxy_api_key']
+
+    # Set as active provider
+    settings.API_PROVIDER = provider_enum.value
+
+    return {
+        'status': 'success',
+        'message': f'Provider {request.provider} configured successfully',
+    }
