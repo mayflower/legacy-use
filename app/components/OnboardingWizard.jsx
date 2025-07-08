@@ -140,6 +140,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
+      await signupOrResend();
 
       // Mark signup as completed to show success message
       setSignupCompleted(true);
@@ -165,8 +166,6 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-
-      await signupOrResend();
 
       // Complete the onboarding
       onComplete();
