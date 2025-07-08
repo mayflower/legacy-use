@@ -167,6 +167,8 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // TODO: validate activation code
+
       // Complete the onboarding
       onComplete();
     } catch (_err) {
