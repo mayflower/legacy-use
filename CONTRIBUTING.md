@@ -85,6 +85,7 @@ Following the steps in the [README.md](./README.md) file will get you up and run
    ```bash
    uv pip install -r pyproject.toml        # core deps
    uv pip install --group dev -r pyproject.toml  # dev/test/lint extras
+   uv run pre-commit instal   # install pre-commit
    ```
 
 4. **Run the API with hot-reload**:

@@ -1,19 +1,11 @@
-import asyncio
-import base64
 import os
-import shlex
-import shutil
-from datetime import datetime
-from enum import StrEnum
 from fastapi import FastAPI, HTTPException, Path as FastAPIPath
 from pydantic import BaseModel
-from typing import Dict, List, Literal, Optional, Tuple, TypedDict, Union
-from uuid import uuid4
+from typing import Literal, Optional, Tuple, Union
 
 from computer import (
     Action_20250124,
     ScrollDirection,
-    ToolResult,
     ComputerTool20241022,
     ComputerTool20250124,
     run,
