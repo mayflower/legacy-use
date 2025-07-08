@@ -121,5 +121,5 @@ async def get_providers():
         )
 
     return ProvidersResponse(
-        current_provider=settings.API_PROVIDER.value, providers=providers
+        current_provider=settings.API_PROVIDER, providers=providers
     )
