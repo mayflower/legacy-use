@@ -78,6 +78,20 @@ export const getProviders = async () => {
   }
 };
 
+// Function to update provider settings
+export const updateProviderSettings = async (provider, credentials) => {
+  try {
+    const response = await apiClient.post('/settings/providers', {
+      provider,
+      credentials,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating provider settings:', error);
+    throw error;
+  }
+};
+
 // Function to check if any API provider is configured (after ensuring API key is provided)
 export const checkApiProviderConfiguration = async () => {
   try {
