@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     LEGACYUSE_PROVIDER_URL: str
     LEGACYUSE_PROVIDER_API_KEY: str
 
-
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
 
