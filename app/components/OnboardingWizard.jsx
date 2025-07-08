@@ -79,6 +79,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     // Start the resend timer (60 seconds)
     setResendTimer(60);
 
+    // TODO: add full url for signup endpoint
     const response = await fetch('/signup', {
       method: 'POST',
       body: JSON.stringify(signupData),
