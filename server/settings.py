@@ -1,8 +1,9 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 from typing import Any
-from server.utils.env_file import write_to_env_file
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from server.config.env_file import write_to_env_file
 
 ROOT_DIR = Path(__file__).parent.parent
 ENV_FILE_PATH = ROOT_DIR / '.env'
