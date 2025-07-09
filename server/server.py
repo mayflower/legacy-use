@@ -19,6 +19,7 @@ from server.database import db
 from server.routes import api_router, job_router, target_router
 from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
+from server.routes.settings import settings_router
 from server.utils.auth import get_api_key
 from server.utils.job_execution import job_queue_initializer
 from server.utils.session_monitor import start_session_monitor
@@ -209,6 +210,9 @@ app.include_router(
     diagnostics_router,
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
+
+# Include settings router
+app.include_router(settings_router)
 
 
 # Scheduled task to prune old logs

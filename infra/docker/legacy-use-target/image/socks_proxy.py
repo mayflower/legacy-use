@@ -73,7 +73,7 @@ def handle_client(client_socket):
         client_socket.close()
         try:
             target_socket.close()
-        except:
+        except Exception:
             pass
 
 

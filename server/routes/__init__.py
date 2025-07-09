@@ -5,6 +5,7 @@ Routes package for the API Gateway.
 from .diagnostics import diagnostics_router
 from .routes import api_router, job_router, routers, target_router
 from .sessions import session_router, websocket_router
+from .settings import settings_router
 
 __all__ = [
     'routers',
@@ -14,4 +15,5 @@ __all__ = [
     'job_router',
     'websocket_router',
     'diagnostics_router',
+    'settings_router',
 ]

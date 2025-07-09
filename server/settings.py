@@ -1,9 +1,13 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import Any
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from server.config.env_file import write_to_env_file
 
 ROOT_DIR = Path(__file__).parent.parent
 ENV_FILE_PATH = ROOT_DIR / '.env'
+ENV_LOCAL_FILE_PATH = ROOT_DIR / '.env.local'
 
 
 class Settings(BaseSettings):
@@ -13,19 +17,23 @@ class Settings(BaseSettings):
     DATABASE_URL: str = 'sqlite:///server/server.db'
 
     API_KEY: str = 'not-secure-api-key'
+    VITE_API_KEY: str | None = None
     API_KEY_NAME: str = 'X-API-Key'
 
     API_PROVIDER: str = 'anthropic'
 
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    AWS_REGION: str
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
+    AWS_REGION: str | None = None
     AWS_SESSION_TOKEN: str | None = None
 
-    ANTHROPIC_API_KEY: str
+    ANTHROPIC_API_KEY: str | None = None
 
-    VERTEX_REGION: str
-    VERTEX_PROJECT_ID: str
+    VERTEX_REGION: str | None = None
+    VERTEX_PROJECT_ID: str | None = None
+
+    LEGACYUSE_PROXY_BASE_URL: str = 'https://proxy.legacyuse.com/api/v1'
+    LEGACYUSE_PROXY_API_KEY: str | None = None
 
     LEGACYUSE_PROXY_BASE_URL: str
     LEGACYUSE_PROXY_API_KEY: str
@@ -42,9 +50,14 @@ class Settings(BaseSettings):
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE_PATH,
+        env_file=[ENV_FILE_PATH, ENV_LOCAL_FILE_PATH],
         extra='allow',
     )
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Override setter to also write changes to .env.local file"""
+        super().__setattr__(name, value)
+        write_to_env_file(ENV_LOCAL_FILE_PATH, name, value)
 
 
 settings = Settings()  # type: ignore

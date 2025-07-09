@@ -13,7 +13,7 @@ class APIProvider(StrEnum):
     ANTHROPIC = 'anthropic'
     BEDROCK = 'bedrock'
     VERTEX = 'vertex'
-    LEGACYUSE = 'legacyuse'
+    LEGACYUSE_PROXY = 'legacyuse'
 
 
 PROVIDER_TO_DEFAULT_MODEL_NAME: dict[APIProvider, str] = {
