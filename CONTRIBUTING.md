@@ -76,7 +76,7 @@ Following the steps in the [README.md](./README.md) file will get you up and run
 
 2. **Create & activate a virtual-environment** in the project root:
    ```bash
-   cd legacy-use-core   # repo root
+   cd legacy-use   # repo root
    uv venv              # creates .venv using the current Python
    source .venv/bin/activate   # Windows: .venv\Scripts\activate
    ```
