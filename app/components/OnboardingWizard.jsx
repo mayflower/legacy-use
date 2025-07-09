@@ -379,7 +379,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
                 value={signupData.description}
                 onChange={e => setSignupData(prev => ({ ...prev, description: e.target.value }))}
                 variant="outlined"
-                placeholder="e.g., Automate data entry in Excel, manage social media posts, process invoices..."
+                placeholder="e.g., DATEV, SAP, Lexware, Navision, ..."
               />
             </Grid>
             <Grid item xs={12}>
