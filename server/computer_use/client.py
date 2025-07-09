@@ -114,7 +114,7 @@ class WithRawResponse:
         betas: list[str],
         **kwargs,
     ) -> RawResponse:
-        url = settings.LEGACYUSE_PROXY_BASE_URL
+        url = settings.LEGACYUSE_PROXY_BASE_URL + 'create'
         headers = {
             'x-api-key': self.client.api_key,
             'Content-Type': 'application/json',
@@ -129,11 +129,14 @@ class WithRawResponse:
             **kwargs,
         }
 
+        print(f'Sending request to {url} with headers: {headers}')
+
         async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(url, headers=headers, json=data)
             try:
                 response_json = response.json()
                 # Return wrapped response that's compatible with Anthropic client interface
+                print(f'Response status code: {response.status_code}')
                 return RawResponse(response_json, response)
             except Exception as e:
                 print(f'Failed to parse response JSON: {e}')
