@@ -21,6 +21,8 @@ if [ ! -f .env.local ]; then
     touch .env.local
 fi
 
+uv run python generate_api_key.py
+
 # Base docker run command
 DOCKER_CMD="docker run -u root \
     --env-file .env \
