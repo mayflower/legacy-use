@@ -2,6 +2,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import ComputerIcon from '@mui/icons-material/Computer';
 import KeyIcon from '@mui/icons-material/Key';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import RocketIcon from '@mui/icons-material/Rocket';
 import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -113,6 +114,11 @@ const AppHeader = () => {
               APIs
             </Button>
           </Box>
+
+          <MenuItem component={RouterLink} to="/onboarding" onClick={handleMenuClose}>
+            <RocketIcon sx={{ mr: 1 }} />
+            Onboarding Wizard
+          </MenuItem>
 
           <Tooltip title="API Key Settings">
             <IconButton
