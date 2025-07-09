@@ -169,14 +169,6 @@ async def sampling_loop(
             # Use AsyncAnthropic instead of Anthropic
             client = AsyncAnthropic(api_key=api_key, max_retries=4)
             enable_prompt_caching = True
-        elif provider == APIProvider.LEGACYUSE_PROXY:
-            # Use AsyncAnthropic for Legacy Use Cloud (same API as Anthropic)
-            client = AsyncAnthropic(
-                base_url=settings.LEGACYUSE_PROXY_BASE_URL,
-                api_key=settings.LEGACYUSE_PROXY_API_KEY,
-                max_retries=4,
-            )
-            enable_prompt_caching = True
         elif provider == APIProvider.VERTEX:
             # Use AsyncAnthropicVertex instead of AnthropicVertex
             client = AsyncAnthropicVertex()
@@ -199,7 +191,7 @@ async def sampling_loop(
             # Use AsyncAnthropicBedrock instead of AnthropicBedrock
             client = AsyncAnthropicBedrock(**bedrock_kwargs)
             logger.info(f'Using AsyncAnthropicBedrock client with region: {aws_region}')
-        elif provider == APIProvider.LEGACYUSE:
+        elif provider == APIProvider.LEGACYUSE_PROXY:
             client = LegacyUseClient(api_key=settings.LEGACYUSE_PROXY_API_KEY)
         if enable_prompt_caching:
             betas.append(PROMPT_CACHING_BETA_FLAG)
