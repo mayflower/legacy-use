@@ -67,6 +67,60 @@ export const testApiKey = async apiKey => {
   }
 };
 
+// Function to get provider configuration
+export const getProviders = async () => {
+  try {
+    const response = await apiClient.get('/settings/providers');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching providers:', error);
+    throw error;
+  }
+};
+
+// Function to update provider settings
+export const updateProviderSettings = async (provider, credentials) => {
+  try {
+    const response = await apiClient.post('/settings/providers', {
+      provider,
+      credentials,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating provider settings:', error);
+    throw error;
+  }
+};
+
+// Function to check if any API provider is configured (after ensuring API key is provided)
+export const checkApiProviderConfiguration = async () => {
+  try {
+    // Get provider configuration
+    const providersData = await getProviders();
+
+    // Check if any provider is configured (has available = true)
+    const configuredProviders = providersData.providers.filter(provider => provider.available);
+    const hasConfiguredProvider = configuredProviders.length > 0;
+
+    return {
+      hasApiKey: true,
+      hasConfiguredProvider,
+      currentProvider: providersData.current_provider,
+      configuredProviders,
+      allProviders: providersData.providers,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error checking API provider configuration:', error);
+    return {
+      hasApiKey: !!localStorage.getItem('apiKey'),
+      hasConfiguredProvider: false,
+      error: `Failed to check provider configuration: ${error.message}`,
+      providers: [],
+    };
+  }
+};
+
 // API Definitions
 export const getApiDefinitions = async (include_archived = false) => {
   try {

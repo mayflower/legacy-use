@@ -17,7 +17,8 @@ export const ApiKeyProvider = ({ children }) => {
   // Get API key from localStorage or set to null
   const [apiKey, setApiKeyState] = useState(() => {
     const savedApiKey = localStorage.getItem('apiKey');
-    return savedApiKey || null;
+    const envApiKey = import.meta.env.VITE_API_KEY;
+    return savedApiKey || envApiKey || null;
   });
 
   // Track if the API key is valid

@@ -16,9 +16,15 @@ if curl -s --connect-timeout 1 http://169.254.169.254/latest/meta-data/ > /dev/n
     echo "Detected AWS environment"
 fi
 
+# Check if .env.local exists, else create empty file
+if [ ! -f .env.local ]; then
+    touch .env.local
+fi
+
 # Base docker run command
 DOCKER_CMD="docker run -u root \
     --env-file .env \
+    --env-file .env.local \
     -v $HOME/.anthropic:/home/legacy-use-mgmt/.anthropic \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $HOME/.config/gcloud/application_default_credentials.json:/home/legacy-use-mgmt/.config/gcloud/application_default_credentials.json \
@@ -48,7 +54,8 @@ else
     echo "Running in PRODUCTION mode without directory mounts"
     # Mount only the SQLite database file in production mode
     DOCKER_CMD="$DOCKER_CMD \
-    -v $SQLITE_PATH:/home/legacy-use-mgmt/server/server.db"
+    -v $SQLITE_PATH:/home/legacy-use-mgmt/server/server.db \
+    -v $(pwd)/.env.local:/home/legacy-use-mgmt/.env.local"
 fi
 
 # Complete the docker command with appropriate flags based on mode

@@ -9,7 +9,14 @@ import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import React, { useEffect, useState } from 'react';
-import { Outlet, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
+import {
+  Outlet,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import ApiKeyDialog from './components/ApiKeyDialog';
 import ApiList from './components/ApiList';
 import AppHeader from './components/AppHeader';
@@ -19,6 +26,7 @@ import Dashboard from './components/Dashboard';
 import EditApiDefinition from './components/EditApiDefinition';
 import JobDetails from './components/JobDetails';
 import JobsList from './components/JobsList';
+import OnboardingWizard from './components/OnboardingWizard';
 import SessionList from './components/SessionList';
 import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
@@ -63,6 +71,25 @@ export const SessionContext = React.createContext({
 
 // Add browser globals for linter
 const { URLSearchParams } = globalThis;
+
+// Component for the onboarding wizard page route
+const OnboardingWizardPage = () => {
+  const [wizardOpen, setWizardOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleComplete = () => {
+    localStorage.setItem('onboardingCompleted', 'true');
+    setWizardOpen(false);
+    navigate('/');
+  };
+
+  const handleClose = () => {
+    setWizardOpen(false);
+    navigate('/');
+  };
+
+  return <OnboardingWizard open={wizardOpen} onClose={handleClose} onComplete={handleComplete} />;
+};
 
 // Placeholder component for archived sessions
 const ArchivedSessionPlaceholder = () => {
@@ -155,6 +182,8 @@ const AppLayout = () => {
   const { apiKey, setIsApiKeyValid } = useApiKey();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
@@ -200,6 +229,18 @@ const AppLayout = () => {
     }
   }, [selectedSessionId]);
 
+  // Check if user has completed onboarding
+  useEffect(() => {
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    const hasOnboarded = onboardingCompleted === 'true';
+    setHasCompletedOnboarding(hasOnboarded);
+
+    // Show onboarding for new users without API key
+    if (!hasOnboarded && !apiKey) {
+      setOnboardingOpen(true);
+    }
+  }, [apiKey]);
+
   // Validate API key on mount and when it changes
   useEffect(() => {
     const validateApiKey = async () => {
@@ -221,16 +262,21 @@ const AppLayout = () => {
           setApiKeyDialogOpen(true);
         }
       } else {
-        // If no API key, clear the header and show the dialog
-        setApiKeyHeader(null);
-        setIsApiKeyValid(false);
-        setApiKeyDialogOpen(true);
+        // If no API key and onboarding not completed, show onboarding
+        if (!hasCompletedOnboarding) {
+          setOnboardingOpen(true);
+        } else {
+          // If onboarding completed but no API key, show API key dialog
+          setApiKeyHeader(null);
+          setIsApiKeyValid(false);
+          setApiKeyDialogOpen(true);
+        }
       }
       setIsValidatingApiKey(false);
     };
 
     validateApiKey();
-  }, [apiKey, setIsApiKeyValid]);
+  }, [apiKey, setIsApiKeyValid, hasCompletedOnboarding]);
 
   // Extract session ID from URL if we're on a target detail page
   useEffect(() => {
@@ -277,6 +323,13 @@ const AppLayout = () => {
 
   // Adjust the grid layout based on what's being shown
   const showRightPanel = showVncViewer || showNotReadyPlaceholder || showArchivedPlaceholder;
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('onboardingCompleted', 'true');
+    setHasCompletedOnboarding(true);
+    setOnboardingOpen(false);
+  };
 
   // Show loading state while validating API key
   if (isValidatingApiKey) {
@@ -339,6 +392,13 @@ const AppLayout = () => {
       {/* API Key Dialog */}
       <ApiKeyDialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} />
 
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        open={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+        onComplete={handleOnboardingComplete}
+      />
+
       {/* Tawk.to Chat Widget */}
       <TawkChat />
     </SessionContext.Provider>
@@ -354,6 +414,7 @@ function App() {
           <Routes>
             <Route element={<AppLayout />}>
               <Route path="" element={<Dashboard />} />
+              <Route path="onboarding" element={<OnboardingWizardPage />} />
               <Route path="apis" element={<ApiList />} />
               <Route path="apis/:apiName/edit" element={<EditApiDefinition />} />
               <Route path="sessions" element={<SessionList />} />
