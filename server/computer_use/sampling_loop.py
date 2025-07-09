@@ -192,7 +192,7 @@ async def sampling_loop(
             client = AsyncAnthropicBedrock(**bedrock_kwargs)
             logger.info(f'Using AsyncAnthropicBedrock client with region: {aws_region}')
         elif provider == APIProvider.LEGACYUSE:
-            client = LegacyUseClient(api_key=settings.LEGACYUSE_PROVIDER_API_KEY)
+            client = LegacyUseClient(api_key=settings.LEGACYUSE_PROXY_API_KEY)
         if enable_prompt_caching:
             betas.append(PROMPT_CACHING_BETA_FLAG)
             _inject_prompt_caching(

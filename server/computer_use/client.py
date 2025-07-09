@@ -114,7 +114,7 @@ class WithRawResponse:
         betas: list[str],
         **kwargs,
     ) -> RawResponse:
-        url = settings.LEGACYUSE_PROVIDER_URL
+        url = settings.LEGACYUSE_PROXY_BASE_URL
         headers = {
             'x-api-key': self.client.api_key,
             'Content-Type': 'application/json',
