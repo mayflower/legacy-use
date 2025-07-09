@@ -139,7 +139,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       await signupOrResend();
 
       // identify the user
-      posthog.identify(signupData.email, {email: signupData.email});
+      posthog.identify(signupData.email, { email: signupData.email });
       posthog.capture('signup', {
         email: signupData.email,
         description: signupData.description,
