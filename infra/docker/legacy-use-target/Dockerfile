@@ -44,8 +44,10 @@ RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
 # setup user
 ENV USERNAME=legacy-use
 ENV HOME=/home/$USERNAME
-RUN useradd -m -s /bin/bash -d $HOME $USERNAME
-RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN useradd -m -s /bin/bash -d $HOME $USERNAME && \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    mkdir -p $HOME/.cache $HOME/go && \
+    chown -R $USERNAME:$USERNAME $HOME/.cache $HOME/go
 USER legacy-use
 WORKDIR $HOME
 
