@@ -22,6 +22,7 @@ import JobsList from './components/JobsList';
 import SessionList from './components/SessionList';
 import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
+import TawkChat from './components/TawkChat';
 import VncViewer from './components/VncViewer';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
@@ -337,6 +338,9 @@ const AppLayout = () => {
 
       {/* API Key Dialog */}
       <ApiKeyDialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} />
+
+      {/* Tawk.to Chat Widget */}
+      <TawkChat />
     </SessionContext.Provider>
   );
 };
