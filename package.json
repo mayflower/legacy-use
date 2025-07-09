@@ -10,6 +10,7 @@
     "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.14.19",
     "@sentry/react": "^9.5.0",
+    "@tawk.to/tawk-messenger-react": "^2.0.2",
     "ajv": "8.12.0",
     "ajv-keywords": "5.1.0",
     "axios": "^1.6.2",
