@@ -10,7 +10,7 @@ const options = {
   opt_out_capturing_by_default: import.meta.env.VITE_PUBLIC_DISABLE_TRACKING === 'true',
   debug: true,
   disable_session_recording: true,
-  person_profiles: 'identified_only'
+  person_profiles: 'identified_only',
 };
 const apiKey =
   import.meta.env.VITE_PUBLIC_POSTHOG_KEY || 'phc_i1lWRELFSWLrbwV8M8sddiFD83rVhWzyZhP27T3s6V8';

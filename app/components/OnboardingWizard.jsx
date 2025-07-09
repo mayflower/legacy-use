@@ -29,6 +29,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { getProviders, updateProviderSettings } from '../services/apiService';
+import posthog from 'posthog-js';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -136,6 +137,9 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       console.log('Signup data:', signupData);
 
       await signupOrResend();
+
+      // identify the user
+      posthog.identify(signupData.email);
 
       // Mark signup as completed to show success message
       setSignupCompleted(true);
