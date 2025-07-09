@@ -139,7 +139,12 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       await signupOrResend();
 
       // identify the user
-      posthog.identify(signupData.email);
+      posthog.identify(signupData.email, {email: signupData.email});
+      posthog.capture('signup', {
+        email: signupData.email,
+        description: signupData.description,
+        referralCode: signupData.referralCode,
+      });
 
       // Mark signup as completed to show success message
       setSignupCompleted(true);
