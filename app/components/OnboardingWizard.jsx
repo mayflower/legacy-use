@@ -388,7 +388,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
                 value={signupData.description}
                 onChange={e => setSignupData(prev => ({ ...prev, description: e.target.value }))}
                 variant="outlined"
-                placeholder="e.g., Automate data entry in Excel, manage social media posts, process invoices..."
+                placeholder="e.g., DATEV, SAP, Lexware, Navision, ..."
               />
             </Grid>
             <Grid item xs={12}>
@@ -449,26 +449,28 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
           onChange={e => setSelectedProvider(e.target.value)}
           label="AI Provider"
         >
-          {providers.map(provider => (
-            <MenuItem key={provider.provider} value={provider.provider}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                }}
-              >
-                <Box>
-                  <Typography variant="body1">{provider.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {provider.description}
-                  </Typography>
+          {providers
+            .filter(provider => provider.provider !== 'legacyuse')
+            .map(provider => (
+              <MenuItem key={provider.provider} value={provider.provider}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  }}
+                >
+                  <Box>
+                    <Typography variant="body1">{provider.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {provider.description}
+                    </Typography>
+                  </Box>
+                  {provider.available && <Chip label="Configured" color="success" size="small" />}
                 </Box>
-                {provider.available && <Chip label="Configured" color="success" size="small" />}
-              </Box>
-            </MenuItem>
-          ))}
+              </MenuItem>
+            ))}
         </Select>
       </FormControl>
 

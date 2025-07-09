@@ -75,6 +75,20 @@ cp .env.template .env
 LEGACY_USE_DEBUG=1 ./start_docker.sh
 ```
 
+**🔑 API Key Generation Helper**
+
+If you don't have an API key yet, you can use our helper script to generate a secure one:
+
+```bash
+# Generate a secure API key and add it to your .env file
+uv run python generate_api_key.py
+```
+
+This script will:
+- Generate a cryptographically secure API key if none exists
+- Set both `API_KEY` (for backend) and `VITE_API_KEY` (for frontend) in your `.env` file
+- Skip generation if you already have a secure API key configured
+
 ### Verification
 
 Once the setup completes:
