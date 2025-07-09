@@ -1,9 +1,12 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import Any
+from server.utils.env_file import write_to_env_file
 
 
 ROOT_DIR = Path(__file__).parent.parent
 ENV_FILE_PATH = ROOT_DIR / '.env'
+ENV_LOCAL_FILE_PATH = ROOT_DIR / '.env.local'
 
 
 class Settings(BaseSettings):
@@ -42,9 +45,14 @@ class Settings(BaseSettings):
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE_PATH,
+        env_file=[ENV_FILE_PATH, ENV_LOCAL_FILE_PATH],
         extra='allow',
     )
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Override setter to also write changes to .env.local file"""
+        super().__setattr__(name, value)
+        write_to_env_file(ENV_LOCAL_FILE_PATH, name, value)
 
 
 settings = Settings()  # type: ignore
