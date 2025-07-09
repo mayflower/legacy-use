@@ -23,7 +23,7 @@ WORKDIR $HOME
 COPY --chown=$USERNAME:$USERNAME package.json package-lock.json $HOME/
 
 # Install all dependencies (including dev dependencies for building)
-RUN npm ci && npm cache clean --force
+RUN cd $HOME && npm install && npm cache clean --force
 
 # Copy source code in correct structure
 COPY --chown=$USERNAME:$USERNAME app/ $HOME/app/
