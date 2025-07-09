@@ -16,8 +16,8 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = 'sqlite:///server/server.db'
 
-    API_KEY: str = 'not-secure-api-key'
-    VITE_API_KEY: str = 'not-secure-api-key'
+    API_KEY: str
+    VITE_API_KEY: str | None = None
     API_KEY_NAME: str = 'X-API-Key'
 
     API_PROVIDER: str = 'anthropic'
