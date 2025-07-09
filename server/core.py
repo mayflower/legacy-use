@@ -29,7 +29,11 @@ logger = logging.getLogger(__name__)
 
 class APIGatewayCore:
     def __init__(self):
+        settings.API_PROVIDER = 'anthropic'
+        
         self.provider = settings.API_PROVIDER
+        
+        print(f"self.provider: {self.provider}")
         self.api_key = settings.ANTHROPIC_API_KEY
         # Set the model based on the provider
         self.model = get_default_model_name(self.provider)
