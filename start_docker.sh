@@ -16,6 +16,11 @@ if curl -s --connect-timeout 1 http://169.254.169.254/latest/meta-data/ > /dev/n
     echo "Detected AWS environment"
 fi
 
+# Check if .env.local exists, else create empty file
+if [ ! -f .env.local ]; then
+    touch .env.local
+fi
+
 # Base docker run command
 DOCKER_CMD="docker run -u root \
     --env-file .env \
