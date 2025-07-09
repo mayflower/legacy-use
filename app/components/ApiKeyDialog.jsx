@@ -85,6 +85,21 @@ const ApiKeyDialog = ({ open, onClose }) => {
           </Typography>
         </Box>
 
+        {import.meta.env.VITE_API_KEY && import.meta.env.VITE_API_KEY !== apiKey && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              A default API key is available. Would you like to use it?
+            </Typography>
+            <Button
+              size="small"
+              onClick={() => setInputApiKey(import.meta.env.VITE_API_KEY)}
+              sx={{ mt: 1 }}
+            >
+              Use Default API Key
+            </Button>
+          </Alert>
+        )}
+
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}

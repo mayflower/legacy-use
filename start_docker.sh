@@ -21,6 +21,8 @@ if [ ! -f .env.local ]; then
     touch .env.local
 fi
 
+uv run python generate_api_key.py
+
 # Base docker run command
 DOCKER_CMD="docker run -u root \
     --env-file .env \
@@ -49,7 +51,8 @@ if [ "$LEGACY_USE_DEBUG" = "1" ]; then
     echo "Running in DEBUG mode with directory mounts for hot reloading"
     DOCKER_CMD="$DOCKER_CMD \
     -v $(pwd)/server:/home/legacy-use-mgmt/server/ \
-    -v $(pwd)/app:/home/legacy-use-mgmt/app/"
+    -v $(pwd)/app:/home/legacy-use-mgmt/app/ \
+    -v $(pwd)/.env.local:/home/legacy-use-mgmt/.env.local"
 else
     echo "Running in PRODUCTION mode without directory mounts"
     # Mount only the SQLite database file in production mode
