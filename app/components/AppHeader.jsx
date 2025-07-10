@@ -49,6 +49,17 @@ const AppHeader = () => {
     handleMenuClose();
   };
 
+  const aiProviderStatus = hasConfiguredProvider
+    ? isProviderValid
+      ? 'success'
+      : 'warning'
+    : 'error';
+  const aiProviderStatusText = hasConfiguredProvider
+    ? isProviderValid
+      ? 'Ready'
+      : 'Inactive'
+    : 'Not Configured';
+
   return (
     <>
       <AppBar position="static">
@@ -112,12 +123,8 @@ const AppHeader = () => {
             </Button>
           </Box>
 
-          <Tooltip title="AI Provider Settings">
-            <IconButton
-              color={hasConfiguredProvider ? (isProviderValid ? 'success' : 'warning') : 'error'}
-              size="large"
-              sx={{ mr: 1 }}
-            >
+          <Tooltip title={`AI Provider: ${aiProviderStatusText}`}>
+            <IconButton color={aiProviderStatus} size="large" sx={{ mr: 1 }}>
               <PsychologyIcon />
             </IconButton>
           </Tooltip>
