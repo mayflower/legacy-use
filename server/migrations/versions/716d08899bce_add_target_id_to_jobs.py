@@ -10,7 +10,6 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects import sqlite
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
@@ -35,7 +34,7 @@ def upgrade() -> None:
     if 'target_id' not in columns:
         # Add target_id column to jobs table
         op.add_column(
-            'jobs', sa.Column('target_id', sqlite.VARCHAR(length=36), nullable=True)
+            'jobs', sa.Column('target_id', sa.String(length=36), nullable=True)
         )
 
     # SQLite doesn't support adding foreign keys with ALTER TABLE directly

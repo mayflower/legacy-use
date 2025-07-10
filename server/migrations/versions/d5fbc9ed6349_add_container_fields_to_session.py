@@ -10,7 +10,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import text
+from sqlalchemy import inspect
 
 # revision identifiers, used by Alembic.
 revision: str = 'd5fbc9ed6349'
@@ -20,10 +20,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def column_exists(table: str, column: str) -> bool:
-    """Check if a column exists in a table."""
+    """Check if a column exists in a table using database-agnostic method."""
     conn = op.get_bind()
-    result = conn.execute(text(f'PRAGMA table_info({table})'))
-    columns = [row[1] for row in result.fetchall()]
+    inspector = inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns(table)]
     return column in columns
 
 
@@ -38,12 +38,18 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # SQLite doesn't support dropping columns directly
-    # For a proper downgrade, we would need to:
-    # 1. Create a new table without the columns
-    # 2. Copy data from the old table to the new table
-    # 3. Drop the old table
-    # 4. Rename the new table to the old table name
-
-    # For simplicity, we'll just mark this as a no-op
-    pass
+    # Check if we can drop columns (PostgreSQL supports this, SQLite doesn't)
+    bind = op.get_bind()
+    dialect_name = bind.dialect.name
+    
+    if dialect_name == 'postgresql':
+        # PostgreSQL supports dropping columns directly
+        if column_exists('sessions', 'mapped_port'):
+            op.drop_column('sessions', 'mapped_port')
+        if column_exists('sessions', 'container_id'):
+            op.drop_column('sessions', 'container_id')
+    else:
+        # For SQLite and other databases that don't support dropping columns
+        # we would need to recreate the table, but for simplicity mark as no-op
+        # since this is a development/deployment scenario
+        pass
