@@ -27,9 +27,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 import { getProviders, updateProviderSettings } from '../services/apiService';
-import posthog from 'posthog-js';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -233,7 +233,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         };
       } else if (selectedProvider === 'legacyuse') {
         if (!apiKeyInput.trim()) {
-          setError('Please enter your Legacy Use API key');
+          setError('Please enter your legacy-use API key');
           return;
         }
         credentials.proxy_api_key = apiKeyInput;
@@ -253,21 +253,13 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
   const renderWelcomeStep = () => (
     <Box sx={{ textAlign: 'center', py: 4 }}>
-      <RocketIcon sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
-      <Typography variant="h3" component="h1" gutterBottom>
-        Welcome to Legacy Use
+      <img src="/logo-white-logotop.svg" alt="legacy-use" style={{ height: '100px' }} />
+      <Typography variant="h5" color="text.secondary" sx={{ mt: 3, mb: 2 }}>
+        Automate any legacy application with AI
       </Typography>
-      <Typography variant="h6" color="text.secondary" paragraph>
-        Automate any software with AI-powered computer use
-      </Typography>
-      <Typography
-        variant="body1"
-        color="text.secondary"
-        paragraph
-        sx={{ maxWidth: 600, mx: 'auto' }}
-      >
-        Legacy Use enables you to automate complex software workflows using advanced AI that can see
-        and interact with your applications just like a human would.
+      <Typography variant="body1" color="text.secondary">
+        legacy-use allows to expose legacy applications with REST-APIs, enabling you to build
+        reliable solutions and automate workflows where it was not possible before.
       </Typography>
       <Box sx={{ mt: 4 }}>
         <Button variant="contained" size="large" onClick={handleNext} sx={{ mr: 2 }}>
@@ -281,7 +273,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     <Box sx={{ py: 4, textAlign: 'center' }}>
       <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
       <Typography variant="h4" component="h2" gutterBottom>
-        Welcome to Legacy Use!
+        Welcome to legacy-use!
       </Typography>
       <Typography variant="h6" color="text.secondary" paragraph>
         Your signup was successful
@@ -362,7 +354,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
           Get Started with $5 Credits for free
         </Typography>
         <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-          Sign up with your email to receive $5 in credits for free to explore Legacy Use's
+          Sign up with your email to receive $5 in credits for free to explore legacy-use's
           automation capabilities.
         </Typography>
 
@@ -446,7 +438,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         Configure AI Provider
       </Typography>
       <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-        Select and configure your preferred AI provider to power Legacy Use
+        Select and configure your preferred AI provider to power legacy-use
       </Typography>
 
       <FormControl fullWidth sx={{ mb: 3 }}>

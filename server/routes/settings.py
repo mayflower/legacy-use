@@ -112,8 +112,8 @@ async def get_providers():
             },
         },
         APIProvider.LEGACYUSE_PROXY: {
-            'name': 'Legacy Use Cloud',
-            'description': 'Anthropic Claude models via Legacy Use Cloud',
+            'name': 'legacy-use Cloud',
+            'description': 'Anthropic Claude models via legacy-use Cloud',
             'available': bool(getattr(settings, 'LEGACYUSE_PROXY_API_KEY', None)),
             'credentials': {
                 'proxy_api_key': obscure_api_key(
@@ -187,7 +187,7 @@ async def update_provider_settings(request: UpdateProviderRequest):
         if 'proxy_api_key' not in request.credentials:
             raise HTTPException(
                 status_code=400,
-                detail='API key is required for Legacy Use Cloud provider',
+                detail='API key is required for legacy-use Cloud provider',
             )
         settings.LEGACYUSE_PROXY_API_KEY = request.credentials['proxy_api_key']
 

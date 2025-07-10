@@ -147,7 +147,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                       overflowX: 'auto',
@@ -167,7 +166,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                       maxHeight: '100px',
@@ -188,7 +186,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                       maxHeight: '200px',
@@ -214,7 +211,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                     }}
@@ -236,7 +232,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                     }}
@@ -255,7 +250,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                       maxHeight: '100px',
@@ -276,7 +270,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                       maxHeight: '200px',
@@ -314,7 +307,6 @@ const HttpExchangeItem = ({ exchange }) => {
                       sx={{
                         backgroundColor: '#1a1a1a',
                         p: 1,
-                        borderRadius: 1,
                         fontFamily: 'monospace',
                         fontSize: '0.8rem',
                       }}
@@ -337,7 +329,6 @@ const HttpExchangeItem = ({ exchange }) => {
                     sx={{
                       backgroundColor: '#1a1a1a',
                       p: 1,
-                      borderRadius: 1,
                       fontFamily: 'monospace',
                       fontSize: '0.8rem',
                     }}
@@ -357,7 +348,6 @@ const HttpExchangeItem = ({ exchange }) => {
                   sx={{
                     backgroundColor: '#1a1a1a',
                     p: 1,
-                    borderRadius: 1,
                     fontFamily: 'monospace',
                     fontSize: '0.8rem',
                     color: '#ff6b6b',

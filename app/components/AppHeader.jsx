@@ -63,13 +63,14 @@ const AppHeader = () => {
     <>
       <AppBar position="static">
         <Toolbar>
-          <ApiIcon sx={{ mr: 2 }} />
+          <img src="/logo-white.svg" alt="legacy-use" style={{ height: '24px' }} />
           <Typography
             variant="h6"
             component={RouterLink}
             to="/"
             sx={{
               flexGrow: 0,
+              ml: 2,
               mr: 4,
               textDecoration: 'none',
               color: 'inherit',
@@ -81,37 +82,31 @@ const AppHeader = () => {
             legacy-use
           </Typography>
 
-          <Button
-            component={RouterLink}
-            to="/jobs"
-            color={isActive('/jobs') ? 'secondary' : 'inherit'}
-            startIcon={<WorkIcon />}
-            sx={{ mr: 2 }}
-          >
-            Jobs
-          </Button>
-
-          <Box sx={{ flexGrow: 1, display: 'flex' }}>
+          <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
+            <Button
+              component={RouterLink}
+              to="/jobs"
+              color={isActive('/jobs') ? 'secondary' : 'inherit'}
+              startIcon={<WorkIcon />}
+            >
+              Jobs
+            </Button>
             <Button
               component={RouterLink}
               to="/sessions"
               color={isActive('/sessions') ? 'secondary' : 'inherit'}
               startIcon={<ListAltIcon />}
-              sx={{ mr: 2 }}
             >
               Sessions
             </Button>
-
             <Button
               component={RouterLink}
               to="/targets"
               color={isActive('/targets') ? 'secondary' : 'inherit'}
               startIcon={<ComputerIcon />}
-              sx={{ mr: 2 }}
             >
               Targets
             </Button>
-
             <Button
               component={RouterLink}
               to="/apis"

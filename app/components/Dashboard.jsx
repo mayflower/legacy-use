@@ -102,7 +102,7 @@ const Dashboard = () => {
             View All
           </Button>
         </Box>
-        <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+        <List dense sx={{ bgcolor: 'background.paper' }}>
           {jobs.length > 0 ? (
             jobs.map(job => (
               <React.Fragment key={job.id}>
@@ -149,7 +149,7 @@ const Dashboard = () => {
             New
           </Button>
         </Box>
-        <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+        <List dense sx={{ bgcolor: 'background.paper' }}>
           {sessions.length > 0 ? (
             sessions.slice(0, 3).map(session => (
               <React.Fragment key={session.id}>
@@ -183,7 +183,7 @@ const Dashboard = () => {
             New
           </Button>
         </Box>
-        <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+        <List dense sx={{ bgcolor: 'background.paper' }}>
           {targets.length > 0 ? (
             targets.slice(0, 3).map(target => (
               <React.Fragment key={target.id}>
@@ -235,7 +235,7 @@ const Dashboard = () => {
             View All
           </Button>
         </Box>
-        <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+        <List dense sx={{ bgcolor: 'background.paper' }}>
           {apis.length > 0 ? (
             apis.slice(0, 3).map(api => (
               <React.Fragment key={api.id}>

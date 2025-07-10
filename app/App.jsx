@@ -45,6 +45,9 @@ const darkTheme = createTheme({
       paper: '#1e1e1e',
     },
   },
+  shape: {
+    borderRadius: 12, // Slightly rounded corners for all components
+  },
   components: {
     MuiAppBar: {
       styleOverrides: {
