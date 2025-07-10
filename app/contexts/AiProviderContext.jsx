@@ -8,7 +8,6 @@ export const AiProviderContext = createContext({
   hasConfiguredProvider: false,
   isProviderValid: false,
   refreshProviders: () => {},
-  setIsProviderValid: () => {},
 });
 
 // Create a provider component
@@ -60,7 +59,6 @@ export const AiProvider = ({ children }) => {
     isProviderValid,
     loading,
     refreshProviders,
-    setIsProviderValid,
   };
 
   return <AiProviderContext.Provider value={value}>{children}</AiProviderContext.Provider>;
