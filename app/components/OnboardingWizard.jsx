@@ -233,7 +233,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         };
       } else if (selectedProvider === 'legacyuse') {
         if (!apiKeyInput.trim()) {
-          setError('Please enter your Legacy Use API key');
+          setError('Please enter your legacy-use API key');
           return;
         }
         credentials.proxy_api_key = apiKeyInput;
@@ -255,7 +255,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     <Box sx={{ textAlign: 'center', py: 4 }}>
       <RocketIcon sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
       <Typography variant="h3" component="h1" gutterBottom>
-        Welcome to Legacy Use
+        Welcome to legacy-use
       </Typography>
       <Typography variant="h6" color="text.secondary" paragraph>
         Automate any software with AI-powered computer use
@@ -266,7 +266,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         paragraph
         sx={{ maxWidth: 600, mx: 'auto' }}
       >
-        Legacy Use enables you to automate complex software workflows using advanced AI that can see
+        legacy-use enables you to automate complex software workflows using advanced AI that can see
         and interact with your applications just like a human would.
       </Typography>
       <Box sx={{ mt: 4 }}>
@@ -281,7 +281,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     <Box sx={{ py: 4, textAlign: 'center' }}>
       <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
       <Typography variant="h4" component="h2" gutterBottom>
-        Welcome to Legacy Use!
+        Welcome to legacy-use!
       </Typography>
       <Typography variant="h6" color="text.secondary" paragraph>
         Your signup was successful
@@ -362,7 +362,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
           Get Started with $5 Credits for free
         </Typography>
         <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-          Sign up with your email to receive $5 in credits for free to explore Legacy Use's
+          Sign up with your email to receive $5 in credits for free to explore legacy-use's
           automation capabilities.
         </Typography>
 
@@ -446,7 +446,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         Configure AI Provider
       </Typography>
       <Typography variant="body1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-        Select and configure your preferred AI provider to power Legacy Use
+        Select and configure your preferred AI provider to power legacy-use
       </Typography>
 
       <FormControl fullWidth sx={{ mb: 3 }}>
