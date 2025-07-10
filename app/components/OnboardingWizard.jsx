@@ -161,6 +161,13 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       return;
     }
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const isValidUuid = uuidRegex.test(activationCode.trim());
+    if (!isValidUuid) {
+      setError('Please enter a valid activation code');
+      return;
+    }
+
     setLoading(true);
     setError('');
 

@@ -1,6 +1,7 @@
 // biome-ignore assist/source/organizeImports: must be on top
 import CssBaseline from '@mui/material/CssBaseline';
 
+import { Alert, Button } from '@mui/material';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -9,14 +10,7 @@ import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import React, { useEffect, useState } from 'react';
-import {
-  Outlet,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+import { Outlet, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import ApiKeyDialog from './components/ApiKeyDialog';
 import ApiList from './components/ApiList';
 import AppHeader from './components/AppHeader';
@@ -32,8 +26,8 @@ import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
 import TawkChat from './components/TawkChat';
 import VncViewer from './components/VncViewer';
+import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
-import { AiProvider } from './contexts/AiProviderContext';
 import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
 
 // Create a dark theme
@@ -72,25 +66,6 @@ export const SessionContext = React.createContext({
 
 // Add browser globals for linter
 const { URLSearchParams } = globalThis;
-
-// Component for the onboarding wizard page route
-const OnboardingWizardPage = () => {
-  const [wizardOpen, setWizardOpen] = useState(true);
-  const navigate = useNavigate();
-
-  const handleComplete = () => {
-    localStorage.setItem('onboardingCompleted', 'true');
-    setWizardOpen(false);
-    navigate('/');
-  };
-
-  const handleClose = () => {
-    setWizardOpen(false);
-    navigate('/');
-  };
-
-  return <OnboardingWizard open={wizardOpen} onClose={handleClose} onComplete={handleComplete} />;
-};
 
 // Placeholder component for archived sessions
 const ArchivedSessionPlaceholder = () => {
@@ -185,6 +160,7 @@ const AppLayout = () => {
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const { isProviderValid } = useAiProvider();
 
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
@@ -237,7 +213,7 @@ const AppLayout = () => {
     setHasCompletedOnboarding(hasOnboarded);
 
     // Show onboarding for new users without API key
-    if (!hasOnboarded && !apiKey) {
+    if (!hasOnboarded) {
       setOnboardingOpen(true);
     }
   }, [apiKey]);
@@ -263,15 +239,9 @@ const AppLayout = () => {
           setApiKeyDialogOpen(true);
         }
       } else {
-        // If no API key and onboarding not completed, show onboarding
-        if (!hasCompletedOnboarding) {
-          setOnboardingOpen(true);
-        } else {
-          // If onboarding completed but no API key, show API key dialog
-          setApiKeyHeader(null);
-          setIsApiKeyValid(false);
-          setApiKeyDialogOpen(true);
-        }
+        setApiKeyHeader(null);
+        setIsApiKeyValid(false);
+        setApiKeyDialogOpen(true);
       }
       setIsValidatingApiKey(false);
     };
@@ -354,6 +324,24 @@ const AppLayout = () => {
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <AppHeader />
+
+        {/* Show warning if no ai provider is configured */}
+        {!isProviderValid && !onboardingOpen && (
+          <Box sx={{ p: 2 }}>
+            <Alert
+              severity="warning"
+              action={
+                <Button color="inherit" size="small" onClick={() => setOnboardingOpen(true)}>
+                  Complete Onboarding
+                </Button>
+              }
+            >
+              No AI provider configured. Please complete the onboarding wizard or configure a custom
+              AI provider to use the app.
+            </Alert>
+          </Box>
+        )}
+
         <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden' }}>
           <Grid container sx={{ height: '100%' }}>
             {/* Left panel - adjusts width based on whether VNC viewer is shown */}
@@ -395,7 +383,7 @@ const AppLayout = () => {
 
       {/* Onboarding Wizard */}
       <OnboardingWizard
-        open={onboardingOpen}
+        open={onboardingOpen && !apiKeyDialogOpen}
         onClose={() => setOnboardingOpen(false)}
         onComplete={handleOnboardingComplete}
       />
@@ -416,7 +404,6 @@ function App() {
             <Routes>
               <Route element={<AppLayout />}>
                 <Route path="" element={<Dashboard />} />
-                <Route path="onboarding" element={<OnboardingWizardPage />} />
                 <Route path="apis" element={<ApiList />} />
                 <Route path="apis/:apiName/edit" element={<EditApiDefinition />} />
                 <Route path="sessions" element={<SessionList />} />

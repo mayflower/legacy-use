@@ -3,7 +3,6 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import KeyIcon from '@mui/icons-material/Key';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import PsychologyIcon from '@mui/icons-material/Psychology';
-import RocketIcon from '@mui/icons-material/Rocket';
 import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -48,6 +47,17 @@ const AppHeader = () => {
     clearApiKey();
     handleMenuClose();
   };
+
+  const aiProviderStatus = hasConfiguredProvider
+    ? isProviderValid
+      ? 'success'
+      : 'warning'
+    : 'error';
+  const aiProviderStatusText = hasConfiguredProvider
+    ? isProviderValid
+      ? 'Ready'
+      : 'Inactive'
+    : 'Not Configured';
 
   return (
     <>
@@ -112,17 +122,8 @@ const AppHeader = () => {
             </Button>
           </Box>
 
-          <MenuItem component={RouterLink} to="/onboarding" onClick={handleMenuClose}>
-            <RocketIcon sx={{ mr: 1 }} />
-            Onboarding Wizard
-          </MenuItem>
-
-          <Tooltip title="AI Provider Settings">
-            <IconButton
-              color={hasConfiguredProvider ? (isProviderValid ? 'success' : 'warning') : 'error'}
-              size="large"
-              sx={{ mr: 1 }}
-            >
+          <Tooltip title={`AI Provider: ${aiProviderStatusText}`}>
+            <IconButton color={aiProviderStatus} size="large" sx={{ mr: 1 }}>
               <PsychologyIcon />
             </IconButton>
           </Tooltip>
