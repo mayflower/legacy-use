@@ -237,7 +237,7 @@ const AppLayout = () => {
     setHasCompletedOnboarding(hasOnboarded);
 
     // Show onboarding for new users without API key
-    if (!hasOnboarded && !apiKey) {
+    if (!hasOnboarded) {
       setOnboardingOpen(true);
     }
   }, [apiKey]);
@@ -263,10 +263,6 @@ const AppLayout = () => {
           setApiKeyDialogOpen(true);
         }
       } else {
-        // If no API key and onboarding not completed, show onboarding
-        if (!hasCompletedOnboarding) {
-          setOnboardingOpen(true);
-        }
         setApiKeyHeader(null);
         setIsApiKeyValid(false);
         setApiKeyDialogOpen(true);
