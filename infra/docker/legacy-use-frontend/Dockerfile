@@ -23,7 +23,7 @@ WORKDIR $HOME
 COPY --chown=$USERNAME:$USERNAME app/package*.json $HOME/app/
 
 # Install all dependencies (including dev dependencies for building)
-RUN cd $HOME/app && npm ci && npm cache clean --force
+RUN cd $HOME/app && npm install && npm cache clean --force
 
 # Copy source code
 COPY --chown=$USERNAME:$USERNAME app/ $HOME/app/
