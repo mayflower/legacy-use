@@ -1,6 +1,7 @@
 // biome-ignore assist/source/organizeImports: must be on top
 import CssBaseline from '@mui/material/CssBaseline';
 
+import { Alert, Button } from '@mui/material';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -35,7 +36,6 @@ import VncViewer from './components/VncViewer';
 import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
-import { Alert } from '@mui/material';
 
 // Create a dark theme
 const darkTheme = createTheme({
@@ -354,7 +354,14 @@ const AppLayout = () => {
         {/* Show warning if no ai provider is configured */}
         {!isProviderValid && !onboardingOpen && (
           <Box sx={{ p: 2 }}>
-            <Alert severity="warning">
+            <Alert
+              severity="warning"
+              action={
+                <Button color="inherit" size="small" onClick={() => setOnboardingOpen(true)}>
+                  Complete Onboarding
+                </Button>
+              }
+            >
               No AI provider configured. Please complete the onboarding wizard or configure a custom
               AI provider to use the app.
             </Alert>
