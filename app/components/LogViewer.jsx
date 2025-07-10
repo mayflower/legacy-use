@@ -676,7 +676,6 @@ const LogViewer = ({ logs }) => {
         padding: 2,
         maxHeight: '800px',
         overflowY: 'auto',
-        borderRadius: 1,
         fontFamily: 'monospace',
         fontSize: '13px',
         position: 'relative',
@@ -784,7 +783,6 @@ const LogViewer = ({ logs }) => {
                   mt: 1,
                   cursor: 'pointer',
                   border: '1px solid #555',
-                  borderRadius: 1,
                 }}
                 onClick={() => handleImageClick(index)}
                 loading="lazy"

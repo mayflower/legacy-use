@@ -50,7 +50,6 @@ const JobTabs = ({
               sx={{
                 backgroundColor: '#2d2d2d',
                 p: 2,
-                borderRadius: 1,
                 fontFamily: 'monospace',
                 fontSize: '0.9rem',
               }}

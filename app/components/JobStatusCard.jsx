@@ -108,7 +108,7 @@ const JobStatusCard = ({
   };
 
   return (
-    <Card sx={{ boxShadow: 2, borderRadius: 2 }}>
+    <Card sx={{ boxShadow: 2 }}>
       <CardContent sx={{ p: 2, pb: '10px!important' }}>
         {/* First line: Name, status ribbon, and action buttons */}
         <Box
@@ -306,7 +306,6 @@ const JobStatusCard = ({
               sx={{
                 backgroundColor: '#2d2d2d',
                 p: 1.5,
-                borderRadius: 1,
                 fontFamily: 'monospace',
                 fontSize: '0.9rem',
                 maxHeight: '220px',
