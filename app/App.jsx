@@ -33,6 +33,7 @@ import TargetList from './components/TargetList';
 import TawkChat from './components/TawkChat';
 import VncViewer from './components/VncViewer';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
+import { AiProvider } from './contexts/AiProviderContext';
 import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
 
 // Create a dark theme
@@ -410,24 +411,26 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <ApiKeyProvider>
-        <Router>
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route path="" element={<Dashboard />} />
-              <Route path="onboarding" element={<OnboardingWizardPage />} />
-              <Route path="apis" element={<ApiList />} />
-              <Route path="apis/:apiName/edit" element={<EditApiDefinition />} />
-              <Route path="sessions" element={<SessionList />} />
-              <Route path="sessions/new" element={<CreateSession />} />
-              <Route path="sessions/:sessionId" element={<TargetDetails />} />
-              <Route path="jobs" element={<JobsList />} />
-              <Route path="jobs/:targetId/:jobId" element={<JobDetails />} />
-              <Route path="targets" element={<TargetList />} />
-              <Route path="targets/new" element={<CreateTarget />} />
-              <Route path="targets/:targetId" element={<TargetDetails />} />
-            </Route>
-          </Routes>
-        </Router>
+        <AiProvider>
+          <Router>
+            <Routes>
+              <Route element={<AppLayout />}>
+                <Route path="" element={<Dashboard />} />
+                <Route path="onboarding" element={<OnboardingWizardPage />} />
+                <Route path="apis" element={<ApiList />} />
+                <Route path="apis/:apiName/edit" element={<EditApiDefinition />} />
+                <Route path="sessions" element={<SessionList />} />
+                <Route path="sessions/new" element={<CreateSession />} />
+                <Route path="sessions/:sessionId" element={<TargetDetails />} />
+                <Route path="jobs" element={<JobsList />} />
+                <Route path="jobs/:targetId/:jobId" element={<JobDetails />} />
+                <Route path="targets" element={<TargetList />} />
+                <Route path="targets/new" element={<CreateTarget />} />
+                <Route path="targets/:targetId" element={<TargetDetails />} />
+              </Route>
+            </Routes>
+          </Router>
+        </AiProvider>
       </ApiKeyProvider>
     </ThemeProvider>
   );
