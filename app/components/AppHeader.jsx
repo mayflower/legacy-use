@@ -19,7 +19,6 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeyDialog from './ApiKeyDialog';
-import posthog from 'posthog-js';
 
 const AppHeader = () => {
   const location = useLocation();
@@ -48,11 +47,6 @@ const AppHeader = () => {
   const handleClearApiKey = () => {
     clearApiKey();
     handleMenuClose();
-  };
-
-  const handleResetTelemetry = () => {
-    console.log('Reset Telemetry');
-    posthog.reset(true);
   };
 
   return (
@@ -148,7 +142,6 @@ const AppHeader = () => {
               {apiKey ? 'Change API Key' : 'Set API Key'}
             </MenuItem>
             {apiKey && <MenuItem onClick={handleClearApiKey}>Clear API Key</MenuItem>}
-            <MenuItem onClick={handleResetTelemetry}>Reset Telemetry</MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
