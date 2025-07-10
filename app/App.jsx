@@ -266,12 +266,10 @@ const AppLayout = () => {
         // If no API key and onboarding not completed, show onboarding
         if (!hasCompletedOnboarding) {
           setOnboardingOpen(true);
-        } else {
-          // If onboarding completed but no API key, show API key dialog
-          setApiKeyHeader(null);
-          setIsApiKeyValid(false);
-          setApiKeyDialogOpen(true);
         }
+        setApiKeyHeader(null);
+        setIsApiKeyValid(false);
+        setApiKeyDialogOpen(true);
       }
       setIsValidatingApiKey(false);
     };
@@ -395,7 +393,7 @@ const AppLayout = () => {
 
       {/* Onboarding Wizard */}
       <OnboardingWizard
-        open={onboardingOpen}
+        open={onboardingOpen && !apiKeyDialogOpen}
         onClose={() => setOnboardingOpen(false)}
         onComplete={handleOnboardingComplete}
       />
