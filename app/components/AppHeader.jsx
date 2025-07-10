@@ -3,7 +3,6 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import KeyIcon from '@mui/icons-material/Key';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import PsychologyIcon from '@mui/icons-material/Psychology';
-import RocketIcon from '@mui/icons-material/Rocket';
 import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';

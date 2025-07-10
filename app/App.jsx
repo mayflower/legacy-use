@@ -10,14 +10,7 @@ import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import React, { useEffect, useState } from 'react';
-import {
-  Outlet,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+import { Outlet, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import ApiKeyDialog from './components/ApiKeyDialog';
 import ApiList from './components/ApiList';
 import AppHeader from './components/AppHeader';
