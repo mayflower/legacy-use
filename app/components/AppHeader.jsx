@@ -112,11 +112,6 @@ const AppHeader = () => {
             </Button>
           </Box>
 
-          <MenuItem component={RouterLink} to="/onboarding" onClick={handleMenuClose}>
-            <RocketIcon sx={{ mr: 1 }} />
-            Onboarding Wizard
-          </MenuItem>
-
           <Tooltip title="AI Provider Settings">
             <IconButton
               color={hasConfiguredProvider ? (isProviderValid ? 'success' : 'warning') : 'error'}
