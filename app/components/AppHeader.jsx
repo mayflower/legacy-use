@@ -63,13 +63,14 @@ const AppHeader = () => {
     <>
       <AppBar position="static">
         <Toolbar>
-          <ApiIcon sx={{ mr: 2 }} />
+          <img src="/logo-white.svg" alt="legacy-use" style={{ height: '24px' }} />
           <Typography
             variant="h6"
             component={RouterLink}
             to="/"
             sx={{
               flexGrow: 0,
+              ml: 2,
               mr: 4,
               textDecoration: 'none',
               color: 'inherit',
