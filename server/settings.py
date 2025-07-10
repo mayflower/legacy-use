@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
+    VITE_SENTRY_DSN_UI: str | None = None
 
     VITE_PUBLIC_POSTHOG_HOST: str = 'https://eu.i.posthog.com'
     VITE_PUBLIC_POSTHOG_KEY: str = 'phc_i1lWRELFSWLrbwV8M8sddiFD83rVhWzyZhP27T3s6V8'
