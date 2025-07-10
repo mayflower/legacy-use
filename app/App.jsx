@@ -32,9 +32,10 @@ import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
 import TawkChat from './components/TawkChat';
 import VncViewer from './components/VncViewer';
-import { AiProvider } from './contexts/AiProviderContext';
+import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
+import { Alert } from '@mui/material';
 
 // Create a dark theme
 const darkTheme = createTheme({
@@ -185,6 +186,7 @@ const AppLayout = () => {
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const { isProviderValid } = useAiProvider();
 
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
@@ -348,6 +350,17 @@ const AppLayout = () => {
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <AppHeader />
+
+        {/* Show warning if no ai provider is configured */}
+        {!isProviderValid && !onboardingOpen && (
+          <Box sx={{ p: 2 }}>
+            <Alert severity="warning">
+              No AI provider configured. Please complete the onboarding wizard or configure a custom
+              AI provider to use the app.
+            </Alert>
+          </Box>
+        )}
+
         <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden' }}>
           <Grid container sx={{ height: '100%' }}>
             {/* Left panel - adjusts width based on whether VNC viewer is shown */}
