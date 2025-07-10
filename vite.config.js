@@ -14,4 +14,8 @@ export default defineConfig({
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
     },
   },
+  // https://github.com/mui/material-ui/issues/36511
+  optimizeDeps: {
+    include: ['@mui/material', '@emotion/react', '@emotion/styled'],
+  },
 });
