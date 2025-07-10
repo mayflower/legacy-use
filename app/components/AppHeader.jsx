@@ -119,7 +119,7 @@ const AppHeader = () => {
 
           <Tooltip title="AI Provider Settings">
             <IconButton
-              color={isProviderValid ? 'success' : 'error'}
+              color={hasConfiguredProvider ? (isProviderValid ? 'success' : 'warning') : 'error'}
               size="large"
               sx={{ mr: 1 }}
             >
