@@ -74,25 +74,6 @@ export const SessionContext = React.createContext({
 // Add browser globals for linter
 const { URLSearchParams } = globalThis;
 
-// Component for the onboarding wizard page route
-const OnboardingWizardPage = () => {
-  const [wizardOpen, setWizardOpen] = useState(true);
-  const navigate = useNavigate();
-
-  const handleComplete = () => {
-    localStorage.setItem('onboardingCompleted', 'true');
-    setWizardOpen(false);
-    navigate('/');
-  };
-
-  const handleClose = () => {
-    setWizardOpen(false);
-    navigate('/');
-  };
-
-  return <OnboardingWizard open={wizardOpen} onClose={handleClose} onComplete={handleComplete} />;
-};
-
 // Placeholder component for archived sessions
 const ArchivedSessionPlaceholder = () => {
   return (
@@ -430,7 +411,6 @@ function App() {
             <Routes>
               <Route element={<AppLayout />}>
                 <Route path="" element={<Dashboard />} />
-                <Route path="onboarding" element={<OnboardingWizardPage />} />
                 <Route path="apis" element={<ApiList />} />
                 <Route path="apis/:apiName/edit" element={<EditApiDefinition />} />
                 <Route path="sessions" element={<SessionList />} />
