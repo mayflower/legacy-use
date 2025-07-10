@@ -32,7 +32,7 @@ export const AiProvider = ({ children }) => {
       setHasConfiguredProvider(hasConfigured);
       // Make sure the active provider is configured
       const activeProviderConfigured = configuredProviders.find(
-        provider => provider.provider === currentProvider,
+        provider => provider.provider === providersData.current_provider,
       );
       setIsProviderValid(hasConfigured && activeProviderConfigured);
     } catch (error) {
