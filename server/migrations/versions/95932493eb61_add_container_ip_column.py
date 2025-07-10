@@ -10,7 +10,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import text
+from sqlalchemy import inspect
 
 # revision identifiers, used by Alembic.
 revision: str = '95932493eb61'
@@ -20,10 +20,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def column_exists(table: str, column: str) -> bool:
-    """Check if a column exists in a table."""
+    """Check if a column exists in a table using database-agnostic method."""
     conn = op.get_bind()
-    result = conn.execute(text(f'PRAGMA table_info({table})'))
-    columns = [row[1] for row in result.fetchall()]
+    inspector = inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns(table)]
     return column in columns
 
 
@@ -35,15 +35,16 @@ def upgrade() -> None:
 
     # Drop mapped_port column if it exists
     if column_exists('sessions', 'mapped_port'):
-        # SQLite doesn't support dropping columns directly, so we'll need to:
-        # 1. Create a new table without the column
-        # 2. Copy data from the old table to the new table
-        # 3. Drop the old table
-        # 4. Rename the new table to the old table name
-
-        # For now, we'll just skip this step as it's complex in SQLite
-        # and would require a more involved migration
-        pass
+        bind = op.get_bind()
+        dialect_name = bind.dialect.name
+        
+        if dialect_name == 'postgresql':
+            # PostgreSQL supports dropping columns directly
+            op.drop_column('sessions', 'mapped_port')
+        else:
+            # For SQLite, dropping columns is complex and would require table recreation
+            # For this migration, we'll skip this step as it's development/deployment scenario
+            pass
     # ### end Alembic commands ###
 
 
@@ -53,5 +54,15 @@ def downgrade() -> None:
     if not column_exists('sessions', 'mapped_port'):
         op.add_column('sessions', sa.Column('mapped_port', sa.VARCHAR(), nullable=True))
 
-    # We don't drop container_ip in downgrade since it's already in the model
+    # Drop container_ip column in downgrade
+    if column_exists('sessions', 'container_ip'):
+        bind = op.get_bind()
+        dialect_name = bind.dialect.name
+        
+        if dialect_name == 'postgresql':
+            # PostgreSQL supports dropping columns directly
+            op.drop_column('sessions', 'container_ip')
+        else:
+            # For SQLite, we would need table recreation but skip for simplicity
+            pass
     # ### end Alembic commands ###
