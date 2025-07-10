@@ -31,7 +31,11 @@ export const AiProvider = ({ children }) => {
       const configuredProviders = providersData.providers.filter(provider => provider.available);
       const hasConfigured = configuredProviders.length > 0;
       setHasConfiguredProvider(hasConfigured);
-      setIsProviderValid(hasConfigured);
+      // Make sure the active provider is configured
+      const activeProviderConfigured = configuredProviders.find(
+        provider => provider.provider === currentProvider,
+      );
+      setIsProviderValid(hasConfigured && activeProviderConfigured);
     } catch (error) {
       console.error('Error refreshing providers:', error);
       setProviders([]);
