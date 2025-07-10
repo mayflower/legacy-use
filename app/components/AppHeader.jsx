@@ -2,6 +2,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import ComputerIcon from '@mui/icons-material/Computer';
 import KeyIcon from '@mui/icons-material/Key';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import RocketIcon from '@mui/icons-material/Rocket';
 import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
@@ -15,6 +16,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { useAiProvider } from '../contexts/AiProviderContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeyDialog from './ApiKeyDialog';
 import posthog from 'posthog-js';
@@ -22,6 +24,7 @@ import posthog from 'posthog-js';
 const AppHeader = () => {
   const location = useLocation();
   const { apiKey, clearApiKey, isApiKeyValid } = useApiKey();
+  const { hasConfiguredProvider, isProviderValid } = useAiProvider();
   const [anchorEl, setAnchorEl] = useState(null);
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
 
@@ -119,6 +122,16 @@ const AppHeader = () => {
             <RocketIcon sx={{ mr: 1 }} />
             Onboarding Wizard
           </MenuItem>
+
+          <Tooltip title="AI Provider Settings">
+            <IconButton
+              color={hasConfiguredProvider ? (isProviderValid ? 'success' : 'warning') : 'error'}
+              size="large"
+              sx={{ mr: 1 }}
+            >
+              <PsychologyIcon />
+            </IconButton>
+          </Tooltip>
 
           <Tooltip title="API Key Settings">
             <IconButton
