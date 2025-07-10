@@ -3,14 +3,6 @@ FROM node:20-slim as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    curl \
-    ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # Create user
 ENV USERNAME=legacy-use-mgmt
 ENV HOME=/home/$USERNAME
@@ -34,14 +26,6 @@ COPY --chown=$USERNAME:$USERNAME index.html vite.config.js $HOME/
 FROM node:20-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Install runtime dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    curl \
-    ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
 # Create user
 ENV USERNAME=legacy-use-mgmt

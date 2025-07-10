@@ -5,14 +5,15 @@ ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     curl \
     sqlite3 \
     ca-certificates \
     gnupg \
-    software-properties-common \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    software-properties-common && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* /var/tmp/*
 
 # Install Docker CLI (needed for dynamic container management)
 RUN install -m 0755 -d /etc/apt/keyrings && \

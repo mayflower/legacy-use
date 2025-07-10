@@ -5,7 +5,7 @@ ENV DEBIAN_PRIORITY=high
 
 RUN apt-get update && \
     apt-get -y upgrade && \
-    apt-get -y install \
+    apt-get install -y --no-install-recommends \
     git \
     curl \
     wget \
@@ -33,7 +33,9 @@ RUN apt-get update && \
     python3-pip \
     python3-venv \
     tightvncserver && \
-    apt-get clean
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* /var/tmp/*
 
 
 # Install noVNC
