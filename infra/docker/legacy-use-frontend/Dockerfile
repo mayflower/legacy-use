@@ -1,5 +1,5 @@
 # Multi-stage build for frontend optimization
-FROM node:18-slim as builder
+FROM node:20-slim as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -20,16 +20,18 @@ USER $USERNAME
 WORKDIR $HOME
 
 # Copy package files first for better layer caching
-COPY --chown=$USERNAME:$USERNAME app/package*.json $HOME/app/
+COPY --chown=$USERNAME:$USERNAME package.json package-lock.json $HOME/
 
 # Install all dependencies (including dev dependencies for building)
-RUN cd $HOME/app && npm install && npm cache clean --force
+RUN cd $HOME && npm install && npm cache clean --force
 
-# Copy source code
+# Copy source code in correct structure
 COPY --chown=$USERNAME:$USERNAME app/ $HOME/app/
+COPY --chown=$USERNAME:$USERNAME public/ $HOME/public/
+COPY --chown=$USERNAME:$USERNAME index.html vite.config.js $HOME/
 
 # Final runtime stage
-FROM node:18-slim
+FROM node:20-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -49,8 +51,11 @@ RUN useradd -m -s /bin/bash -d $HOME $USERNAME
 USER $USERNAME
 WORKDIR $HOME
 
-# Copy only the built application from builder stage
+# Copy all necessary files from builder stage
+COPY --from=builder --chown=$USERNAME:$USERNAME $HOME/package.json $HOME/package-lock.json $HOME/
 COPY --from=builder --chown=$USERNAME:$USERNAME $HOME/app $HOME/app
+COPY --from=builder --chown=$USERNAME:$USERNAME $HOME/public $HOME/public
+COPY --from=builder --chown=$USERNAME:$USERNAME $HOME/index.html $HOME/vite.config.js $HOME/
 
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\

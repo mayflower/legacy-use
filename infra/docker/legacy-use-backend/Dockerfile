@@ -29,7 +29,9 @@ ENV USERNAME=legacy-use-mgmt
 ENV HOME=/home/$USERNAME
 RUN useradd -m -s /bin/bash -d $HOME $USERNAME && \
     groupadd -f docker && \
-    usermod -aG docker $USERNAME
+    usermod -aG docker $USERNAME && \
+    mkdir -p $HOME/.cache && \
+    chown -R $USERNAME:$USERNAME $HOME/.cache
 
 USER $USERNAME
 WORKDIR $HOME

@@ -8,6 +8,7 @@ Create Date: 2023-05-23 12:00:00.000000
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy import inspect
 
 # revision identifiers, used by Alembic.
 revision = 'add_width_height_to_targets'
@@ -16,16 +17,26 @@ branch_labels = None
 depends_on = None
 
 
+def column_exists(table: str, column: str) -> bool:
+    """Check if a column exists in a table using database-agnostic method."""
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns(table)]
+    return column in columns
+
+
 def upgrade():
-    # Add width and height columns to targets table with default values
-    # SQLite doesn't support ALTER COLUMN for making columns NOT NULL after they've been added
-    # So we'll just add the columns with default values
-    op.add_column(
-        'targets', sa.Column('width', sa.String(), nullable=True, server_default='1024')
-    )
-    op.add_column(
-        'targets', sa.Column('height', sa.String(), nullable=True, server_default='768')
-    )
+    # Add width column if it doesn't exist
+    if not column_exists('targets', 'width'):
+        op.add_column(
+            'targets', sa.Column('width', sa.String(), nullable=True, server_default='1024')
+        )
+
+    # Add height column if it doesn't exist  
+    if not column_exists('targets', 'height'):
+        op.add_column(
+            'targets', sa.Column('height', sa.String(), nullable=True, server_default='768')
+        )
 
     # Update existing records to set width and height to the default values
     op.execute("UPDATE targets SET width = '1024' WHERE width IS NULL")
@@ -36,6 +47,17 @@ def upgrade():
 
 
 def downgrade():
-    # Remove width and height columns from targets table
-    op.drop_column('targets', 'width')
-    op.drop_column('targets', 'height')
+    # Check if we can drop columns (PostgreSQL supports this, SQLite doesn't)
+    bind = op.get_bind()
+    dialect_name = bind.dialect.name
+    
+    if dialect_name == 'postgresql':
+        # PostgreSQL supports dropping columns directly
+        if column_exists('targets', 'height'):
+            op.drop_column('targets', 'height')
+        if column_exists('targets', 'width'):
+            op.drop_column('targets', 'width')
+    else:
+        # For SQLite, dropping columns is complex and would require table recreation
+        # For simplicity, mark as no-op since this is development/deployment scenario
+        pass
