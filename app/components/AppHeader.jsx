@@ -23,7 +23,7 @@ import ApiKeyDialog from './ApiKeyDialog';
 const AppHeader = () => {
   const location = useLocation();
   const { apiKey, clearApiKey, isApiKeyValid } = useApiKey();
-  const { currentProvider, hasConfiguredProvider, isProviderValid } = useAiProvider();
+  const { hasConfiguredProvider, isProviderValid } = useAiProvider();
   const [anchorEl, setAnchorEl] = useState(null);
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
 
