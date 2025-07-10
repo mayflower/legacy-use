@@ -668,7 +668,7 @@ wheels = [
 ]
 
 [[package]]
-name = "legacy-use-core"
+name = "legacy-use"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
