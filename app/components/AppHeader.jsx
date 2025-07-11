@@ -62,8 +62,6 @@ const AppHeader = () => {
 
   const handleRestartOnboarding = () => {
     handleAiProviderMenuClose();
-    // Remove the local storage flag
-    localStorage.removeItem('onboardingCompleted');
     // Open the onboarding wizard
     setOnboardingOpen(true);
   };
