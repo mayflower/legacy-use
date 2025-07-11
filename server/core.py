@@ -244,7 +244,7 @@ class APIGatewayCore:
 
         except Exception as e:
             # Handle exceptions raised BY sampling_loop (e.g., ValueError, APIError, RuntimeError)
-            error_message = f'Job execution failed: {str(e)}'
+            error_message = str(e)
             logger.error(f'Job {job_id}: {error_message}', exc_info=True)
             # Update job status to ERROR on exception
             try:

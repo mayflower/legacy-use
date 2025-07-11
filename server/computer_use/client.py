@@ -146,8 +146,9 @@ class WithRawResponse:
                     )
                 # rais if not 200
                 if response.status_code != 200:
+                    print(f'Response body: {response_json}')
                     raise APIStatusError(
-                        message='API Error',
+                        message=response_json['error'],
                         response=response,
                         body=response_json
                     )

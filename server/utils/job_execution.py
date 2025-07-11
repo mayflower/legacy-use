@@ -598,11 +598,12 @@ async def execute_api_in_background(job: Job):
                         'error',
                         f'Target {job.target_id} queue will be paused due to insufficient credits',
                     )
-                add_job_log(
-                    job_id_str,
-                    'system',
-                    f'Target {job.target_id} queue will be paused due to job {api_response.status.value}',
-                )
+                else:
+                    add_job_log(
+                        job_id_str,
+                        'system',
+                        f'Target {job.target_id} queue will be paused due to job {api_response.status.value}',
+                    )
 
             # Set completion future if it exists
             try:
@@ -622,7 +623,7 @@ async def execute_api_in_background(job: Job):
             add_job_log(
                 job_id_str,
                 'system',
-                f'Job completed with status: {api_response.status}',
+                f'Job completed with status: {api_response.status} and reason: {api_response.reason}',
             )
 
             # Include token usage in the job data for telemetry
