@@ -18,6 +18,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  Link,
   MenuItem,
   Paper,
   Select,
@@ -29,10 +30,12 @@ import {
 } from '@mui/material';
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
-import { getProviders, updateProviderSettings } from '../services/apiService';
+import { useNavigate } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
+import { getProviders, getTargets, updateProviderSettings } from '../services/apiService';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -184,6 +187,17 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         proxy_api_key: activationCode.trim(),
       });
 
+      // Load targets and redirect to first one
+      try {
+        const targets = await getTargets();
+        if (targets.length > 0) {
+          const firstTarget = targets[0];
+          navigate(`/apis?target=${firstTarget.id}`);
+        }
+      } catch (err) {
+        console.error('Error loading targets:', err);
+      }
+
       // refresh providers
       await refreshProviders();
 
@@ -243,6 +257,19 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
       // Use the new backend logic to configure the provider
       await updateProviderSettings(selectedProvider, credentials);
+
+      // Load targets and redirect to first one
+      try {
+        const targets = await getTargets();
+        if (targets.length > 0) {
+          const firstTarget = targets[0];
+          navigate(`/apis?target=${firstTarget.id}`);
+        }
+      } catch (err) {
+        console.error('Error loading targets:', err);
+      }
+
+      await refreshProviders();
 
       // Complete the onboarding
       onComplete();
@@ -415,6 +442,25 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
             {loading ? 'Processing...' : 'Get $5 Credits for free'}
           </Button>
         </Paper>
+
+        {/* Activation key option */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 1, display: 'block', mb: 1 }}
+        >
+          Already have an activation key?{' '}
+          <Link
+            href="#"
+            onClick={e => {
+              e.preventDefault();
+              setSignupCompleted(true);
+            }}
+          >
+            Enter it here
+          </Link>
+        </Typography>
 
         {/* Divider */}
         <Divider sx={{ my: 3 }}>
