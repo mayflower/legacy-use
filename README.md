@@ -1,19 +1,15 @@
 <!-- legacy-use README -->
 <p align="center">
-  <img src="https://framerusercontent.com/images/dITUuTk8cKrr6KBrjwv9142LXLw.png" width="120" alt="legacy-use logo" />
+  <img src="https://legacy-use-public-content.s3.eu-central-1.amazonaws.com/legacy_use_logo_white_large_logotop.png" width="420" alt="legacy-use logo" />
   <h3 align="center">🚀  Turn any legacy application into a modern REST API, powered by AI.</h3>
 </p>
 
 <p align="center">
-  <!-- TBD: Add license badge -->
-  <!-- <a href="https://github.com/legacy-use/legacy-use/blob/main/LICENSE"> -->
-    <!-- <img src="https://img.shields.io/badge/License-MIT-E11311.svg" alt="MIT License" />
-  </a> -->
   <a href="https://discord.gg/Y7fur7jR">
     <img src="https://img.shields.io/discord/1389579420993327195?color=7289DA&label=Discord&logo=discord&logoColor=white" alt="Join us on Discord" />
   </a>
   <a href="https://www.legacy-use.com/">
-    <img src="https://img.shields.io/badge/Join_Beta-legacy--use.com-blue" alt="Join the Beta" />
+    <img src="https://img.shields.io/badge/Try_Now-legacy--use.com-blue" alt="Try Now" />
   </a>
   <a href="https://github.com/legacy-use/legacy-use">
     <img src="https://img.shields.io/github/stars/legacy-use?style=social" alt="GitHub stars" />
@@ -24,11 +20,13 @@
 
 ## ✨ Why legacy-use?
 
+
 - **Add API Endpoints via Prompt** — Dynamically generate and customize REST API endpoints for any legacy or desktop application.
+- **Access systems running legacy software** — Use established tools like RDP/VNC to run your prompts.
 - **Logging & Debugging** — Track, analyze, and resolve issues effortlessly with built-in observability tools.
 - **Safety & Reliability** — Ensure secure, compliant automation that delivers dependable performance.
-- **Model Independence** — Integrate any AI model with full flexibility—no vendor lock-in.
-- **Enterprise-Grade Security and Compliance** — Security is embedded in everything we do, from infrastructure to API.
+- **Model Provider Independence** — Choose your model provider and avoid vendor lock-in.
+- **Enterprise-Grade Security and Compliance** — Deploy and run locally to ensure security and compliance.
 
 [![legacy-use demo](https://framerusercontent.com/images/zbuaI2v5TNWWs9eVaW0dBad5LE.png)](https://framerusercontent.com/assets/Z6Dsz4JSIW0JIypHSZFcu5DVCU.mp4)
 
@@ -48,10 +46,6 @@
   - [Get your API key](https://console.anthropic.com/) from Anthropic Console
   - **Note**: You'll need credits in your Anthropic account for API usage
 
-- **Legacy-use API Key** - Authentication token for your local server
-  - Can be any secure string you generate (e.g., `openssl rand -hex 32`)
-  - Used to authenticate requests to your legacy-use instance
-
 #### For Development Only
 Want to contribute or modify the code? You'll need Node.js and Python locally for development.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete development setup guide.
@@ -67,17 +61,19 @@ cd legacy-use
 cp .env.template .env
 # Edit .env file with your favorite editor and add:
 # ANTHROPIC_API_KEY=sk-your-anthropic-key-here
-# API_KEY=your-generated-api-key-here
 # (Optional) Add any configuration options from above
 
-# 3. Build and start all services
+# 3. Generate a secure API key and add it to your .env file  - (details below)
+uv run python generate_api_key.py
+
+# 4. Build and start all services
 ./build_all_docker.sh
 LEGACY_USE_DEBUG=1 ./start_docker.sh
 ```
 
-**🔑 API Key Generation Helper**
 
-If you don't have an API key yet, you can use our helper script to generate a secure one:
+
+**🔑 API Key Generation Helper**
 
 ```bash
 # Generate a secure API key and add it to your .env file
@@ -93,7 +89,7 @@ This script will:
 
 Once the setup completes:
 
-1. **Frontend**: Open <http://localhost:5173> - you should see the legacy-use dashboard
+1. **Frontend**: Open <http://localhost:8077> - you should see the legacy-use dashboard
 2. **API Documentation**: Visit <http://localhost:8088/redoc> - to explore the REST API
 🎉 **You're all set!** The complete setup usually takes 2-5 minutes depending on your internet connection.
 
@@ -101,7 +97,7 @@ Once the setup completes:
 
 **Docker not starting?**
 - Ensure Docker Desktop is running
-- Check if ports 5173 and 8088 are available: `lsof -i :5173` and `lsof -i :8088`
+- Check if ports 8077 and 8088 are available: `lsof -i :8077` and `lsof -i :8088`
 
 **Build failing?**
 - Ensure you have sufficient disk space (~2GB)
@@ -149,7 +145,7 @@ For optimal performance, configure your VM's display resolution:
 **Note**: Larger resolutions can be used, but performance may degrade—especially when working with very small UI elements.
 
 ### Step 5: Add Target in Legacy-Use
-1. Open the legacy-use web interface: `http://localhost:5173`
+1. Open the legacy-use web interface: `http://localhost:8077`
 2. Navigate to **Targets** → **New Target**
 3. Fill in the details:
    ```
