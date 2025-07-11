@@ -30,10 +30,12 @@ import {
 } from '@mui/material';
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
-import { getProviders, updateProviderSettings } from '../services/apiService';
+import { getProviders, getTargets, updateProviderSettings } from '../services/apiService';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -184,6 +186,20 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       await updateProviderSettings('legacyuse', {
         proxy_api_key: activationCode.trim(),
       });
+
+      // Load targets and redirect to first one
+      try {
+        const targets = await getTargets();
+        if (targets.length > 0) {
+          const firstTarget = targets[0];
+          navigate(`/apis?target=${firstTarget.id}`);
+        } else {
+          navigate('/apis');
+        }
+      } catch (err) {
+        console.error('Error loading targets:', err);
+        navigate('/apis');
+      }
 
       // refresh providers
       await refreshProviders();
