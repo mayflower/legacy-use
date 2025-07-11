@@ -3,7 +3,7 @@ from anthropic.types.beta import BetaMessageParam
 from anthropic import APIStatusError
 import httpx
 from server.settings import settings
-
+from server.utils.logger import logger
 
 class ContentBlockWrapper:
     """Wrapper for individual content blocks to provide Pydantic model interface"""
@@ -130,23 +130,22 @@ class WithRawResponse:
             **kwargs,
         }
 
-        print(f'Sending request to {url} with headers: {headers}')
+        logger.info(f'Sending request to {url} with headers: {headers}')
 
         async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(url, headers=headers, json=data)
             try:
                 response_json = response.json()
                 # Return wrapped response that's compatible with Anthropic client interface
-                print(f'Response status code: {response.status_code}')
+                logger.info(f'Response status code: {response.status_code}')
                 if response.status_code == 403:
                     raise APIStatusError(
                         message='API Credits Exceeded',
                         response=response,
                         body=response_json
                     )
-                # rais if not 200
                 if response.status_code != 200:
-                    print(f'Response body: {response_json}')
+                    logger.error(f'Failed to execute API: {response_json}')
                     raise APIStatusError(
                         message=response_json['error'],
                         response=response,
@@ -154,5 +153,5 @@ class WithRawResponse:
                     )
                 return RawResponse(response_json, response)
             except Exception as e:
-                print(f'Failed to parse response JSON: {e}')
+                logger.error(f'Failed to parse response JSON: {e}')
                 raise
