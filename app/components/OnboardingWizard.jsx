@@ -258,6 +258,19 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // Use the new backend logic to configure the provider
       await updateProviderSettings(selectedProvider, credentials);
 
+      // Load targets and redirect to first one
+      try {
+        const targets = await getTargets();
+        if (targets.length > 0) {
+          const firstTarget = targets[0];
+          navigate(`/apis?target=${firstTarget.id}`);
+        }
+      } catch (err) {
+        console.error('Error loading targets:', err);
+      }
+
+      await refreshProviders();
+
       // Complete the onboarding
       onComplete();
     } catch (_err) {
