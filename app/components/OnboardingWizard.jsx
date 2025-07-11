@@ -18,6 +18,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  Link,
   MenuItem,
   Paper,
   Select,
@@ -415,6 +416,25 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
             {loading ? 'Processing...' : 'Get $5 Credits for free'}
           </Button>
         </Paper>
+
+        {/* Activation key option */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 1, display: 'block', mb: 1 }}
+        >
+          Already have an activation key?{' '}
+          <Link
+            href="#"
+            onClick={e => {
+              e.preventDefault();
+              setSignupCompleted(true);
+            }}
+          >
+            Enter it here
+          </Link>
+        </Typography>
 
         {/* Divider */}
         <Divider sx={{ my: 3 }}>
