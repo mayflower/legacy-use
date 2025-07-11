@@ -18,6 +18,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  Link,
   MenuItem,
   Paper,
   Select,
@@ -29,9 +30,12 @@ import {
 } from '@mui/material';
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
-import { getProviders, updateProviderSettings } from '../services/apiService';
+import { useNavigate } from 'react-router-dom';
+import { useAiProvider } from '../contexts/AiProviderContext';
+import { getProviders, getTargets, updateProviderSettings } from '../services/apiService';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,6 +44,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [signupCompleted, setSignupCompleted] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+  const { refreshProviders } = useAiProvider();
 
   // Signup form state
   const [signupData, setSignupData] = useState({
@@ -175,15 +180,26 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
       // Here you would typically validate the activation code with your API
       console.log('Activation code:', activationCode);
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       // TODO: validate activation code
 
       // Call backend (server) and setup legacyuse provider with the entered activation code as legacy use cloud api key
       await updateProviderSettings('legacyuse', {
         proxy_api_key: activationCode.trim(),
       });
+
+      // Load targets and redirect to first one
+      try {
+        const targets = await getTargets();
+        if (targets.length > 0) {
+          const firstTarget = targets[0];
+          navigate(`/apis?target=${firstTarget.id}`);
+        }
+      } catch (err) {
+        console.error('Error loading targets:', err);
+      }
+
+      // refresh providers
+      await refreshProviders();
 
       // Complete the onboarding
       onComplete();
@@ -241,6 +257,19 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
       // Use the new backend logic to configure the provider
       await updateProviderSettings(selectedProvider, credentials);
+
+      // Load targets and redirect to first one
+      try {
+        const targets = await getTargets();
+        if (targets.length > 0) {
+          const firstTarget = targets[0];
+          navigate(`/apis?target=${firstTarget.id}`);
+        }
+      } catch (err) {
+        console.error('Error loading targets:', err);
+      }
+
+      await refreshProviders();
 
       // Complete the onboarding
       onComplete();
@@ -413,6 +442,25 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
             {loading ? 'Processing...' : 'Get $5 Credits for free'}
           </Button>
         </Paper>
+
+        {/* Activation key option */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 1, display: 'block', mb: 1 }}
+        >
+          Already have an activation key?{' '}
+          <Link
+            href="#"
+            onClick={e => {
+              e.preventDefault();
+              setSignupCompleted(true);
+            }}
+          >
+            Enter it here
+          </Link>
+        </Typography>
 
         {/* Divider */}
         <Divider sx={{ my: 3 }}>
