@@ -165,6 +165,8 @@ async def sampling_loop(
         image_truncation_threshold = 1
         # --- Client Initialization (remains the same) ---
         # TODO: Does this need to be done for every iteration?
+        # reload pydantic variables
+        settings.__init__()
         if provider == APIProvider.ANTHROPIC:
             # Use AsyncAnthropic instead of Anthropic
             client = AsyncAnthropic(api_key=api_key, max_retries=4)

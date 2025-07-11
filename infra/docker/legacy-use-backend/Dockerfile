@@ -44,6 +44,15 @@ COPY --chown=$USERNAME:$USERNAME server/ $HOME/server/
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
+# Handle .env.local file persistence using mounted volume\n\
+mkdir -p "$HOME/persistent-config"\n\
+if [ ! -f "$HOME/persistent-config/.env.local" ]; then\n\
+    touch "$HOME/persistent-config/.env.local"\n\
+fi\n\
+# Create symlink to the expected location (remove existing file/link first)\n\
+rm -f "$HOME/.env.local"\n\
+ln -sf "$HOME/persistent-config/.env.local" "$HOME/.env.local"\n\
+\n\
 echo "Running migrations"\n\
 uv run alembic -c server/alembic.ini upgrade head\n\
 \n\
