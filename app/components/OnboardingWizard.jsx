@@ -30,8 +30,8 @@ import {
 } from '@mui/material';
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
-import { getProviders, updateProviderSettings } from '../services/apiService';
 import { useAiProvider } from '../contexts/AiProviderContext';
+import { getProviders, updateProviderSettings } from '../services/apiService';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
