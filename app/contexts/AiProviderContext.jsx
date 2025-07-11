@@ -7,7 +7,7 @@ export const AiProviderContext = createContext({
   currentProvider: null,
   hasConfiguredProvider: false,
   isProviderValid: false,
-  refreshProviders: () => {},
+  refreshProviders: async () => {},
 });
 
 // Create a provider component
