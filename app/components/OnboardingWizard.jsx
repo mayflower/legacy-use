@@ -193,12 +193,9 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         if (targets.length > 0) {
           const firstTarget = targets[0];
           navigate(`/apis?target=${firstTarget.id}`);
-        } else {
-          navigate('/apis');
         }
       } catch (err) {
         console.error('Error loading targets:', err);
-        navigate('/apis');
       }
 
       // refresh providers
