@@ -254,13 +254,13 @@ async def sampling_loop(
             # For other API errors, handle as before
             if api_response_callback:
                 api_response_callback(e.request, e.response, e)
-            raise ValueError('API call failed with error') from e
+            raise ValueError(f'API call failed with error: {str(e)}') from e
 
         except APIError as e:
             if api_response_callback:
                 api_response_callback(e.request, e.body, e)
             # Return extractions if we have them, otherwise raise an error
-            raise ValueError('API call failed with error') from e
+            raise ValueError(f'API call failed with error: {str(e)}') from e
         
         except asyncio.CancelledError:
             logger.info('API call cancelled')
@@ -457,6 +457,7 @@ async def sampling_loop(
                     )
             else:
                 # Model has more to say (e.g., text response without tool use), continue loop.
+                logger.info(f'Job {job_id}: Model has more to say, continuing loop')
                 continue
         # else: If tools were used, the loop automatically continues.
 

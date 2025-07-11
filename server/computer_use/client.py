@@ -144,6 +144,13 @@ class WithRawResponse:
                         response=response,
                         body=response_json
                     )
+                # rais if not 200
+                if response.status_code != 200:
+                    raise APIStatusError(
+                        message='API Error',
+                        response=response,
+                        body=response_json
+                    )
                 return RawResponse(response_json, response)
             except Exception as e:
                 print(f'Failed to parse response JSON: {e}')

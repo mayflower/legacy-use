@@ -591,7 +591,8 @@ async def execute_api_in_background(job: Job):
                     f'Target {job.target_id} queue will be paused due to job {api_response.status.value}'
                 )
                 # special message for api credits exceeded
-                if api_response.status == JobStatus.PAUSED and api_response.error == 'API Credits Exceeded':
+                print(f'api_response: {api_response}')
+                if api_response.status == JobStatus.PAUSED and 'API Credits Exceeded' in str(api_response.reason):
                     add_job_log(
                         job_id_str,
                         'error',
