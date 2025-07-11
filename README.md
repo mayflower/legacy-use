@@ -1,6 +1,6 @@
 <!-- legacy-use README -->
 <p align="center">
-  <img src="https://legacy-use-public-content.s3.eu-central-1.amazonaws.com/legacy_use_logo_white_large_logotop.png" width="420" alt="legacy-use logo" />
+  <img src="https://legacy-use-public-content.s3.eu-central-1.amazonaws.com/legacy_use_logo_white_large_shaded.png" width="420" alt="legacy-use logo" />
   <h3 align="center">🚀  Turn any legacy application into a modern REST API, powered by AI.</h3>
 </p>
 
