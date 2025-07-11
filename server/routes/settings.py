@@ -63,6 +63,9 @@ settings_router = APIRouter(prefix='/settings', tags=['Settings'])
 async def get_providers():
     """Get available VLM providers and their configurations."""
 
+    # workaround to reload settings after updating the provider
+    settings.__init__()
+
     # Define provider configurations
     provider_configs = {
         APIProvider.ANTHROPIC: {
