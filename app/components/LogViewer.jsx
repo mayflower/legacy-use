@@ -290,6 +290,9 @@ const LogViewer = ({ logs }) => {
             return log.content;
           }
         }
+        if (log.content?.message?.includes('insufficient credits')) {
+          return "You've run out of credits. Want to add more? <a href='https://legacy-use.com/'>Book a demo with us!</a>";
+        }
         if (typeof log.content === 'string') {
           return log.content;
         }

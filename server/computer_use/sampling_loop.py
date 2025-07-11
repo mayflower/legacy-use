@@ -244,6 +244,13 @@ async def sampling_loop(
             )
 
         except (APIStatusError, APIResponseValidationError) as e:
+            if e.response.status_code == 403 and 'API Credits Exceeded' in str(e):
+                logger.error(f'Job {job_id}: API Credits Exceeded')
+                return {
+                    'success': False,
+                    'error': 'API Credits Exceeded',
+                    'error_description': str(e),
+                }, exchanges
             # For other API errors, handle as before
             if api_response_callback:
                 api_response_callback(e.request, e.response, e)
@@ -254,7 +261,7 @@ async def sampling_loop(
                 api_response_callback(e.request, e.body, e)
             # Return extractions if we have them, otherwise raise an error
             raise ValueError('API call failed with error') from e
-
+        
         except asyncio.CancelledError:
             logger.info('API call cancelled')
             raise

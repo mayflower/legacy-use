@@ -1,5 +1,6 @@
 from typing import Any
 from anthropic.types.beta import BetaMessageParam
+from anthropic import APIStatusError
 import httpx
 from server.settings import settings
 
@@ -137,6 +138,12 @@ class WithRawResponse:
                 response_json = response.json()
                 # Return wrapped response that's compatible with Anthropic client interface
                 print(f'Response status code: {response.status_code}')
+                if response.status_code == 403:
+                    raise APIStatusError(
+                        message='API Credits Exceeded',
+                        response=response,
+                        body=response_json
+                    )
                 return RawResponse(response_json, response)
             except Exception as e:
                 print(f'Failed to parse response JSON: {e}')
