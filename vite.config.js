@@ -16,6 +16,15 @@ export default defineConfig({
   },
   // https://github.com/mui/material-ui/issues/36511
   optimizeDeps: {
-    include: ['@mui/material', '@emotion/react', '@emotion/styled'],
+    include: [
+      '@mui/material',
+      '@mui/system',
+      '@emotion/react',
+      '@emotion/styled',
+      '@emotion/cache',
+    ],
+  },
+  define: {
+    global: 'globalThis',
   },
 });
