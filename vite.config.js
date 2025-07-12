@@ -14,7 +14,7 @@ export default defineConfig({
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
     },
   },
-  // https://github.com/mui/material-ui/issues/36511
+  // Fixes ambiguous behavior with initial loading of MUI and Emotion packages
   optimizeDeps: {
     include: [
       '@mui/material',
@@ -24,6 +24,7 @@ export default defineConfig({
       '@emotion/cache',
     ],
   },
+  // makes sure 'global' points to 'globalThis' -> fixed ambiguous initial load
   define: {
     global: 'globalThis',
   },
