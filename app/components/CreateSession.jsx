@@ -97,7 +97,35 @@ const CreateSession = () => {
       }, 1500);
     } catch (err) {
       console.error('Error creating session:', err);
-      setError(`Failed to create session: ${err.message || 'Unknown error'}`);
+      
+      // Handle specific conflict error for existing active session
+      if (err.status === 409 && err.detail && err.detail.existing_session) {
+        const existingSession = err.detail.existing_session;
+        const formattedDate = new Date(existingSession.created_at).toLocaleString();
+        setError(
+          <div>
+            <strong>Cannot create session:</strong> An active session already exists for this target.
+            <br /><br />
+            <strong>Existing session details:</strong>
+            <br />• Name: {existingSession.name}
+            <br />• State: {existingSession.state}
+            <br />• Status: {existingSession.status}
+            <br />• Created: {formattedDate}
+            <br /><br />
+            Please archive the existing session first, or{' '}
+            <Button 
+              size="small" 
+              variant="outlined" 
+              onClick={() => navigate(`/targets/${sessionData.target_id}?sessionId=${existingSession.id}`)}
+              sx={{ ml: 1 }}
+            >
+              Go to existing session
+            </Button>
+          </div>
+        );
+      } else {
+        setError(`Failed to create session: ${err.message || 'Unknown error'}`);
+      }
       setLoading(false);
     }
   };
