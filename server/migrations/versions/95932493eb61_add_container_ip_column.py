@@ -37,7 +37,7 @@ def upgrade() -> None:
     if column_exists('sessions', 'mapped_port'):
         bind = op.get_bind()
         dialect_name = bind.dialect.name
-        
+
         if dialect_name == 'postgresql':
             # PostgreSQL supports dropping columns directly
             op.drop_column('sessions', 'mapped_port')
@@ -58,7 +58,7 @@ def downgrade() -> None:
     if column_exists('sessions', 'container_ip'):
         bind = op.get_bind()
         dialect_name = bind.dialect.name
-        
+
         if dialect_name == 'postgresql':
             # PostgreSQL supports dropping columns directly
             op.drop_column('sessions', 'container_ip')

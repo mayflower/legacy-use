@@ -29,13 +29,15 @@ def upgrade():
     # Add width column if it doesn't exist
     if not column_exists('targets', 'width'):
         op.add_column(
-            'targets', sa.Column('width', sa.String(), nullable=True, server_default='1024')
+            'targets',
+            sa.Column('width', sa.String(), nullable=True, server_default='1024'),
         )
 
-    # Add height column if it doesn't exist  
+    # Add height column if it doesn't exist
     if not column_exists('targets', 'height'):
         op.add_column(
-            'targets', sa.Column('height', sa.String(), nullable=True, server_default='768')
+            'targets',
+            sa.Column('height', sa.String(), nullable=True, server_default='768'),
         )
 
     # Update existing records to set width and height to the default values
@@ -50,7 +52,7 @@ def downgrade():
     # Check if we can drop columns (PostgreSQL supports this, SQLite doesn't)
     bind = op.get_bind()
     dialect_name = bind.dialect.name
-    
+
     if dialect_name == 'postgresql':
         # PostgreSQL supports dropping columns directly
         if column_exists('targets', 'height'):

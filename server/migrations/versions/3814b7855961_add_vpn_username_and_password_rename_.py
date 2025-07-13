@@ -35,13 +35,17 @@ def upgrade() -> None:
         op.add_column('targets', sa.Column('vpn_password', sa.String(), nullable=True))
 
     # Rename tailscale_authkey to vpn_config if tailscale_authkey exists and vpn_config doesn't
-    if column_exists('targets', 'tailscale_authkey') and not column_exists('targets', 'vpn_config'):
+    if column_exists('targets', 'tailscale_authkey') and not column_exists(
+        'targets', 'vpn_config'
+    ):
         op.alter_column('targets', 'tailscale_authkey', new_column_name='vpn_config')
 
 
 def downgrade() -> None:
     # Rename vpn_config back to tailscale_authkey if vpn_config exists and tailscale_authkey doesn't
-    if column_exists('targets', 'vpn_config') and not column_exists('targets', 'tailscale_authkey'):
+    if column_exists('targets', 'vpn_config') and not column_exists(
+        'targets', 'tailscale_authkey'
+    ):
         op.alter_column('targets', 'vpn_config', new_column_name='tailscale_authkey')
 
     # Drop the vpn_username and vpn_password columns if they exist

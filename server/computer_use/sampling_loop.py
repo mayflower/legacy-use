@@ -262,7 +262,7 @@ async def sampling_loop(
                 api_response_callback(e.request, e.body, e)
             # Return extractions if we have them, otherwise raise an error
             raise ValueError(e.message) from e
-        
+
         except asyncio.CancelledError:
             logger.info('API call cancelled')
             raise

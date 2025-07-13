@@ -41,7 +41,7 @@ def downgrade() -> None:
     # Check if we can drop columns (PostgreSQL supports this, SQLite doesn't)
     bind = op.get_bind()
     dialect_name = bind.dialect.name
-    
+
     if dialect_name == 'postgresql':
         # PostgreSQL supports dropping columns directly
         if column_exists('sessions', 'mapped_port'):
