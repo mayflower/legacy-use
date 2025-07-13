@@ -40,7 +40,7 @@ def write_env_file(env_vars):
     """Write the environment variables back to .env file."""
     with open('.env', 'w') as f:
         for key, value in env_vars.items():
-            f.write(f"{key}={value}\n")
+            f.write(f'{key}={value}\n')
 
 
 def main():
@@ -50,9 +50,9 @@ def main():
     env_vars = read_env_file()
     api_key = env_vars.get('API_KEY', '')
     vite_api_key = env_vars.get('VITE_API_KEY', '')
-    
+
     needs_update = False
-    
+
     if not api_key or api_key == 'not-secure-api-key':
         api_key = generate_secure_api_key()
         env_vars['API_KEY'] = api_key
@@ -60,14 +60,14 @@ def main():
         print('🧬️ No API key found, generating new secure API key.')
     else:
         print('✅ Secure API_KEY already configured...')
-    
+
     if vite_api_key != api_key:
         env_vars['VITE_API_KEY'] = api_key
         needs_update = True
         print('♊ Set VITE_API_KEY to match API_KEY.')
     else:
         print('✅ VITE_API_KEY already matches API_KEY.')
-    
+
     if needs_update:
         write_env_file(env_vars)
 

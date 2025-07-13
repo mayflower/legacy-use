@@ -8,7 +8,6 @@ Create Date: 2025-03-02 16:35:58.443518
 
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -22,11 +21,11 @@ def upgrade() -> None:
     # Get the current database dialect
     bind = op.get_bind()
     dialect_name = bind.dialect.name
-    
+
     if dialect_name == 'sqlite':
         # SQLite doesn't support altering column nullability directly
         # We need to recreate the table with the new schema
-        
+
         # Create a new table with the desired schema
         op.execute("""
         CREATE TABLE targets_new (
@@ -54,11 +53,11 @@ def upgrade() -> None:
 
         # Rename the new table to the original name
         op.execute('ALTER TABLE targets_new RENAME TO targets')
-    
+
     elif dialect_name == 'postgresql':
         # PostgreSQL supports ALTER COLUMN directly
         op.alter_column('targets', 'username', nullable=True)
-    
+
     else:
         # For other databases, try the standard approach
         op.alter_column('targets', 'username', nullable=True)
@@ -68,7 +67,7 @@ def downgrade() -> None:
     # Get the current database dialect
     bind = op.get_bind()
     dialect_name = bind.dialect.name
-    
+
     if dialect_name == 'sqlite':
         # Revert the changes by recreating the table with non-nullable username
         op.execute("""
@@ -97,13 +96,13 @@ def downgrade() -> None:
 
         # Rename the new table to the original name
         op.execute('ALTER TABLE targets_new RENAME TO targets')
-    
+
     elif dialect_name == 'postgresql':
         # PostgreSQL supports ALTER COLUMN directly
         # First update any NULL values to empty string
         op.execute("UPDATE targets SET username = '' WHERE username IS NULL")
         op.alter_column('targets', 'username', nullable=False)
-    
+
     else:
         # For other databases, try the standard approach
         op.execute("UPDATE targets SET username = '' WHERE username IS NULL")

@@ -3,7 +3,8 @@ from anthropic.types.beta import BetaMessageParam
 from anthropic import APIStatusError
 import httpx
 from server.settings import settings
-from server.utils.logger import logger
+from server.computer_use.logging import logger
+
 
 class ContentBlockWrapper:
     """Wrapper for individual content blocks to provide Pydantic model interface"""
@@ -142,14 +143,14 @@ class WithRawResponse:
                     raise APIStatusError(
                         message='API Credits Exceeded',
                         response=response,
-                        body=response_json
+                        body=response_json,
                     )
                 if response.status_code != 200:
                     logger.error(f'Failed to execute API: {response_json}')
                     raise APIStatusError(
                         message=response_json['error'],
                         response=response,
-                        body=response_json
+                        body=response_json,
                     )
                 return RawResponse(response_json, response)
             except Exception as e:
