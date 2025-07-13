@@ -108,38 +108,46 @@ const AppHeader = () => {
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
-            <Button
-              component={RouterLink}
-              to="/jobs"
-              color={isActive('/jobs') ? 'secondary' : 'inherit'}
-              startIcon={<WorkIcon />}
-            >
-              Jobs
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/sessions"
-              color={isActive('/sessions') ? 'secondary' : 'inherit'}
-              startIcon={<ListAltIcon />}
-            >
-              Sessions
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/targets"
-              color={isActive('/targets') ? 'secondary' : 'inherit'}
-              startIcon={<ComputerIcon />}
-            >
-              Targets
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/apis"
-              color={isActive('/apis') ? 'secondary' : 'inherit'}
-              startIcon={<ApiIcon />}
-            >
-              APIs
-            </Button>
+            <Tooltip title="Jobs are the individual executions of an API on a target.">
+              <Button
+                component={RouterLink}
+                to="/jobs"
+                color={isActive('/jobs') ? 'secondary' : 'inherit'}
+                startIcon={<WorkIcon />}
+              >
+                Jobs
+              </Button>
+            </Tooltip>
+            <Tooltip title="Sessions are hosted connections between a target and the server, used to run jobs on the target.">
+              <Button
+                component={RouterLink}
+                to="/sessions"
+                color={isActive('/sessions') ? 'secondary' : 'inherit'}
+                startIcon={<ListAltIcon />}
+              >
+                Sessions
+              </Button>
+            </Tooltip>
+            <Tooltip title="Targets are machines you want to automate. They can be any computer accessible via remote access software.">
+              <Button
+                component={RouterLink}
+                to="/targets"
+                color={isActive('/targets') ? 'secondary' : 'inherit'}
+                startIcon={<ComputerIcon />}
+              >
+                Targets
+              </Button>
+            </Tooltip>
+            <Tooltip title="APIs are pre-defined sets of instructions for executing jobs on targets.">
+              <Button
+                component={RouterLink}
+                to="/apis"
+                color={isActive('/apis') ? 'secondary' : 'inherit'}
+                startIcon={<ApiIcon />}
+              >
+                APIs
+              </Button>
+            </Tooltip>
           </Box>
 
           <Tooltip title={`AI Provider: ${aiProviderStatusText}`}>
