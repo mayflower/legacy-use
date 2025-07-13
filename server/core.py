@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class APIGatewayCore:
     def __init__(self):
         self.provider = settings.API_PROVIDER
-        
+
         self.api_key = settings.ANTHROPIC_API_KEY
         # Set the model based on the provider
         self.model = get_default_model_name(self.provider)
@@ -189,6 +189,7 @@ class APIGatewayCore:
                 if result.get('error') in [
                     'Target Health Check Failed',
                     'UI Mismatch Detected',
+                    'API Credits Exceeded',
                 ]:
                     final_status = JobStatus.PAUSED
                     logger.info(f'Job {job_id} paused due to: {result.get("error")}')
@@ -243,7 +244,7 @@ class APIGatewayCore:
 
         except Exception as e:
             # Handle exceptions raised BY sampling_loop (e.g., ValueError, APIError, RuntimeError)
-            error_message = f'Job execution failed: {str(e)}'
+            error_message = str(e)
             logger.error(f'Job {job_id}: {error_message}', exc_info=True)
             # Update job status to ERROR on exception
             try:
