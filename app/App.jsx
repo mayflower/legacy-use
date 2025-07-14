@@ -1,8 +1,9 @@
 // biome-ignore assist/source/organizeImports: must be on top
 import CssBaseline from '@mui/material/CssBaseline';
 
-import { Alert, Button } from '@mui/material';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
