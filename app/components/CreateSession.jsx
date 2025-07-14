@@ -97,31 +97,36 @@ const CreateSession = () => {
       }, 1500);
     } catch (err) {
       console.error('Error creating session:', err);
-      
+
       // Handle specific conflict error for existing active session
       if (err.status === 409 && err.detail && err.detail.existing_session) {
         const existingSession = err.detail.existing_session;
         const formattedDate = new Date(existingSession.created_at).toLocaleString();
         setError(
           <div>
-            <strong>Cannot create session:</strong> An active session already exists for this target.
-            <br /><br />
+            <strong>Cannot create session:</strong> An active session already exists for this
+            target.
+            <br />
+            <br />
             <strong>Existing session details:</strong>
             <br />• Name: {existingSession.name}
             <br />• State: {existingSession.state}
             <br />• Status: {existingSession.status}
             <br />• Created: {formattedDate}
-            <br /><br />
+            <br />
+            <br />
             Please archive the existing session first, or{' '}
-            <Button 
-              size="small" 
-              variant="outlined" 
-              onClick={() => navigate(`/targets/${sessionData.target_id}?sessionId=${existingSession.id}`)}
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() =>
+                navigate(`/targets/${sessionData.target_id}?sessionId=${existingSession.id}`)
+              }
               sx={{ ml: 1 }}
             >
               Go to existing session
             </Button>
-          </div>
+          </div>,
         );
       } else {
         setError(`Failed to create session: ${err.message || 'Unknown error'}`);
@@ -170,11 +175,34 @@ const CreateSession = () => {
                   <em>Loading targets...</em>
                 </MenuItem>
               ) : targets.length > 0 ? (
-                targets.map(target => (
-                  <MenuItem key={target.id} value={target.id}>
-                    {target.name || target.id}
-                  </MenuItem>
-                ))
+                targets.map(target => {
+                  const isActive = target.has_active_session;
+                  const isInitializing = target.has_initializing_session;
+                  let statusText = '';
+                  if (isActive) statusText = ' (Active session)';
+                  else if (isInitializing) statusText = ' (Initializing session)';
+                  return (
+                    <MenuItem
+                      key={target.id}
+                      value={target.id}
+                      disabled={isActive || isInitializing}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <span>
+                          {target.name || target.id}
+                          {statusText}
+                        </span>
+                        {(isActive || isInitializing) && (
+                          <Typography variant="caption" color="text.secondary">
+                            {isActive
+                              ? 'A session is currently active for this target.'
+                              : 'A session is initializing for this target.'}
+                          </Typography>
+                        )}
+                      </Box>
+                    </MenuItem>
+                  );
+                })
               ) : (
                 <MenuItem value="">
                   <em>No targets available</em>

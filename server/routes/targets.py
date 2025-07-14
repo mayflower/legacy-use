@@ -21,7 +21,7 @@ target_router = APIRouter(prefix='/targets', tags=['Target Management'])
 
 
 @target_router.get('/', response_model=List[Target])
-async def list_targets(include_archived: bool = False):
+async def x(include_archived: bool = False):
     """List all available targets."""
     targets = db.list_targets(include_archived)
 
@@ -33,6 +33,15 @@ async def list_targets(include_archived: bool = False):
         target['has_blocking_jobs'] = blocking_info['is_paused']
         target['blocking_jobs_count'] = blocking_info['blocking_jobs_count']
 
+        # Add active session status to each target
+        target['has_active_session'] = db.has_active_session_for_target(target['id'])[
+            'has_active_session'
+        ]
+        target['has_initializing_session'] = db.has_initializing_session_for_target(
+            target['id']
+        )
+
+    print('targets', targets)
     return targets
 
 

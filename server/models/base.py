@@ -136,6 +136,8 @@ class Target(BaseModel):
         False  # Flag indicating if there are blocking jobs
     )
     blocking_jobs_count: Optional[int] = 0  # Count of blocking jobs
+    has_active_session: Optional[bool] = False
+    has_initializing_session: Optional[bool] = False
 
 
 class TargetCreate(BaseModel):
