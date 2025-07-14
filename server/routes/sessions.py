@@ -74,17 +74,20 @@ async def create_session(
         if active_session_info['has_active_session']:
             existing_session = active_session_info['session']
             raise HTTPException(
-                status_code=409, 
+                status_code=409,
                 detail={
                     'message': 'An active session already exists for this target',
                     'existing_session': {
-                        'id': existing_session['id'],
+                        # converting to non json serializable types
+                        'id': str(existing_session['id']),
                         'name': existing_session['name'],
                         'state': existing_session['state'],
                         'status': existing_session['status'],
-                        'created_at': existing_session['created_at']
-                    }
-                }
+                        'created_at': existing_session['created_at'].isoformat()
+                        if existing_session['created_at']
+                        else None,
+                    },
+                },
             )
 
     # If get_or_create is True, check for existing active sessions for this target

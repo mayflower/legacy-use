@@ -987,11 +987,11 @@ class DatabaseService:
                 )
                 .first()
             )
-            
+
             if active_session:
                 return {
                     'has_active_session': True,
-                    'session': self._to_dict(active_session)
+                    'session': self._to_dict(active_session),
                 }
             return {'has_active_session': False, 'session': None}
         except Exception as e:

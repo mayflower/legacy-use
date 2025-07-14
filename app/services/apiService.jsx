@@ -406,6 +406,7 @@ export const getJobHttpExchanges = async (targetId, jobId) => {
 export const getTargets = async (include_archived = false) => {
   try {
     const response = await apiClient.get('/targets/', { params: { include_archived } });
+    console.log('response.data', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching targets:', error);
