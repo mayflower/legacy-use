@@ -973,3 +973,32 @@ class DatabaseService:
             return False  # Assume not initializing if error occurs
         finally:
             session.close()
+
+    def has_active_session_for_target(self, target_id: UUID) -> Dict[str, Any]:
+        """Check if there's any active (non-archived) session for this target."""
+        session = self.Session()
+        try:
+            # Find any session that is not archived for this target
+            active_session = (
+                session.query(Session)
+                .filter(
+                    Session.target_id == target_id,
+                    Session.is_archived.is_(False),
+                )
+                .first()
+            )
+
+            if active_session:
+                return {
+                    'has_active_session': True,
+                    'session': self._to_dict(active_session),
+                }
+            return {'has_active_session': False, 'session': None}
+        except Exception as e:
+            logging.error(  # Use logging instead of logger for class methods
+                f'Error checking active session for target {target_id}: {e}',
+                exc_info=True,
+            )
+            return {'has_active_session': False, 'session': None}
+        finally:
+            session.close()

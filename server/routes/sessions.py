@@ -68,6 +68,28 @@ async def create_session(
     if not target:
         raise HTTPException(status_code=404, detail='Target not found')
 
+    # Check for existing active sessions for this target (unless get_or_create is True)
+    if not get_or_create:
+        active_session_info = db.has_active_session_for_target(session.target_id)
+        if active_session_info['has_active_session']:
+            existing_session = active_session_info['session']
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    'message': 'An active session already exists for this target',
+                    'existing_session': {
+                        # converting to non json serializable types
+                        'id': str(existing_session['id']),
+                        'name': existing_session['name'],
+                        'state': existing_session['state'],
+                        'status': existing_session['status'],
+                        'created_at': existing_session['created_at'].isoformat()
+                        if existing_session['created_at']
+                        else None,
+                    },
+                },
+            )
+
     # If get_or_create is True, check for existing active sessions for this target
     if get_or_create:
         target_sessions = db.list_target_sessions(
