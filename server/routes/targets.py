@@ -21,7 +21,7 @@ target_router = APIRouter(prefix='/targets', tags=['Target Management'])
 
 
 @target_router.get('/', response_model=List[Target])
-async def x(include_archived: bool = False):
+async def list_targets(include_archived: bool = False):
     """List all available targets."""
     targets = db.list_targets(include_archived)
 
