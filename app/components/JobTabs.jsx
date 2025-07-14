@@ -1,4 +1,10 @@
-import { Alert, Box, CircularProgress, Paper, Tab, Tabs, Typography } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import Paper from '@mui/material/Paper';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import Typography from '@mui/material/Typography';
 import HttpExchangeViewer from './HttpExchangeViewer';
 import LogViewer from './LogViewer';
 
