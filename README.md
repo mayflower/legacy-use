@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/Y7fur7jR">
+  <a href="https://discord.gg/9CV42YxKz9">
     <img src="https://img.shields.io/discord/1389579420993327195?color=7289DA&label=Discord&logo=discord&logoColor=white" alt="Join us on Discord" />
   </a>
   <a href="https://www.legacy-use.com/">
