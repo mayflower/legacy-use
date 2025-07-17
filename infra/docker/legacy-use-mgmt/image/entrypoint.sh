@@ -47,7 +47,7 @@ export PATH="$HOME/node_modules/.bin:$PATH"
 # Check if debug mode is enabled
 if [ "${LEGACY_USE_DEBUG:-0}" = "1" ]; then
     echo "Installing node dependencies"
-    npm ci
+    npm install
 fi
 npm start | cat &
 

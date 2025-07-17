@@ -228,6 +228,7 @@ async def sampling_loop(
                 system=[system],  # Pass original system dict
                 tools=tool_collection.to_params(),
                 betas=betas,
+                temperature=0.0,
             )
 
             if api_response_callback:

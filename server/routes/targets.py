@@ -41,7 +41,6 @@ async def list_targets(include_archived: bool = False):
             target['id']
         )
 
-    print('targets', targets)
     return targets
 
 
