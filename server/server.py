@@ -8,11 +8,10 @@ import os
 from datetime import datetime, timedelta
 
 import sentry_sdk
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
-from starlette.status import HTTP_401_UNAUTHORIZED
 
 from server.computer_use import APIProvider
 from server.database import db
@@ -137,7 +136,10 @@ async def auth_middleware(request: Request, call_next):
     if api_key == settings.API_KEY:
         return await call_next(request)
 
-    raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail='Invalid API Key')
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Invalid API Key',
+    )
 
 
 # Add CORS middleware
