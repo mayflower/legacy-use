@@ -1,11 +1,12 @@
 import * as Sentry from '@sentry/react';
 import { browserTracingIntegration, replayIntegration } from '@sentry/react';
+import type { PostHogConfig } from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 
-const options = {
+const options: Partial<PostHogConfig> = {
   api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
   opt_out_capturing_by_default: import.meta.env.VITE_PUBLIC_DISABLE_TRACKING === 'true',
   debug: false,
