@@ -217,6 +217,13 @@ app.include_router(
 app.include_router(settings_router)
 
 
+# Root endpoint
+@app.get('/')
+async def root():
+    """Root endpoint."""
+    return {'message': 'Welcome to the API Gateway'}
+
+
 # Scheduled task to prune old logs
 async def prune_old_logs():
     """Prune logs older than 7 days."""
