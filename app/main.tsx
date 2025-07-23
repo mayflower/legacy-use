@@ -13,6 +13,7 @@ const options = {
   person_profiles: 'identified_only',
   mask_all_text: true,
 };
+
 const apiKey =
   import.meta.env.VITE_PUBLIC_POSTHOG_KEY || 'phc_i1lWRELFSWLrbwV8M8sddiFD83rVhWzyZhP27T3s6V8';
 
