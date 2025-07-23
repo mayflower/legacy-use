@@ -3,6 +3,19 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vite test",
+    "check": "biome check",
+    "check:fix": "biome check --fix",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --fix",
+    "format": "biome format --write",
+    "format:check": "biome format"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -20,19 +33,6 @@
     "react-router-dom": "^6.20.0",
     "react-syntax-highlighter": "^15.5.0",
     "uuid": "^9.0.1"
-  },
-  "scripts": {
-    "dev": "vite",
-    "start": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "test": "vite test",
-    "check": "biome check",
-    "check:fix": "biome check --fix",
-    "lint": "biome lint",
-    "lint:fix": "biome lint --fix",
-    "format": "biome format --write",
-    "format:check": "biome format"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.6",
