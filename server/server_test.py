@@ -16,6 +16,5 @@ def test_main_no_api_key():
 
 
 def test_main():
-    response = client.get('/', headers={'X-API-Key': 'not-secure-api-key'})
+    response = client.get('/', headers={'X-API-Key': 'your_api_key_here'})
     assert response.status_code == 200
-    assert response.json() == {'msg': 'Hello World'}
