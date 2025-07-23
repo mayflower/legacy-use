@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install python
+        run: uv python install
+      - name: Install dependencies
+        run: uv sync
+      - name: Setup environment
+        run: cp .env.example .env
+      - name: Tests
+        uses: liskin/gh-problem-matcher-wrap@v3
+        with:
+          linters: pytest
+          run: uv run pytest
