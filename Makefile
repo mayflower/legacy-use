@@ -17,3 +17,20 @@ docker-images:
 
 	docker build -t legacy-use-demo-db:local -f infra/docker/legacy-use-demo-db/Dockerfile .
 	docker tag legacy-use-demo-db:local legacy-use-core-demo-db:local
+
+local-linux-vm:
+	docker run -d \
+		--name legacy-use-linux-machine \
+		-e VNC_PASSWORD=password123 \
+		-e USER=developer \
+		-e PASSWORD=developer123 \
+		-e RESOLUTION=1024x768 \
+		-v linux-home:/home/developer \
+		-v linux-workspace:/workspace \
+		-v /dev/shm:/dev/shm \
+		--workdir /workspace \
+		--health-cmd='curl -f http://localhost/ || exit 1' \
+		--health-interval=3s \
+		--health-timeout=2s \
+		--health-retries=10 \
+		legacy-use-core-linux-machine:local
