@@ -14,8 +14,8 @@
     "check:fix": "biome check --fix",
     "lint": "biome lint",
     "lint:fix": "biome lint --fix",
-    "format": "biome format --write",
-    "format:check": "biome format"
+    "format": "biome format",
+    "format:fix": "biome format --write"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
