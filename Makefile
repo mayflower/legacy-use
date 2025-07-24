@@ -24,7 +24,7 @@ docker-images:
 	docker build -t legacy-use-demo-db:local -f infra/docker/legacy-use-demo-db/Dockerfile .
 	docker tag legacy-use-demo-db:local legacy-use-core-demo-db:local
 
-local-linux-vm:
+docker-linux-vm:
 	docker run -d \
 		--name legacy-use-linux-machine \
 		-e VNC_PASSWORD=password123 \
