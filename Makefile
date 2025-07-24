@@ -1,3 +1,9 @@
+server:
+	uv run uvicorn server.server:app --host 0.0.0.0 --port 8088 --reload --reload-dir server --reload-include .env
+
+frontend:
+	npm run start
+
 docker-images:
 	# Build backend with both naming conventions
 	docker build -t legacy-use-backend:local -f infra/docker/legacy-use-backend/Dockerfile .
