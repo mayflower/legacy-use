@@ -4,6 +4,10 @@ server:
 frontend:
 	npm run start
 
+
+server-tests:
+	uv run pytest
+
 setup:
 	touch .env.local
 	uv run python generate_api_key.py
