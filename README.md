@@ -67,11 +67,9 @@ cp .env.template .env
 uv run python generate_api_key.py
 
 # 4. Build and start all services
-./build_all_docker.sh
+make docker-images
 LEGACY_USE_DEBUG=1 ./start_docker.sh
 ```
-
-
 
 **🔑 API Key Generation Helper**
 
