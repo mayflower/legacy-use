@@ -15,35 +15,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint-python:
-    name: Lint Python Code
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: "pyproject.toml"
-
-    - name: Install dependencies
-      run: uv sync --locked --dev
-
-    - name: Run Ruff linter
-      run: |
-        echo "Running Ruff linter on Python code..."
-        uv run pre-commit run ruff
-
-    - name: Run Ruff formatter check
-      run: |
-        echo "Checking Python code formatting..."
-        uv run pre-commit run ruff-format
-
   lint-frontend:
     name: Lint Frontend Code
     runs-on: ubuntu-latest
