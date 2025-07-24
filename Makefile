@@ -4,7 +4,7 @@ server:
 frontend:
 	npm run start
 
-docker-images:
+docker-build:
 	# Build backend with both naming conventions
 	docker build -t legacy-use-backend:local -f infra/docker/legacy-use-backend/Dockerfile .
 	docker tag legacy-use-backend:local legacy-use-core-backend:local
