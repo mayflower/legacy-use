@@ -20,7 +20,6 @@
 
 ## ✨ Why legacy-use?
 
-
 - **Add API Endpoints via Prompt** — Dynamically generate and customize REST API endpoints for any legacy or desktop application.
 - **Access systems running legacy software** — Use established tools like RDP/VNC to run your prompts.
 - **Logging & Debugging** — Track, analyze, and resolve issues effortlessly with built-in observability tools.
@@ -37,16 +36,19 @@
 ### Prerequisites
 
 #### Required
+
 - **Docker** - All services run in containers
   - [Get Docker](https://www.docker.com/get-started/) for your platform
   - **Note**: Make sure Docker is running before proceeding with setup
 
 #### API Keys
+
 - **Anthropic API Key** - Required for AI model access (Claude)
   - [Get your API key](https://console.anthropic.com/) from Anthropic Console
   - **Note**: You'll need credits in your Anthropic account for API usage
 
 #### For Development Only
+
 Want to contribute or modify the code? You'll need Node.js and Python locally for development.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete development setup guide.
 
@@ -64,14 +66,14 @@ cp .env.template .env
 # (Optional) Add any configuration options from above
 
 # 3. Generate a secure API key and add it to your .env file  - (details below)
-uv run python generate_api_key.py
+make setup
 
-# 4. Build and start all services
-./build_all_docker.sh
-LEGACY_USE_DEBUG=1 ./start_docker.sh
+# 4. Build docker containers
+make docker-build
+
+# 5. Start all services
+make docker-start
 ```
-
-
 
 **🔑 API Key Generation Helper**
 
@@ -81,6 +83,7 @@ uv run python generate_api_key.py
 ```
 
 This script will:
+
 - Generate a cryptographically secure API key if none exists
 - Set both `API_KEY` (for backend) and `VITE_API_KEY` (for frontend) in your `.env` file
 - Skip generation if you already have a secure API key configured
@@ -91,19 +94,22 @@ Once the setup completes:
 
 1. **Frontend**: Open <http://localhost:8077> - you should see the legacy-use dashboard
 2. **API Documentation**: Visit <http://localhost:8088/redoc> - to explore the REST API
-🎉 **You're all set!** The complete setup usually takes 2-5 minutes depending on your internet connection.
+   🎉 **You're all set!** The complete setup usually takes 2-5 minutes depending on your internet connection.
 
 ### Troubleshooting
 
 **Docker not starting?**
+
 - Ensure Docker Desktop is running
 - Check if ports 8077 and 8088 are available: `lsof -i :8077` and `lsof -i :8088`
 
 **Build failing?**
+
 - Ensure you have sufficient disk space (~2GB)
 - Try: `docker system prune` to clean up space, then rebuild
 
 **Can't access the UI?**
+
 - Wait 30-60 seconds for all services to fully start
 - Check logs: `docker logs legacy-use-mgmt`
 
@@ -114,37 +120,46 @@ Once the setup completes:
 Ready to automate your own Windows applications? Here's how to add a Windows VM as a target:
 
 ### Step 1: Set up a Windows VM
+
 Choose your virtualization platform:
+
 - **macOS**: [UTM](https://mac.getutm.app/) (recommended) or [Parallels](https://www.parallels.com/)
 - **Windows**: [VirtualBox](https://www.virtualbox.org/) or [VMware](https://www.vmware.com/)
 - **Linux**: [VirtualBox](https://www.virtualbox.org/) or [QEMU/KVM](https://www.qemu.org/)
 
 ### Step 2: Install VNC Server in Windows VM
+
 1. Download and install [UltraVNC](https://uvnc.com/downloads/ultravnc/159-ultravnc-1-4-3-6.html)
 2. During setup, set a VNC password (remember this!)
 3. Ensure the VNC server starts automatically
 
 ### Step 3: Get VM Network Details
+
 Find your VM's IP address:
 
 **Inside the Windows VM:**
+
 1. Open Command Prompt (`Win+R` → `cmd`)
 2. Run: `ipconfig`
 3. Look for **IPv4 Address** (e.g., `192.168.64.2`, `10.0.2.15`)
 
 **Alternative - From host machine:**
+
 - Check your VM software's network settings for the assigned IP
 
 ### Step 4: Configure VM Display Settings
+
 For optimal performance, configure your VM's display resolution:
 
 **Recommended Screen Resolutions:**
+
 - **1024 × 768**
 - **1280 × 800**
 
 **Note**: Larger resolutions can be used, but performance may degrade—especially when working with very small UI elements.
 
 ### Step 5: Add Target in Legacy-Use
+
 1. Open the legacy-use web interface: `http://localhost:8077`
 2. Navigate to **Targets** → **New Target**
 3. Fill in the details:
@@ -181,19 +196,20 @@ Creating custom automation scripts for your applications? Check out our comprehe
 ## 🛠️ Supported connectivity
 
 | Technology | Category | Status |
-|------------|----------|--------|
-| OpenVPN    | VPN      | ✅ |
-| Tailscale  | VPN      | ✅ |
-| WireGuard  | VPN      | ✅ |
-| VNC        | Remote   | ✅ |
-| RDP        | Remote   | ✅ |
-| TeamViewer | Remote   | 🚧 |
+| ---------- | -------- | ------ |
+| OpenVPN    | VPN      | ✅     |
+| Tailscale  | VPN      | ✅     |
+| WireGuard  | VPN      | ✅     |
+| VNC        | Remote   | ✅     |
+| RDP        | Remote   | ✅     |
+| TeamViewer | Remote   | 🚧     |
 
 ---
 
 ## 📡 Telemetry
 
 We collect minimal anonymous usage data to improve the product. This helps us understand:
+
 - Which features are most useful
 - Performance bottlenecks
 - Common error patterns
@@ -202,6 +218,7 @@ We collect minimal anonymous usage data to improve the product. This helps us un
 **What we DON'T collect**: Your API keys, target machine data, or sensitive information
 
 **Disable anytime** by adding to your `.env` file:
+
 ```bash
 VITE_PUBLIC_DISABLE_TRACKING=true
 ```
