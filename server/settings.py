@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 
@@ -8,6 +9,14 @@ from server.config.env_file import write_to_env_file
 ROOT_DIR = Path(__file__).parent.parent
 ENV_FILE_PATH = ROOT_DIR / '.env'
 ENV_LOCAL_FILE_PATH = ROOT_DIR / '.env.local'
+
+
+def get_setting_env_file():
+    if 'PYTEST_VERSION' in os.environ:
+        print('Settings: Using test environment')
+        return [ROOT_DIR / '.env.test', ROOT_DIR / '.env.template']
+
+    return [ENV_FILE_PATH, ENV_LOCAL_FILE_PATH]
 
 
 class Settings(BaseSettings):
@@ -48,7 +57,7 @@ class Settings(BaseSettings):
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=[ENV_FILE_PATH, ENV_LOCAL_FILE_PATH],
+        env_file=get_setting_env_file(),
         extra='allow',
     )
 
