@@ -22,7 +22,7 @@ async def get_api_key(request: Request):
     result = re.match(r'^/(api/)?sessions/(.+)/vnc/(.+$)', request.url.path)
     if result:
         cookies = request.cookies
-        session_id = request.url.path.split('/')[2]
+        session_id = result.group(2)
         for cookie in cookies:
             if cookie.startswith('vnc_auth_') and session_id in cookie:
                 return cookies.get(cookie)
