@@ -1,3 +1,5 @@
+.PHONY: server frontend server-tests docker-start docker-linux-vm
+
 server:
 	uv run uvicorn server.server:app --host 0.0.0.0 --port 8088 --reload --reload-dir server --reload-include .env
 
