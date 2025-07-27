@@ -19,9 +19,8 @@ async def get_api_key(request: Request):
         return query_params.get('api_key')
 
     # if pattern r'^/sessions/.+/vnc/.+$' check in cookies for vnc_auth_<session_id>=<api_key>
-    if re.match(r'^/sessions/.+/vnc/.+$', request.url.path) or re.match(
-        r'^/api/sessions/.+/vnc/.+$', request.url.path
-    ):
+    result = re.match(r'^/(api/)?sessions/(.+)/vnc/(.+$)', request.url.path)
+    if result:
         cookies = request.cookies
         session_id = request.url.path.split('/')[2]
         for cookie in cookies:
