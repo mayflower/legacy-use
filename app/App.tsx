@@ -25,7 +25,6 @@ import OnboardingWizard from './components/OnboardingWizard';
 import SessionList from './components/SessionList';
 import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
-import TawkChat from './components/TawkChat';
 import VncViewer from './components/VncViewer';
 import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
@@ -391,9 +390,6 @@ const AppLayout = () => {
         onClose={() => setOnboardingOpen(false)}
         onComplete={handleOnboardingComplete}
       />
-
-      {/* Tawk.to Chat Widget */}
-      <TawkChat />
     </SessionContext.Provider>
   );
 };
