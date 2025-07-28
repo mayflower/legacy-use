@@ -134,6 +134,14 @@ export default function InteractiveSession() {
           timestamp: new Date(item.timestamp),
         }));
         setRecordingHistory(parsed);
+        setRecordingState(parsed[0].status);
+        setRecordingDuration(parsed[0].duration || 0);
+        setRecordingResult(parsed[0].recordingResult);
+        setGeneratedPrompt(parsed[0].prompt || '');
+        setApiDefinitionSaved(parsed[0].apiDefinitionSaved || false);
+        setSavingApiDefinition(parsed[0].savingApiDefinition || false);
+        setAnalyzingProgress(parsed[0].analyzingProgress || false);
+        setError(parsed[0].error || null);
       } catch (e) {
         console.error('Error loading recording history:', e);
       }
