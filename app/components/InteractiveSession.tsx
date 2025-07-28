@@ -572,6 +572,22 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="body1">
               Recording completed. Analysis will start automatically...
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  const newRecording: RecordingHistory = {
+                    id: recordingResult.recording_id || Date.now().toString(),
+                    timestamp: recordingResult.timestamp,
+                    duration: recordingDuration,
+                    status: 'recorded',
+                    recordingResult: recordingResult,
+                  };
+                  handleAnalyzeRecording(newRecording);
+                }}
+              >
+                Analyze again
+              </Button>
             </Typography>
             {recordingResult && (
               <IconButton
