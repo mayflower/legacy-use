@@ -588,6 +588,15 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
               >
                 Analyze again
               </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => {
+                  handleStartNewRecording();
+                }}
+              >
+                Discard
+              </Button>
             </Typography>
             {recordingResult && (
               <IconButton
