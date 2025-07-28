@@ -310,7 +310,7 @@ async def import_api_definition(body: ImportApiDefinitionRequest, request: Reque
         await core.load_api_definitions()
 
         capture_api_created(request, api_def, api_id, str(version_number))
-        return {'status': 'success', 'message': message}
+        return {'status': 'success', 'message': message, 'name': api_def['name']}
     except Exception as e:
         logger.error(f'Error importing API definition: {str(e)}')
         logger.error(traceback.format_exc())

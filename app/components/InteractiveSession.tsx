@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SessionContext } from '../App';
 import {
   analyzeVideo,
@@ -52,6 +53,7 @@ interface RecordingHistory {
   apiDefinition?: any;
   analysisResult?: any;
   apiDefinitionSaved?: boolean;
+  apiDefinitionName?: string;
 }
 
 export default function InteractiveSession() {
@@ -387,7 +389,9 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
 
       // Update the recording history to mark it as saved
       const updatedHistory = recordingHistory.map(r =>
-        r.id === recording.id ? { ...r, apiDefinitionSaved: true } : r,
+        r.id === recording.id
+          ? { ...r, apiDefinitionSaved: true, apiDefinitionName: result.name }
+          : r,
       );
       setRecordingHistory(updatedHistory);
       saveRecordingHistory(updatedHistory);
@@ -668,9 +672,11 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
             {currentRecording?.apiDefinition && (
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {currentRecording.apiDefinitionSaved ? (
-                  <Button variant="outlined" color="success" disabled startIcon={<CheckCircle />}>
-                    API Saved
-                  </Button>
+                  <Link to={`/apis/${currentRecording.apiDefinitionName}/edit`}>
+                    <Button variant="outlined" color="success" disabled startIcon={<CheckCircle />}>
+                      API Saved
+                    </Button>
+                  </Link>
                 ) : (
                   <Button
                     variant="contained"
