@@ -1,11 +1,4 @@
-import {
-  Cancel,
-  CheckCircle,
-  FiberManualRecord,
-  History,
-  Info,
-  PlayArrow,
-} from '@mui/icons-material';
+import { Cancel, CheckCircle, FiberManualRecord, Info, PlayArrow } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -30,6 +23,7 @@ import {
   stopRecording,
 } from '../services/apiService';
 import { formatDuration } from '../utils/formatDuration';
+import RecordingHistoryComponent, { type RecordingHistory } from './RecordingHistory';
 
 // Keyframes for pulsing record dot
 const pulse = keyframes`
@@ -49,19 +43,6 @@ const pulse = keyframes`
 
 // Recording states
 type RecordingState = 'initial' | 'recording' | 'recorded' | 'analyzed';
-
-interface RecordingHistory {
-  id: string;
-  timestamp: Date;
-  duration?: number;
-  status: RecordingState;
-  prompt?: string;
-  recordingResult?: any;
-  apiDefinition?: any;
-  analysisResult?: any;
-  apiDefinitionSaved?: boolean;
-  apiDefinitionName?: string;
-}
 
 export default function InteractiveSession() {
   const { currentSession } = useContext(SessionContext);
@@ -89,9 +70,6 @@ export default function InteractiveSession() {
   const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement | null>(null);
   const [currentRecordingForPopover, setCurrentRecordingForPopover] =
     useState<RecordingHistory | null>(null);
-
-  // Recording history popover state
-  const [historyPopoverAnchor, setHistoryPopoverAnchor] = useState<HTMLElement | null>(null);
 
   // Polling refs
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -309,7 +287,7 @@ export default function InteractiveSession() {
 ${
   apiDefinition.parameters.length > 0
     ? apiDefinition.parameters
-        .map(param => `- **${param.name}** (${param.type}): ${param.description}`)
+        .map((param: any) => `- **${param.name}** (${param.type}): ${param.description}`)
         .join('\n')
     : 'No parameters required'
 }
@@ -425,14 +403,6 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
   const handleClosePopover = () => {
     setPopoverAnchor(null);
     setCurrentRecordingForPopover(null);
-  };
-
-  const handleShowRecordingHistory = (event: React.MouseEvent<HTMLElement>) => {
-    setHistoryPopoverAnchor(event.currentTarget);
-  };
-
-  const handleCloseHistoryPopover = () => {
-    setHistoryPopoverAnchor(null);
   };
 
   // Format file size
@@ -756,22 +726,12 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
             {renderRecordingButton()}
-            {/* Recording History Button - only show if there are recordings */}
-            {recordingHistory.length > 0 && (
-              <IconButton
-                color="primary"
-                onClick={handleShowRecordingHistory}
-                size="small"
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  opacity: 0.7,
-                  '&:hover': { opacity: 1 },
-                }}
-              >
-                <History fontSize="small" />
-              </IconButton>
-            )}
+            {/* Recording History Component */}
+            <RecordingHistoryComponent
+              recordingHistory={recordingHistory}
+              onSaveApiDefinition={handleSaveApiDefinition}
+              savingApiDefinition={savingApiDefinition}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -837,102 +797,6 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
                   </video>
                 </Box>
               )}
-            </Box>
-          )}
-        </Box>
-      </Popover>
-
-      {/* Recording History Popover */}
-      <Popover
-        open={Boolean(historyPopoverAnchor)}
-        anchorEl={historyPopoverAnchor}
-        onClose={handleCloseHistoryPopover}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-      >
-        <Box sx={{ p: 2, minWidth: 320, maxWidth: 400 }}>
-          <Typography variant="h6" gutterBottom>
-            Recording History
-          </Typography>
-
-          {recordingHistory.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No recordings yet
-            </Typography>
-          ) : (
-            <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
-              {recordingHistory.map(recording => (
-                <Box
-                  key={recording.id}
-                  sx={{
-                    p: 1.5,
-                    mb: 1,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    bgcolor: recording.status === 'analyzed' ? 'success.dark' : 'background.paper',
-                    opacity: recording.status === 'analyzed' ? 0.9 : 0.7,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 0.5,
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="medium">
-                      {recording.status === 'initial' && 'Not Started'}
-                      {recording.status === 'recording' && 'Recording...'}
-                      {recording.status === 'recorded' && 'Recorded'}
-                      {recording.status === 'analyzed' && 'Analyzed'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {recording.timestamp.toLocaleTimeString()}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Duration: {formatDuration(recording.duration || 0)}
-                  </Typography>
-
-                  {recording.status === 'analyzed' && recording.apiDefinition && (
-                    <Box
-                      sx={{
-                        mt: 1,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Typography variant="caption" color="success.light">
-                        API: {recording.apiDefinition.name}
-                      </Typography>
-                      {!recording.apiDefinitionSaved && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => handleSaveApiDefinition(recording)}
-                          disabled={savingApiDefinition}
-                          sx={{ fontSize: '0.7rem', py: 0.25, px: 1 }}
-                        >
-                          Save
-                        </Button>
-                      )}
-                      {recording.apiDefinitionSaved && (
-                        <CheckCircle sx={{ fontSize: 16, color: 'success.light' }} />
-                      )}
-                    </Box>
-                  )}
-                </Box>
-              ))}
             </Box>
           )}
         </Box>
