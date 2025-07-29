@@ -216,9 +216,10 @@ const AppLayout = () => {
     setHasCompletedOnboarding(hasOnboarded);
 
     // Show onboarding for new users without API key
-    if (!hasOnboarded) {
-      setOnboardingOpen(true);
-    }
+    // Disabled: onboarding dialog will not open automatically
+    // if (!hasOnboarded) {
+    //   setOnboardingOpen(true);
+    // }
   }, [apiKey]);
 
   // Validate API key on mount and when it changes
