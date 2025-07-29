@@ -6,8 +6,6 @@ import logging
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
-import vertexai
-from vertexai.generative_models import GenerativeModel
 import instructor
 
 from server.settings import settings
@@ -23,26 +21,6 @@ class VideoAnalysisResponse(BaseModel):
     """Response model for video analysis"""
 
     text: str
-
-
-def initialize_vertex_ai():
-    """Initialize Vertex AI with project settings"""
-    if not settings.VERTEX_PROJECT_ID or not settings.VERTEX_REGION:
-        raise HTTPException(
-            status_code=500,
-            detail='Vertex AI not configured. Please set VERTEX_PROJECT_ID and VERTEX_REGION.',
-        )
-
-    try:
-        vertexai.init(
-            project=settings.VERTEX_PROJECT_ID, location=settings.VERTEX_REGION
-        )
-        return GenerativeModel('gemini-2.5-flash')
-    except Exception as e:
-        logger.error(f'Failed to initialize Vertex AI: {str(e)}')
-        raise HTTPException(
-            status_code=500, detail=f'Failed to initialize Vertex AI: {str(e)}'
-        )
 
 
 def create_analysis_prompt() -> str:
