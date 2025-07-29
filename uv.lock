@@ -786,10 +786,6 @@ google-genai = [
     { name = "google-genai" },
     { name = "jsonref" },
 ]
-vertexai = [
-    { name = "google-cloud-aiplatform" },
-    { name = "jsonref" },
-]
 
 [[package]]
 name = "jinja2"
@@ -884,7 +880,7 @@ dependencies = [
     { name = "google-cloud-aiplatform" },
     { name = "gunicorn" },
     { name = "httpx" },
-    { name = "instructor", extra = ["google-genai", "vertexai"] },
+    { name = "instructor", extra = ["google-genai"] },
     { name = "jinja2" },
     { name = "posthog" },
     { name = "psycopg2-binary" },
@@ -919,7 +915,7 @@ requires-dist = [
     { name = "google-cloud-aiplatform", specifier = ">=1.42.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "httpx", specifier = ">=0.27.0" },
-    { name = "instructor", extras = ["google-genai", "vertexai"], specifier = ">=1.10.0" },
+    { name = "instructor", extras = ["google-genai"], specifier = ">=1.10.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "posthog", specifier = ">=4.9.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.9" },
