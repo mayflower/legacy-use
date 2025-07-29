@@ -9,6 +9,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 import vertexai
 from vertexai.generative_models import GenerativeModel, Part
+import instructor
 
 from server.models.base import APIDefinition, Parameter
 from server.settings import settings
@@ -215,6 +216,11 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
     try:
         # Initialize Vertex AI
         model = initialize_vertex_ai()
+
+        client = instructor.from_vertexai(
+            client=model,
+            mode=instructor.Mode.VERTEXAI_TOOLS,
+        )
 
         # Create video part for Gemini
         video_part = Part.from_data(data=video_content, mime_type=video.content_type)
