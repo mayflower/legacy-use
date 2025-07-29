@@ -202,9 +202,8 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
         )
 
     # Check file size (limit to 50MB)
-    max_size = 50 * 1024 * 1024  # 50MB
     video_content = await video.read()
-    if len(video_content) > max_size:
+    if len(video_content) > 50 * 1024 * 1024:  # 50MB
         raise HTTPException(
             status_code=400,
             detail='Video file too large. Maximum size is 50MB.',
