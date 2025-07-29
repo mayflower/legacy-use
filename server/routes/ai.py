@@ -197,7 +197,8 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
     # Validate file type
     if not video.content_type or not video.content_type.startswith('video/'):
         raise HTTPException(
-            status_code=400, detail='Invalid file type. Please upload a video file.'
+            status_code=400,
+            detail='Invalid file type. Please upload a video file.',
         )
 
     # Check file size (limit to 50MB)
@@ -205,7 +206,8 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
     video_content = await video.read()
     if len(video_content) > max_size:
         raise HTTPException(
-            status_code=400, detail='Video file too large. Maximum size is 50MB.'
+            status_code=400,
+            detail='Video file too large. Maximum size is 50MB.',
         )
 
     client = instructor.from_provider(
