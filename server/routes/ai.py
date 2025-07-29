@@ -3,11 +3,14 @@ AI-powered analysis routes.
 """
 
 import logging
+from typing import Any, Dict, List
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
-from pydantic import BaseModel
 import instructor
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from google.genai.types import Content, Part
+from pydantic import BaseModel
 
+from server.models.base import Parameter
 from server.settings import settings
 
 # Set up logging
@@ -20,7 +23,12 @@ ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
 class VideoAnalysisResponse(BaseModel):
     """Response model for video analysis"""
 
-    text: str
+    name: str
+    description: str
+    prompt: str
+    prompt_cleanup: str
+    parameters: List[Parameter] = []
+    response_example: Dict[str, Any] = {}
 
 
 def create_analysis_prompt() -> str:
@@ -193,9 +201,12 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
         api_key=settings.GOOGLE_GENAI_API_KEY,
     )
 
+    instructions_part = Part.from_text(text=create_analysis_prompt())
+    video_part = Part.from_bytes(data=video_content, mime_type='video/mp4')
+
+    messages = [Content(role='user', parts=[instructions_part, video_part])]
+
     return await client.chat.completions.create(
-        messages=[
-            {'role': 'user', 'content': 'Tell me a joke!'},
-        ],
+        messages=messages,  # type: ignore
         response_model=VideoAnalysisResponse,
     )
