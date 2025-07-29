@@ -3,15 +3,13 @@ AI-powered analysis routes.
 """
 
 import logging
-from typing import Any, Dict
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 import vertexai
-from vertexai.generative_models import GenerativeModel, Part
+from vertexai.generative_models import GenerativeModel
 import instructor
 
-from server.models.base import APIDefinition, Parameter
 from server.settings import settings
 
 # Set up logging
@@ -24,10 +22,7 @@ ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
 class VideoAnalysisResponse(BaseModel):
     """Response model for video analysis"""
 
-    api_definition: APIDefinition
-    analysis_summary: str
-    confidence_score: float
-    prompt: str
+    text: str
 
 
 def initialize_vertex_ai():
@@ -213,164 +208,15 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
             status_code=400, detail='Video file too large. Maximum size is 50MB.'
         )
 
-    try:
-        client = instructor.from_provider(
-            'google/gemini-2.5-flash',
-            async_client=True,
-        )
+    client = instructor.from_provider(
+        'google/gemini-2.5-flash',
+        async_client=True,
+        api_key=settings.GOOGLE_GENAI_API_KEY,
+    )
 
-        # Create video part for Gemini
-        video_part = Part.from_data(data=video_content, mime_type=video.content_type)
-
-        # Create analysis prompt
-        analysis_prompt = create_analysis_prompt()
-
-        # Generate analysis
-        logger.info(f'Analyzing video: {video.filename} ({len(video_content)} bytes)')
-
-        response = model.generate_content([analysis_prompt, video_part])
-
-        if not response.text:
-            raise HTTPException(
-                status_code=500, detail='No response generated from video analysis'
-            )
-
-        # Parse the response to extract API definition
-        response_text = response.text.strip()
-
-        # Try to extract JSON from the response
-        import json
-        import re
-
-        # Look for JSON block in the response
-        json_match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
-        if not json_match:
-            # Try to find JSON without code blocks
-            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
-
-        if not json_match:
-            raise HTTPException(
-                status_code=500,
-                detail='Could not extract valid API definition from analysis',
-            )
-
-        try:
-            api_def_dict = json.loads(json_match.group(1))
-        except json.JSONDecodeError as e:
-            logger.error(f'Failed to parse JSON from response: {e}')
-            raise HTTPException(
-                status_code=500, detail='Generated API definition is not valid JSON'
-            )
-
-        # Validate required fields
-        required_fields = [
-            'name',
-            'description',
-            'parameters',
-            'prompt',
-            'response_example',
-        ]
-        for field in required_fields:
-            if field not in api_def_dict:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f'Generated API definition missing required field: {field}',
-                )
-
-        # Convert parameters to Parameter objects
-        parameters = []
-        for param_dict in api_def_dict.get('parameters', []):
-            if not isinstance(param_dict, dict):
-                continue
-            parameters.append(
-                Parameter(
-                    name=param_dict.get('name', ''),
-                    type=param_dict.get('type', 'string'),
-                    description=param_dict.get('description', ''),
-                    default=param_dict.get('default'),
-                )
-            )
-
-        print(api_def_dict)
-
-        # Create APIDefinition object
-        api_definition = APIDefinition(
-            name=api_def_dict['name'],
-            description=api_def_dict['description'],
-            parameters=parameters,
-            response_example=api_def_dict['response_example'],
-        )
-
-        # Calculate confidence score based on response quality
-        confidence_score = calculate_confidence_score(response_text, api_def_dict)
-
-        # Create summary
-        analysis_summary = create_analysis_summary(response_text, api_def_dict)
-
-        logger.info(
-            f'Successfully analyzed video and generated API definition: {api_definition.name}'
-        )
-
-        return VideoAnalysisResponse(
-            api_definition=api_definition,
-            analysis_summary=analysis_summary,
-            confidence_score=confidence_score,
-            prompt=api_def_dict['prompt'],
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f'Error analyzing video: {str(e)}')
-        raise HTTPException(
-            status_code=500, detail=f'Failed to analyze video: {str(e)}'
-        )
-
-
-def calculate_confidence_score(
-    response_text: str, api_def_dict: Dict[str, Any]
-) -> float:
-    """Calculate a confidence score for the generated API definition"""
-    score = 0.0
-
-    # Check if all required fields are present and non-empty
-    required_fields = ['name', 'description', 'prompt', 'response_example']
-    for field in required_fields:
-        if field in api_def_dict and api_def_dict[field]:
-            score += 0.2
-
-    # Check prompt quality indicators
-    prompt = api_def_dict.get('prompt', '')
-    if 'Step' in prompt or 'step' in prompt:
-        score += 0.1
-    if 'Expected UI' in prompt or 'Action' in prompt:
-        score += 0.1
-    if len(prompt) > 200:  # Detailed prompt
-        score += 0.1
-
-    # Check if parameters are defined
-    if api_def_dict.get('parameters') and len(api_def_dict['parameters']) > 0:
-        score += 0.1
-
-    # Ensure score is between 0 and 1
-    return min(1.0, max(0.0, score))
-
-
-def create_analysis_summary(response_text: str, api_def_dict: Dict[str, Any]) -> str:
-    """Create a human-readable summary of the analysis"""
-    name = api_def_dict.get('name', 'Unknown')
-    description = api_def_dict.get('description', 'No description available')
-    param_count = len(api_def_dict.get('parameters', []))
-
-    summary = f"Generated API definition '{name}' with {param_count} parameters.\n\n"
-    summary += f'Description: {description}\n\n'
-
-    if param_count > 0:
-        summary += 'Parameters:\n'
-        for param in api_def_dict.get('parameters', []):
-            param_name = param.get('name', 'unknown')
-            param_type = param.get('type', 'string')
-            param_desc = param.get('description', 'No description')
-            summary += f'- {param_name} ({param_type}): {param_desc}\n'
-
-    return summary
+    return await client.chat.completions.create(
+        messages=[
+            {'role': 'user', 'content': 'Tell me a joke!'},
+        ],
+        response_model=VideoAnalysisResponse,
+    )
