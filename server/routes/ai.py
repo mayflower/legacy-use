@@ -214,12 +214,9 @@ async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
         )
 
     try:
-        # Initialize Vertex AI
-        model = initialize_vertex_ai()
-
-        client = instructor.from_vertexai(
-            client=model,
-            mode=instructor.Mode.VERTEXAI_TOOLS,
+        client = instructor.from_provider(
+            'google/gemini-2.5-flash',
+            async_client=True,
         )
 
         # Create video part for Gemini
