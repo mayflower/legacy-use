@@ -109,10 +109,12 @@ const VncViewer = () => {
   // Remove leading slash to avoid double slash when concatenating with baseApiUrl
   const proxyPath = `sessions/${sessionId}/vnc`;
 
+  // Check if there is a path prefix configured, e.g. /api/
+  const prefixPathname = new URL(baseApiUrl).pathname;
   // VNC parameters with the correct WebSocket path
   // The path parameter tells the VNC client where to find the WebSocket endpoint
   // Make sure to use a path that starts with a single slash
-  const websocketPath = `${proxyPath}/websockify`;
+  const websocketPath = `${prefixPathname}/${proxyPath}/websockify`;
 
   const vncParams = `resize=scale&autoconnect=1&view_only=1&reconnect=1&reconnect_delay=2000&path=${websocketPath}`;
 
