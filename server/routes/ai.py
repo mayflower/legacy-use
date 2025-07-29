@@ -118,8 +118,6 @@ Analyze the provided video recording of a user interacting with a software appli
 3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized?
 4. **Create an API definition** - Generate a complete API definition that could automate this workflow.
 
-{how_to_prompt_instructions}
-
 ## Analysis Guidelines
 
 - Watch for UI state changes and transitions
@@ -133,13 +131,15 @@ Analyze the provided video recording of a user interacting with a software appli
 Create an API definition with:
 
 1. **Name**: A clear, descriptive name for the automation (use snake_case)
-2. **Description**: A comprehensive description of what the API does
+2. **Description**: A comprehensive description of what the automation does
 3. **Parameters**: List of parameters needed (with types: string, number, boolean, list)
 4. **Prompt**: Detailed step-by-step instructions following the HOW_TO_PROMPT.md format
 5. **Prompt Cleanup**: Instructions to return the system to its original state
 6. **Response Example**: Expected JSON structure for the result
 
 Focus on creating a robust, reusable automation that could handle variations in the workflow while maintaining reliability.
+
+{how_to_prompt_instructions}
 """
 
     return prompt
