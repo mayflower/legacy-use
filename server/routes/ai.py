@@ -3,7 +3,7 @@ AI-powered analysis routes.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal
 
 import instructor
 from fastapi import APIRouter, File, HTTPException, UploadFile
@@ -20,6 +20,26 @@ logger = logging.getLogger(__name__)
 ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
 
 
+class Action(BaseModel):
+    title: str = Field(
+        description='A short title for the action, e.g. "Open settings menu"',
+    )
+    instruction: str = Field(
+        description='Describe the action the user took to complete the task, formulated as instruction for the operator',
+    )
+    tool: Literal[
+        'type',
+        'press_key',
+        'click',
+        'scroll_up',
+        'scroll_down',
+        'ui_not_as_expected',
+        'extract_tool',
+    ] = Field(
+        description='The tool to use to complete the action',
+    )
+
+
 class VideoAnalysisResponse(BaseModel):
     """Response model for video analysis"""
 
@@ -29,7 +49,7 @@ class VideoAnalysisResponse(BaseModel):
     description: str = Field(
         description='A short summary of the automation, remain high level',
     )
-    prompt: str = Field(
+    actions: List[Action] = Field(
         description='Describe the expected screen state, instruct the operator to get the system into the initial state. Then describe the actions the user took to complete the task in great detail, in particular which buttons or input fields are used, use the tools available to the model to describe the actions, follow the format of the HOW_TO_PROMPT.md file',
     )
     prompt_cleanup: str = Field(
