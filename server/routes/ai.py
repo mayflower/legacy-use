@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 import instructor
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from google.genai.types import Content, Part
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from server.models.base import Parameter
 from server.settings import settings
@@ -23,12 +23,24 @@ ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
 class VideoAnalysisResponse(BaseModel):
     """Response model for video analysis"""
 
-    name: str
-    description: str
-    prompt: str
-    prompt_cleanup: str
-    parameters: List[Parameter] = []
-    response_example: Dict[str, Any] = {}
+    name: str = Field(
+        description='A short name for the automation',
+    )
+    description: str = Field(
+        description='A short summary of the automation, remain high level',
+    )
+    prompt: str = Field(
+        description='Describe the expected screen state, instruct the operator to get the system into the initial state. Then describe the actions the user took to complete the task in great detail, in particular which buttons or input fields are used, use the tools available to the model to describe the actions, follow the format of the HOW_TO_PROMPT.md file',
+    )
+    prompt_cleanup: str = Field(
+        description='Instructions to return the system to its original state'
+    )
+    parameters: List[Parameter] = Field(
+        description='Parameters and user input needed to run the automation another time with different values',
+    )
+    response_example: Dict[str, Any] = Field(
+        description='Expected response from the automation',
+    )
 
 
 def create_analysis_prompt() -> str:
