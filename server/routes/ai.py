@@ -139,31 +139,6 @@ Create an API definition with:
 5. **Prompt Cleanup**: Instructions to return the system to its original state
 6. **Response Example**: Expected JSON structure for the result
 
-## Response Format
-
-Return your analysis as a structured API definition that follows this exact format:
-
-```json
-{{
-  "name": "descriptive_api_name",
-  "description": "Comprehensive description of the automation process",
-  "parameters": [
-    {{
-      "name": "parameter_name",
-      "type": "string|number|boolean|list",
-      "description": "Clear description of what this parameter does",
-      "default": null
-    }}
-  ],
-  "prompt": "Step-by-step automation instructions following HOW_TO_PROMPT.md format...",
-  "prompt_cleanup": "Instructions to return system to original state...",
-  "response_example": {{
-    "status": "success",
-    "result": "Expected result structure"
-  }}
-}}
-```
-
 Focus on creating a robust, reusable automation that could handle variations in the workflow while maintaining reliability.
 """
 
