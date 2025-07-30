@@ -1,5 +1,14 @@
-import { Delete, PlayArrow, Replay } from '@mui/icons-material';
-import { Alert, Box, Button, Card, CardContent, CardHeader, Typography } from '@mui/material';
+import { Cancel, Circle, Delete, PlayArrow, Replay } from '@mui/icons-material';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  Typography,
+} from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
@@ -96,11 +105,12 @@ export default function InteractiveSession() {
                   color="primary"
                   onClick={() => handleAnalyzeRecording(recordingResult)}
                   disabled={analyzeProgress}
+                  startIcon={analyzeProgress ? <CircularProgress size={16} /> : <Circle />}
                 >
-                  Analyze
+                  {analyzeProgress ? 'Analyzing...' : 'Analyze'}
                 </Button>
-                <Button onClick={() => setRecordingResult(null)}>
-                  <Delete />
+                <Button color="warning" onClick={() => setRecordingResult(null)}>
+                  <Cancel />
                 </Button>
               </>
             ) : (
