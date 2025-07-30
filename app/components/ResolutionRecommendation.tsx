@@ -2,7 +2,13 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import PropTypes from 'prop-types';
+
+interface ResolutionRecommendationProps {
+  width: number;
+  height: number;
+  onRecommendedResolutionClick: (resolution: { width: number; height: number }) => void;
+  disabled?: boolean;
+}
 
 const recommendedResolutions = [
   {
@@ -15,7 +21,12 @@ const recommendedResolutions = [
   },
 ];
 
-const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick, disabled }) => {
+const ResolutionRecommendation = ({
+  width,
+  height,
+  onRecommendedResolutionClick,
+  disabled = false,
+}: ResolutionRecommendationProps) => {
   const isRecommendedResolution = recommendedResolutions.some(
     resolution => resolution.width === width && resolution.height === height,
   );
@@ -55,17 +66,6 @@ const ResolutionRecommendation = ({ width, height, onRecommendedResolutionClick,
       </Box>
     </Alert>
   );
-};
-
-ResolutionRecommendation.propTypes = {
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired,
-  onRecommendedResolutionClick: PropTypes.func.isRequired,
-  disabled: PropTypes.bool,
-};
-
-ResolutionRecommendation.defaultProps = {
-  disabled: false,
 };
 
 export default ResolutionRecommendation;
