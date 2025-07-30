@@ -1,5 +1,5 @@
-import { Delete } from '@mui/icons-material';
-import { Alert, Box, Button, Card, CardContent, Typography } from '@mui/material';
+import { Delete, PlayArrow } from '@mui/icons-material';
+import { Alert, Box, Button, Card, CardContent, CardHeader, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
@@ -109,6 +109,35 @@ export default function InteractiveSession() {
           </Box>
         </CardContent>
       </Card>
+
+      {analyzeResult && (
+        <Box>
+          <Box
+            sx={{
+              mb: 2,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Typography variant="h5">Actions</Typography>
+            <Button variant="contained" color="success" onClick={() => console.log('play')}>
+              <PlayArrow />
+            </Button>
+          </Box>
+
+          {analyzeResult.actions.map(action => (
+            <Card key={action.title} sx={{ mb: 3 }}>
+              <CardHeader>{action.title}</CardHeader>
+              <CardContent>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  {action.instruction}
+                </Typography>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      )}
 
       {recordingResult && (
         <Box sx={{ mb: 3 }}>
