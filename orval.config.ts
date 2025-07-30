@@ -2,7 +2,7 @@ import { defineConfig } from 'orval';
 
 export default defineConfig({
   endpoints: {
-    input: './openapi.yaml',
+    input: './openapi.json',
     output: './endpoints.ts',
   },
 });
