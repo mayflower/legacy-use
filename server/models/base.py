@@ -3,7 +3,7 @@ Base models for the API Gateway.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID, uuid4
 
@@ -248,10 +248,17 @@ class InputLogEntry(BaseModel):
     details: Dict[str, Any]
 
 
+class RecordingStatus(StrEnum):
+    STARTED = 'started'
+    STOPPED = 'stopped'
+    COMPLETED = 'completed'
+    RECORDING = 'recording'
+
+
 class RecordingResponse(BaseModel):
     """Response model for recording operations"""
 
-    status: str
+    status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
     file_path: Optional[str] = None
@@ -261,7 +268,7 @@ class RecordingResponse(BaseModel):
 class RecordingStopResponse(BaseModel):
     """Response model for stopping a recording"""
 
-    status: str
+    status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
     file_size_bytes: Optional[int] = None
@@ -274,7 +281,7 @@ class RecordingStopResponse(BaseModel):
 class RecordingStatusResponse(BaseModel):
     """Response model for recording status"""
 
-    status: str
+    status: RecordingStatus
     recording: bool
     vnc_monitoring: Optional[bool] = None
     session_id: Optional[str] = None

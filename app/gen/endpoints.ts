@@ -212,12 +212,22 @@ export type RecordingResponseVncMonitoring = boolean | null;
  * Response model for recording operations
  */
 export interface RecordingResponse {
-  status: string;
+  status: RecordingStatus;
   message: string;
   recording_id?: RecordingResponseRecordingId;
   file_path?: RecordingResponseFilePath;
   vnc_monitoring?: RecordingResponseVncMonitoring;
 }
+
+export type RecordingStatus = (typeof RecordingStatus)[keyof typeof RecordingStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RecordingStatus = {
+  started: 'started',
+  stopped: 'stopped',
+  completed: 'completed',
+  recording: 'recording',
+} as const;
 
 export type RecordingStatusResponseVncMonitoring = boolean | null;
 
@@ -233,7 +243,7 @@ export type RecordingStatusResponseStartTime = string | null;
  * Response model for recording status
  */
 export interface RecordingStatusResponse {
-  status: string;
+  status: RecordingStatus;
   recording: boolean;
   vnc_monitoring?: RecordingStatusResponseVncMonitoring;
   session_id?: RecordingStatusResponseSessionId;
@@ -260,7 +270,7 @@ export type RecordingStopResponseInputLogSummary = RecordingStopResponseInputLog
  * Response model for stopping a recording
  */
 export interface RecordingStopResponse {
-  status: string;
+  status: RecordingStatus;
   message: string;
   recording_id?: RecordingStopResponseRecordingId;
   file_size_bytes?: RecordingStopResponseFileSizeBytes;

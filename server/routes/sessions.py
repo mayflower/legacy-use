@@ -569,8 +569,6 @@ async def update_session_state(session_id: UUID, state: str):
 
 
 # Recording Control Endpoints
-
-
 @session_router.post(
     '/{session_id}/recording/start',
     response_model=RecordingResponse,

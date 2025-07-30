@@ -1,3 +1,4 @@
+from enum import StrEnum
 import os
 import asyncio
 import base64
@@ -46,8 +47,15 @@ class InputLogEntry(BaseModel):
     details: Dict[str, Any]
 
 
+class RecordingStatus(StrEnum):
+    STARTED = 'started'
+    STOPPED = 'stopped'
+    COMPLETED = 'completed'
+    RECORDING = 'recording'
+
+
 class RecordingResponse(BaseModel):
-    status: str
+    status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
     file_path: Optional[str] = None
@@ -55,7 +63,7 @@ class RecordingResponse(BaseModel):
 
 
 class RecordingStopResponse(BaseModel):
-    status: str
+    status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
     file_size_bytes: Optional[int] = None
@@ -369,7 +377,7 @@ async def start_recording(request: RecordingRequest | None = None) -> RecordingR
             await start_vnc_input_monitoring(recording_id)
 
         return RecordingResponse(
-            status='started',
+            status=RecordingStatus.STARTED,
             message='Screen recording started successfully',
             recording_id=recording_id,
             file_path=str(recording_file),
@@ -430,7 +438,7 @@ async def stop_recording() -> RecordingStopResponse:
             input_log_summary = analyze_input_logs(input_logs)
 
             response = RecordingStopResponse(
-                status='completed',
+                status=RecordingStatus.COMPLETED,
                 message='Recording stopped successfully',
                 recording_id=recording_id,
                 file_size_bytes=file_size,
@@ -492,7 +500,11 @@ async def get_recording_status():
         recording_start_time
 
     if recording_process is None:
-        return {'status': 'stopped', 'recording': False, 'vnc_monitoring': False}
+        return {
+            'status': RecordingStatus.STOPPED,
+            'recording': False,
+            'vnc_monitoring': False,
+        }
 
     # Check if process is still running
     if recording_process.returncode is not None:
@@ -502,7 +514,11 @@ async def get_recording_status():
         recording_start_time = None
         await stop_vnc_input_monitoring()
         current_recording_session_id = None
-        return {'status': 'stopped', 'recording': False, 'vnc_monitoring': False}
+        return {
+            'status': RecordingStatus.STOPPED,
+            'recording': False,
+            'vnc_monitoring': False,
+        }
 
     # Calculate duration if recording is active
     duration_seconds = None
@@ -510,7 +526,7 @@ async def get_recording_status():
         duration_seconds = (datetime.now() - recording_start_time).total_seconds()
 
     return {
-        'status': 'recording',
+        'status': RecordingStatus.RECORDING,
         'recording': True,
         'vnc_monitoring': vnc_monitor_process is not None
         and vnc_monitor_process.returncode is None,
