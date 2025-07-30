@@ -54,24 +54,18 @@ class RecordingStatus(StrEnum):
     RECORDING = 'recording'
 
 
-class RecordingResponse(BaseModel):
+class RecordingStatusResponse(BaseModel):
     status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
-    file_path: Optional[str] = None
-    vnc_monitoring: Optional[bool] = None
-
-
-class RecordingStatusResponse(BaseModel):
-    status: RecordingStatus
-    recording: bool
     vnc_monitoring: Optional[bool] = None
     session_id: Optional[str] = None
     file_path: Optional[str] = None
     duration_seconds: Optional[float] = None
+    start_time: Optional[str] = None
 
 
-class RecordingStopResponse(BaseModel):
+class RecordingResultResponse(BaseModel):
     status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
@@ -278,8 +272,10 @@ async def get_session_input_logs(session_id: str) -> List[InputLogEntry]:
         return []
 
 
-@router.post('/start', response_model=RecordingResponse)
-async def start_recording(request: RecordingRequest | None = None) -> RecordingResponse:
+@router.post('/start', response_model=RecordingStatusResponse)
+async def start_recording(
+    request: RecordingRequest | None = None,
+) -> RecordingStatusResponse:
     """Start screen recording using FFmpeg"""
     global \
         recording_process, \
@@ -353,7 +349,7 @@ async def start_recording(request: RecordingRequest | None = None) -> RecordingR
             current_recording_session_id = recording_id
             await start_vnc_input_monitoring(recording_id)
 
-        return RecordingResponse(
+        return RecordingStatusResponse(
             status=RecordingStatus.STARTED,
             message='Screen recording started successfully',
             recording_id=recording_id,
@@ -369,8 +365,8 @@ async def start_recording(request: RecordingRequest | None = None) -> RecordingR
         )
 
 
-@router.post('/stop', response_model=RecordingStopResponse)
-async def stop_recording() -> RecordingStopResponse:
+@router.post('/stop', response_model=RecordingResultResponse)
+async def stop_recording() -> RecordingResultResponse:
     """Stop screen recording and return the video file"""
     global \
         recording_process, \
@@ -413,7 +409,7 @@ async def stop_recording() -> RecordingStopResponse:
             # Get input logs
             input_logs = await get_session_input_logs(recording_id)
 
-            response = RecordingStopResponse(
+            response = RecordingResultResponse(
                 status=RecordingStatus.COMPLETED,
                 message='Recording stopped successfully',
                 recording_id=recording_id,
@@ -464,8 +460,8 @@ async def stop_recording() -> RecordingStopResponse:
             temp_file.unlink()
 
 
-@router.get('/status')
-async def get_recording_status():
+@router.get('/status', response_model=RecordingStatusResponse)
+async def get_recording_status() -> RecordingStatusResponse:
     """Get current recording status"""
     global \
         recording_process, \
@@ -477,7 +473,7 @@ async def get_recording_status():
     if recording_process is None:
         return RecordingStatusResponse(
             status=RecordingStatus.STOPPED,
-            recording=False,
+            message='Recording stopped',
             vnc_monitoring=False,
         )
 
@@ -491,7 +487,7 @@ async def get_recording_status():
         current_recording_session_id = None
         return RecordingStatusResponse(
             status=RecordingStatus.STOPPED,
-            recording=False,
+            message='Recording stopped',
             vnc_monitoring=False,
         )
 
@@ -502,7 +498,7 @@ async def get_recording_status():
 
     return RecordingStatusResponse(
         status=RecordingStatus.RECORDING,
-        recording=True,
+        message='Recording in progress',
         vnc_monitoring=vnc_monitor_process is not None
         and vnc_monitor_process.returncode is None,
         session_id=current_recording_session_id,
