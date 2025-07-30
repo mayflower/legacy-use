@@ -40,6 +40,11 @@ export default function InteractiveSession() {
     }
   };
 
+  const onRecordingStopped = (recordingResult: RecordingResultResponse) => {
+    setRecordingResult(recordingResult);
+    // handleAnalyzeRecording(recordingResult);
+  };
+
   if (!currentSession || currentSession.is_archived || currentSession.state !== 'ready') {
     return (
       <Box sx={{ p: 3 }}>
@@ -66,7 +71,7 @@ export default function InteractiveSession() {
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
             <RecordingButton
               sessionId={currentSession.id}
-              onRecordingStopped={setRecordingResult}
+              onRecordingStopped={onRecordingStopped}
             />
           </Box>
         </CardContent>
@@ -77,6 +82,10 @@ export default function InteractiveSession() {
           <Typography variant="h5" gutterBottom>
             Recording Result
           </Typography>
+
+          <video src={recordingResult.base64_video} muted>
+            <track kind="captions" />
+          </video>
         </Box>
       )}
     </Box>
