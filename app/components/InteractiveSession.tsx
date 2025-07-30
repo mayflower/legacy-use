@@ -26,22 +26,6 @@ import { formatDuration } from '../utils/formatDuration';
 import RecordingButton from './RecordingButton';
 import type { RecordingHistory } from './RecordingHistory';
 
-// Keyframes for pulsing record dot
-const pulse = keyframes`
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-`;
-
 // Recording states
 type RecordingState = 'initial' | 'recording' | 'recorded' | 'analyzed';
 

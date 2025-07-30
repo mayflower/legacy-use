@@ -7,6 +7,7 @@ import {
   type RecordingStatusResponse,
 } from '../gen/endpoints';
 import { getRecordingStatus, startRecording, stopRecording } from '../services/apiService';
+import RecordIcon from './RecordIcon';
 
 interface RecordingButtonProps {
   sessionId: string;
@@ -53,7 +54,12 @@ export default function RecordingButton({ sessionId }: RecordingButtonProps) {
   return (
     <div>
       {isRecording ? (
-        <Button variant="contained" color="error" onClick={handleStopRecording}>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleStopRecording}
+          startIcon={<RecordIcon />}
+        >
           Stop Recording
         </Button>
       ) : (
