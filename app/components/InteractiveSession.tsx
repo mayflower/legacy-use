@@ -15,6 +15,7 @@ import {
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SessionContext } from '../App';
+import type { RecordingStopResponse } from '../gen/endpoints';
 import {
   analyzeVideo,
   getRecordingStatus,
@@ -51,7 +52,7 @@ export default function InteractiveSession() {
   const [recordingState, setRecordingState] = useState<RecordingState>('initial');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [recordingResult, setRecordingResult] = useState<any>(null);
+  const [recordingResult, setRecordingResult] = useState<null | RecordingStopResponse>(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
   // Server-provided duration state
