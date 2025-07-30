@@ -29,7 +29,6 @@ export default function RecordingButton({
   onRecordingStopped,
 }: RecordingButtonProps) {
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatusResponse | null>(null);
-  const [recordingResult, setRecordingResult] = useState<RecordingResultResponse | null>(null);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -48,7 +47,6 @@ export default function RecordingButton({
 
   const handleStopRecording = async () => {
     const result = await stopRecording(sessionId);
-    setRecordingResult(result);
     onRecordingStopped?.(result);
   };
 
