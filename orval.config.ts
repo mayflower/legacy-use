@@ -4,7 +4,7 @@ export default defineConfig({
   endpoints: {
     input: './openapi.json',
     output: {
-      target: './app/endpoints.ts',
+      target: './app/gen/endpoints.ts',
       biome: true,
     },
   },
