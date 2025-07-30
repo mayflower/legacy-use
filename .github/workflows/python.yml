@@ -37,6 +37,7 @@ jobs:
       postgres:
         image: postgres:alpine
         env:
+          POSTGRES_DB: legacyuse
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
         options: >-
