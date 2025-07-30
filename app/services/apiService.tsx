@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(config => {
 });
 
 // Function to set the API key for all requests
-export const setApiKeyHeader = (apiKey: string) => {
+export const setApiKeyHeader = (apiKey: string | null) => {
   if (apiKey) {
     apiClient.defaults.headers.common['X-API-Key'] = apiKey;
     // Also store in localStorage for the interceptor

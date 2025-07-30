@@ -1,21 +1,18 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-// Add browser globals for linter
-const { localStorage } = globalThis;
-
 // Create the context
 export const ApiKeyContext = createContext({
-  apiKey: null,
-  setApiKey: () => {},
+  apiKey: null as string | null,
+  setApiKey: (_key: string | null) => {},
   clearApiKey: () => {},
   isApiKeyValid: false,
-  setIsApiKeyValid: () => {},
+  setIsApiKeyValid: (_valid: boolean) => {},
 });
 
 // Create a provider component
-export const ApiKeyProvider = ({ children }) => {
+export const ApiKeyProvider = ({ children }: { children: React.ReactNode }) => {
   // Get API key from localStorage or set to null
-  const [apiKey, setApiKeyState] = useState(() => {
+  const [apiKey, setApiKeyState] = useState<string | null>(() => {
     const savedApiKey = localStorage.getItem('apiKey');
     const envApiKey = import.meta.env.VITE_API_KEY;
     return savedApiKey || envApiKey || null;
@@ -32,7 +29,7 @@ export const ApiKeyProvider = ({ children }) => {
   }, [apiKey]);
 
   // Function to set the API key
-  const setApiKey = key => {
+  const setApiKey = (key: string | null) => {
     setApiKeyState(key);
   };
 
