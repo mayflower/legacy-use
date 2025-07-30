@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vite test",
     "typecheck": "tsc --noEmit",
+    "generate-openapi-schema": "uv run generate_openapi_schema.py && orval",
     "check": "biome check",
     "check:fix": "biome check --fix",
     "lint": "biome lint",
