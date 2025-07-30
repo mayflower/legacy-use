@@ -1,15 +1,5 @@
-import { Cancel, Circle, Delete, PlayArrow, Replay } from '@mui/icons-material';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Divider,
-  Typography,
-} from '@mui/material';
+import { Cancel, Circle, PlayArrow, Replay } from '@mui/icons-material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
@@ -17,6 +7,7 @@ import type { AnalyzeVideoAiAnalyzePostResult, RecordingResultResponse } from '.
 import { analyzeVideo } from '../services/apiService';
 import { base64ToVideoFile } from '../utils/video';
 import RecordingButton from './RecordingButton';
+import RecordingResultViewer from './RecordingResultViewer';
 
 export default function InteractiveSession() {
   const { currentSession } = useContext(SessionContext);
@@ -121,18 +112,7 @@ export default function InteractiveSession() {
               />
             )}
 
-            {recordingResult && (
-              <Box>
-                <video
-                  controls
-                  style={{ maxWidth: '100%', maxHeight: '200px' }}
-                  src={`data:video/mp4;base64,${recordingResult.base64_video}`}
-                >
-                  <track kind="captions" srcLang="en" label="English captions" />
-                  Your browser does not support the video tag.
-                </video>
-              </Box>
-            )}
+            {recordingResult && <RecordingResultViewer recordingResult={recordingResult} />}
           </Box>
         </CardContent>
       </Card>
