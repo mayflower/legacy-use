@@ -1,12 +1,13 @@
 import axios from 'axios';
+import { listSessionsSessionsGet, type Session } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 
 // Always use the API_URL from environment variables
 // This should be set to the full URL of your API server (e.g., http://localhost:8088)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
 
 // Create an axios instance with default config
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_URL,
 });
 
@@ -16,11 +17,8 @@ apiClient.interceptors.request.use(config => {
   return config;
 });
 
-// Add browser globals for linter
-const { localStorage } = globalThis;
-
 // Function to set the API key for all requests
-export const setApiKeyHeader = apiKey => {
+export const setApiKeyHeader = (apiKey: string | null) => {
   if (apiKey) {
     apiClient.defaults.headers.common['X-API-Key'] = apiKey;
     // Also store in localStorage for the interceptor
@@ -48,7 +46,7 @@ apiClient.interceptors.request.use(
 );
 
 // Function to test if an API key is valid
-export const testApiKey = async apiKey => {
+export const testApiKey = async (apiKey: string) => {
   try {
     // Create a temporary axios instance with the API key
     const tempClient = axios.create({
@@ -246,14 +244,8 @@ export const unarchiveApiDefinition = async apiName => {
 };
 
 // Sessions
-export const getSessions = async (include_archived = false) => {
-  try {
-    const response = await apiClient.get('/sessions/', { params: { include_archived } });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching sessions:', error);
-    throw error;
-  }
+export const getSessions = async (include_archived = false): Promise<Session[]> => {
+  return listSessionsSessionsGet({ include_archived });
 };
 
 export const getSession = async sessionId => {
