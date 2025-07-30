@@ -1,5 +1,6 @@
 import { Alert, Box, Card, CardContent, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
 import type { AnalyzeVideoAiAnalyzePostResult, RecordingResultResponse } from '../gen/endpoints';
 import { analyzeVideo } from '../services/apiService';
@@ -8,6 +9,10 @@ import RecordingButton from './RecordingButton';
 
 export default function InteractiveSession() {
   const { currentSession } = useContext(SessionContext);
+  const [recordingHistory, setRecordingHistory] = useLocalStorage<RecordingResultResponse[]>(
+    `recording-history-${currentSession?.id}`,
+    [],
+  );
 
   // Recording state
   const [recordingResult, setRecordingResult] = useState<null | RecordingResultResponse>(null);
@@ -42,6 +47,7 @@ export default function InteractiveSession() {
 
   const onRecordingStopped = (recordingResult: RecordingResultResponse) => {
     setRecordingResult(recordingResult);
+    setRecordingHistory([recordingResult, ...recordingHistory]);
     // handleAnalyzeRecording(recordingResult);
   };
 
