@@ -9,7 +9,6 @@ ENV HOME=/home/$USERNAME
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
-    sqlite3 \
     ca-certificates \
     gnupg  && \
     # Install Docker CLI
@@ -65,7 +64,7 @@ if [ "${LEGACY_USE_DEBUG:-0}" = "1" ]; then\n\
     exec uv run uvicorn server.server:app --host 0.0.0.0 --port $FASTAPI_SERVER_PORT --reload --reload-dir server\n\
 else\n\
     echo "Production mode: Using workers without reload"\n\
-    exec gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker server.server:app --threads 4 --bind 0.0.0.0:$FASTAPI_SERVER_PORT\n\
+    exec uv run gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker server.server:app --threads 4 --bind 0.0.0.0:$FASTAPI_SERVER_PORT\n\
 fi' > $HOME/entrypoint.sh && \
     chmod +x $HOME/entrypoint.sh
 
