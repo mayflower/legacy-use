@@ -233,14 +233,102 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
         results = []
         completed_steps = 0
 
+        # Get AI configuration once for the entire workflow
+        model = get_default_model_name(APIProvider(settings.API_PROVIDER))
+        tool_version = get_tool_version(model)
+
         for i, step in enumerate(workflow_request.steps):
             logger.info(
                 f'Executing workflow step {i + 1} of {len(workflow_request.steps)}: {step.instruction}'
             )
 
             try:
-                # Execute this step
-                action_response = await execute_action(session_id, step)
+                # Create a job for this interactive action
+                job_data = {
+                    'target_id': session['target_id'],
+                    'session_id': session_id,
+                    'api_name': 'interactive_workflow',
+                    'parameters': {'steps': [step.model_dump()]},
+                    'status': 'running',
+                }
+                job_dict = db.create_job(job_data)
+                if not job_dict:
+                    raise HTTPException(status_code=500, detail='Failed to create job')
+
+                # Create the prompt for the AI
+                prompt = create_action_prompt(step)
+
+                # Create initial message for the sampling loop
+                messages = [BetaMessageParam(role='user', content=prompt)]
+
+                # Collect AI output and tool results
+                ai_output_parts = []
+                tool_results = []
+
+                def output_callback(content_block):
+                    if content_block.get('type') == 'text':
+                        ai_output_parts.append(content_block.get('text', ''))
+
+                def tool_callback(tool_result, tool_id):
+                    tool_results.append(tool_result)
+
+                # Execute using sampling loop
+                try:
+                    result, exchanges = await sampling_loop(
+                        job_id=job_dict['id'],
+                        db=db,
+                        model=model,
+                        provider=APIProvider(settings.API_PROVIDER),
+                        system_prompt_suffix='',
+                        messages=messages,
+                        output_callback=output_callback,
+                        tool_output_callback=tool_callback,
+                        api_key=settings.ANTHROPIC_API_KEY or '',
+                        only_n_most_recent_images=3,
+                        session_id=str(session_id),
+                        tool_version=tool_version,
+                    )
+
+                    # Determine if the action was successful
+                    success = True
+                    error_msg = None
+
+                    # Check if result indicates an error
+                    if isinstance(result, dict) and not result.get('success', True):
+                        success = False
+                        error_msg = result.get('error', 'Unknown error occurred')
+
+                    # Get the most recent tool result (usually contains the final action result)
+                    final_tool_result = tool_results[-1] if tool_results else None
+                    output = final_tool_result.output if final_tool_result else None
+                    base64_image = (
+                        final_tool_result.base64_image if final_tool_result else None
+                    )
+
+                    # If there was a tool error, mark as failed
+                    if final_tool_result and final_tool_result.error:
+                        success = False
+                        error_msg = final_tool_result.error
+
+                    action_response = ActionResponse(
+                        success=success,
+                        output=output,
+                        error=error_msg,
+                        base64_image=base64_image,
+                        ai_reasoning=' '.join(ai_output_parts)
+                        if ai_output_parts
+                        else None,
+                    )
+
+                except Exception as sampling_error:
+                    logger.error(
+                        f'Sampling loop error for step {i + 1}: {sampling_error}'
+                    )
+                    action_response = ActionResponse(
+                        success=False,
+                        error=f'AI execution failed: {str(sampling_error)}',
+                    )
+
                 results.append(action_response)
                 completed_steps += 1
 
@@ -255,6 +343,9 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
                 await asyncio.sleep(0.5)
 
             except Exception as e:
+                logger.error(
+                    f'Error executing step {i + 1} "{step.instruction}": {str(e)}'
+                )
                 error_response = ActionResponse(
                     success=False, error=f'Step {i + 1} failed: {str(e)}'
                 )
