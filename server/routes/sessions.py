@@ -19,13 +19,12 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 from server.config.default_ports import DEFAULT_PORTS
 from server.database import db
 from server.models.base import (
+    RecordingRequest,
+    RecordingResultResponse,
+    RecordingStatusResponse,
     Session,
     SessionCreate,
     SessionUpdate,
-    RecordingRequest,
-    RecordingResponse,
-    RecordingStopResponse,
-    RecordingStatusResponse,
 )
 from server.utils.docker_manager import (
     get_container_status,
@@ -571,12 +570,12 @@ async def update_session_state(session_id: UUID, state: str):
 # Recording Control Endpoints
 @session_router.post(
     '/{session_id}/recording/start',
-    response_model=RecordingResponse,
+    response_model=RecordingStatusResponse,
 )
 async def start_session_recording(
     session_id: UUID,
     request: RecordingRequest = RecordingRequest(),
-) -> RecordingResponse:
+) -> RecordingStatusResponse:
     """Start screen recording on a session"""
     session = db.get_session(session_id)
     if not session:
@@ -592,7 +591,7 @@ async def start_session_recording(
             response = await client.post(target_url, json=request_data, timeout=30.0)
 
             if response.status_code == 200:
-                return RecordingResponse(**response.json())
+                return RecordingStatusResponse(**response.json())
             else:
                 raise HTTPException(
                     status_code=response.status_code,
@@ -607,9 +606,9 @@ async def start_session_recording(
 
 @session_router.post(
     '/{session_id}/recording/stop',
-    response_model=RecordingStopResponse,
+    response_model=RecordingResultResponse,
 )
-async def stop_session_recording(session_id: UUID) -> RecordingStopResponse:
+async def stop_session_recording(session_id: UUID) -> RecordingResultResponse:
     """Stop screen recording on a session and get the video"""
     session = db.get_session(session_id)
     if not session:
@@ -626,7 +625,7 @@ async def stop_session_recording(session_id: UUID) -> RecordingStopResponse:
             )  # Longer timeout for video processing
 
             if response.status_code == 200:
-                return RecordingStopResponse(**response.json())
+                return RecordingResultResponse(**response.json())
             else:
                 raise HTTPException(
                     status_code=response.status_code,

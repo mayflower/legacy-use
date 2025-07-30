@@ -255,19 +255,7 @@ class RecordingStatus(StrEnum):
     RECORDING = 'recording'
 
 
-class RecordingResponse(BaseModel):
-    """Response model for recording operations"""
-
-    status: RecordingStatus
-    message: str
-    recording_id: Optional[str] = None
-    file_path: Optional[str] = None
-    vnc_monitoring: Optional[bool] = None
-
-
-class RecordingStopResponse(BaseModel):
-    """Response model for stopping a recording"""
-
+class RecordingResultResponse(BaseModel):
     status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
@@ -275,14 +263,12 @@ class RecordingStopResponse(BaseModel):
     duration_seconds: Optional[float] = None
     base64_video: Optional[str] = None
     input_logs: Optional[List[InputLogEntry]] = None
-    input_log_summary: Optional[Dict[str, Any]] = None
 
 
 class RecordingStatusResponse(BaseModel):
-    """Response model for recording status"""
-
     status: RecordingStatus
-    recording: bool
+    message: str
+    recording_id: Optional[str] = None
     vnc_monitoring: Optional[bool] = None
     session_id: Optional[str] = None
     file_path: Optional[str] = None
