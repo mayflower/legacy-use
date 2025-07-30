@@ -26,6 +26,10 @@ export default function InteractiveSession() {
   const [analyzeError, setAnalyzeError] = useState<null | string>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(false);
 
+  const handleInteractiveExecute = async () => {
+    console.log('handleInteractiveExecute', analyzeResult);
+  };
+
   const handleAnalyzeRecording = async (recording: RecordingResultResponse) => {
     setAnalyzeProgress(true);
     setAnalyzeError(null);
@@ -132,9 +136,7 @@ export default function InteractiveSession() {
               variant="contained"
               color="success"
               startIcon={<PlayArrow />}
-              onClick={async () => {
-                console.log('Executing...');
-              }}
+              onClick={handleInteractiveExecute}
             >
               Execute
             </Button>
