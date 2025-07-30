@@ -4,10 +4,10 @@ import { forwardDistinctId } from './telemetryService';
 
 // Always use the API_URL from environment variables
 // This should be set to the full URL of your API server (e.g., http://localhost:8088)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
 
 // Create an axios instance with default config
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_URL,
 });
 
