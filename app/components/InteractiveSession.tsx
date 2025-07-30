@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   CircularProgress,
+  Divider,
   Typography,
 } from '@mui/material';
 import { useContext, useState } from 'react';
@@ -141,9 +142,9 @@ export default function InteractiveSession() {
 
           {analyzeResult.actions.map(action => (
             <Card key={action.title} sx={{ mb: 3 }}>
-              <CardHeader>{action.title}</CardHeader>
               <CardContent>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                <Typography variant="subtitle1">{action.title}</Typography>
+                <Typography variant="body2" color="text.secondary">
                   {action.instruction}
                 </Typography>
               </CardContent>
