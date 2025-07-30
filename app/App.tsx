@@ -401,7 +401,12 @@ function App() {
       <CssBaseline />
       <ApiKeyProvider>
         <AiProvider>
-          <Router>
+          <Router
+            future={{
+              v7_relativeSplatPath: true,
+              v7_startTransition: true,
+            }}
+          >
             <Routes>
               <Route element={<AppLayout />}>
                 <Route path="" element={<Dashboard />} />
