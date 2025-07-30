@@ -40,32 +40,11 @@ export default function InteractiveSession() {
     }
   };
 
-  if (!currentSession) {
+  if (!currentSession || currentSession.is_archived || currentSession.state !== 'ready') {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="warning">
-          No active session selected. Please select a session to use recording features.
-        </Alert>
-      </Box>
-    );
-  }
-
-  if (currentSession.is_archived) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="info">
-          This session is archived. Recording is not available for archived sessions.
-        </Alert>
-      </Box>
-    );
-  }
-
-  if (currentSession.state !== 'ready') {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="warning">
-          Session is not ready. Current state: {currentSession.state}. Recording is only available
-          when the session is in 'ready' state.
+          Please select a session which is ready to use recording features.
         </Alert>
       </Box>
     );
