@@ -21,11 +21,11 @@ const recommendedResolutions = [
   },
 ];
 
-const ResolutionRecommendation = ({ 
-  width, 
-  height, 
-  onRecommendedResolutionClick, 
-  disabled = false 
+const ResolutionRecommendation = ({
+  width,
+  height,
+  onRecommendedResolutionClick,
+  disabled = false,
 }: ResolutionRecommendationProps) => {
   const isRecommendedResolution = recommendedResolutions.some(
     resolution => resolution.width === width && resolution.height === height,
