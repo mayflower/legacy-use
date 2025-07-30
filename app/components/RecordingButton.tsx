@@ -7,6 +7,7 @@ import {
   type RecordingStatusResponse,
 } from '../gen/endpoints';
 import { getRecordingStatus, startRecording, stopRecording } from '../services/apiService';
+import { formatDuration } from '../utils/formatDuration';
 import RecordIcon from './RecordIcon';
 
 interface RecordingButtonProps {
@@ -60,7 +61,7 @@ export default function RecordingButton({ sessionId }: RecordingButtonProps) {
           onClick={handleStopRecording}
           startIcon={<RecordIcon />}
         >
-          Stop Recording
+          Stop Recording ({formatDuration(recordingStatus?.duration_seconds ?? 0)})
         </Button>
       ) : (
         <Button variant="contained" color="error" onClick={handleStartRecording}>
