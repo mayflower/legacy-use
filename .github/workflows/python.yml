@@ -33,6 +33,17 @@ jobs:
         with:
           linters: pytest
           run: uv run pytest
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
   lint:
     runs-on: ubuntu-latest
