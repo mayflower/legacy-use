@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Session } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 
 // Always use the API_URL from environment variables
@@ -243,7 +244,7 @@ export const unarchiveApiDefinition = async apiName => {
 };
 
 // Sessions
-export const getSessions = async (include_archived = false) => {
+export const getSessions = async (include_archived = false): Promise<Session[]> => {
   try {
     const response = await apiClient.get('/sessions/', { params: { include_archived } });
     return response.data;
