@@ -70,7 +70,6 @@ class RecordingStopResponse(BaseModel):
     duration_seconds: Optional[float] = None
     base64_video: Optional[str] = None
     input_logs: Optional[List[InputLogEntry]] = None
-    input_log_summary: Optional[Dict[str, Any]] = None
 
 
 class InputLogSession(BaseModel):
@@ -270,37 +269,6 @@ async def get_session_input_logs(session_id: str) -> List[InputLogEntry]:
         return []
 
 
-def analyze_input_logs(logs: List[InputLogEntry]) -> Dict[str, Any]:
-    """Analyze input logs and provide summary statistics"""
-    if not logs:
-        return {}
-
-    summary = {
-        'total_actions': len(logs),
-        'action_types': {},
-        'duration_seconds': 0,
-        'start_time': None,
-        'end_time': None,
-    }
-
-    # Count action types
-    for log in logs:
-        action_type = log.action_type
-        if action_type not in summary['action_types']:
-            summary['action_types'][action_type] = 0
-        summary['action_types'][action_type] += 1
-
-    # Calculate duration
-    if logs:
-        start_time = datetime.fromisoformat(logs[0].timestamp.replace('Z', '+00:00'))
-        end_time = datetime.fromisoformat(logs[-1].timestamp.replace('Z', '+00:00'))
-        summary['start_time'] = logs[0].timestamp
-        summary['end_time'] = logs[-1].timestamp
-        summary['duration_seconds'] = (end_time - start_time).total_seconds()
-
-    return summary
-
-
 @router.post('/start', response_model=RecordingResponse)
 async def start_recording(request: RecordingRequest | None = None) -> RecordingResponse:
     """Start screen recording using FFmpeg"""
@@ -435,7 +403,6 @@ async def stop_recording() -> RecordingStopResponse:
 
             # Get input logs
             input_logs = await get_session_input_logs(recording_id)
-            input_log_summary = analyze_input_logs(input_logs)
 
             response = RecordingStopResponse(
                 status=RecordingStatus.COMPLETED,
@@ -444,7 +411,6 @@ async def stop_recording() -> RecordingStopResponse:
                 file_size_bytes=file_size,
                 base64_video=base64_video,
                 input_logs=input_logs,
-                input_log_summary=input_log_summary,
             )
 
             # Clean up
