@@ -16,13 +16,39 @@ export interface APIDefinition {
   is_archived?: boolean;
 }
 
+export type ActionRequestContext = string | null;
+
+/**
+ * Request model for AI-powered action execution
+ */
+export interface ActionRequest {
+  instruction: string;
+  context?: ActionRequestContext;
+}
+
+export type ActionResponseOutput = string | null;
+
+export type ActionResponseError = string | null;
+
+export type ActionResponseBase64Image = string | null;
+
+export type ActionResponseAiReasoning = string | null;
+
+export interface ActionResponse {
+  success: boolean;
+  output?: ActionResponseOutput;
+  error?: ActionResponseError;
+  base64_image?: ActionResponseBase64Image;
+  ai_reasoning?: ActionResponseAiReasoning;
+}
+
 /**
  * The tool to use to complete the action
  */
-export type ActionTool = (typeof ActionTool)[keyof typeof ActionTool];
+export type ActionStepTool = (typeof ActionStepTool)[keyof typeof ActionStepTool];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ActionTool = {
+export const ActionStepTool = {
   type: 'type',
   press_key: 'press_key',
   click: 'click',
@@ -32,13 +58,13 @@ export const ActionTool = {
   extract_tool: 'extract_tool',
 } as const;
 
-export interface Action {
+export interface ActionStep {
   /** A short title for the action, e.g. "Open settings menu" */
   title: string;
   /** Describe the action the user took to complete the task, formulated as instruction for the operator */
   instruction: string;
   /** The tool to use to complete the action */
-  tool: ActionTool;
+  tool: ActionStepTool;
 }
 
 export interface BodyAnalyzeVideoAiAnalyzePost {
@@ -471,13 +497,28 @@ export interface VideoAnalysisResponse {
   /** A short summary of the automation, remain high level */
   description: string;
   /** Describe the expected screen state, instruct the operator to get the system into the initial state. Then describe the actions the user took to complete the task in great detail, in particular which buttons or input fields are used, use the tools available to the model to describe the actions, follow the format of the HOW_TO_PROMPT.md file */
-  actions: Action[];
+  actions: ActionStep[];
   /** Instructions to return the system to its original state */
   prompt_cleanup: string;
   /** Parameters and user input needed to run the automation another time with different values */
   parameters: Parameter[];
   /** Expected response from the automation */
   response_example: VideoAnalysisResponseResponseExample;
+}
+
+export interface WorkflowRequest {
+  steps: ActionRequest[];
+  stop_on_error?: boolean;
+}
+
+export type WorkflowResponseError = string | null;
+
+export interface WorkflowResponse {
+  success: boolean;
+  completed_steps: number;
+  total_steps: number;
+  results: ActionResponse[];
+  error?: WorkflowResponseError;
 }
 
 export type GetApiDefinitionsApiDefinitionsGetParams = {
@@ -1086,6 +1127,74 @@ export const updateProviderSettingsSettingsProvidersPost = (
 };
 
 /**
+ * Execute a single computer action using AI planning and execution.
+
+This endpoint takes a natural language instruction and uses AI to plan
+and execute the appropriate computer actions to fulfill the request.
+
+Example usage:
+POST /interactive/sessions/{session_id}/actions
+{
+    "instruction": "Take a screenshot of the current screen"
+}
+
+POST /interactive/sessions/{session_id}/actions
+{
+    "instruction": "Click on the OK button",
+    "context": "There should be a dialog box visible with an OK button"
+}
+
+POST /interactive/sessions/{session_id}/actions
+{
+    "instruction": "Type 'Hello World' in the text field",
+    "context": "The cursor should be positioned in an input field"
+}
+ * @summary Execute Action
+ */
+export const executeActionInteractiveSessionsSessionIdActionsPost = (
+  sessionId: string,
+  actionRequest: ActionRequest,
+) => {
+  return customInstance<ActionResponse>({
+    url: `/interactive/sessions/${sessionId}/actions`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: actionRequest,
+  });
+};
+
+/**
+ * Execute a sequence of AI-powered computer actions as a workflow.
+
+This endpoint takes a list of natural language instructions and executes
+them sequentially using AI planning and execution.
+
+Example usage:
+POST /interactive/sessions/{session_id}/workflow
+{
+    "steps": [
+        {"instruction": "Take a screenshot to see the current state"},
+        {"instruction": "Click on the File menu"},
+        {"instruction": "Click on New Document", "context": "The File menu should be open"},
+        {"instruction": "Type 'Hello World' in the document"}
+    ],
+    "stop_on_error": true
+}
+ * @summary Execute Workflow
+ */
+export const executeWorkflowInteractiveSessionsSessionIdWorkflowPost = (
+  sessionId: string,
+  workflowRequest: WorkflowRequest,
+) => {
+  return customInstance<WorkflowResponse>({
+    url: `/interactive/sessions/${sessionId}/workflow`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: workflowRequest,
+  });
+};
+
+/**
  * Root endpoint.
  * @summary Root
  */
@@ -1229,5 +1338,11 @@ export type GetProvidersSettingsProvidersGetResult = NonNullable<
 >;
 export type UpdateProviderSettingsSettingsProvidersPostResult = NonNullable<
   Awaited<ReturnType<typeof updateProviderSettingsSettingsProvidersPost>>
+>;
+export type ExecuteActionInteractiveSessionsSessionIdActionsPostResult = NonNullable<
+  Awaited<ReturnType<typeof executeActionInteractiveSessionsSessionIdActionsPost>>
+>;
+export type ExecuteWorkflowInteractiveSessionsSessionIdWorkflowPostResult = NonNullable<
+  Awaited<ReturnType<typeof executeWorkflowInteractiveSessionsSessionIdWorkflowPost>>
 >;
 export type RootGetResult = NonNullable<Awaited<ReturnType<typeof rootGet>>>;

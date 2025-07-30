@@ -3,7 +3,11 @@ import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } f
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
-import type { AnalyzeVideoAiAnalyzePostResult, RecordingResultResponse } from '../gen/endpoints';
+import {
+  type AnalyzeVideoAiAnalyzePostResult,
+  executeWorkflowInteractiveSessionsSessionIdWorkflowPost,
+  type RecordingResultResponse,
+} from '../gen/endpoints';
 import { analyzeVideo } from '../services/apiService';
 import { base64ToVideoFile } from '../utils/video';
 import RecordingButton from './RecordingButton';
@@ -26,9 +30,8 @@ export default function InteractiveSession() {
   const [analyzeError, setAnalyzeError] = useState<null | string>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(false);
 
-  const handleInteractiveExecute = async () => {
-    console.log('handleInteractiveExecute', analyzeResult);
-  };
+  // Execute state
+  const [executeProgress, setExecuteProgress] = useState(false);
 
   const handleAnalyzeRecording = async (recording: RecordingResultResponse) => {
     setAnalyzeProgress(true);
@@ -67,6 +70,18 @@ export default function InteractiveSession() {
       </Box>
     );
   }
+
+  const handleInteractiveExecute = async () => {
+    console.log('handleInteractiveExecute', analyzeResult);
+
+    setExecuteProgress(true);
+
+    await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(currentSession?.id, {
+      steps: analyzeResult?.actions ?? [],
+    });
+
+    setExecuteProgress(false);
+  };
 
   return (
     <Box>
@@ -150,8 +165,9 @@ export default function InteractiveSession() {
               color="success"
               startIcon={<PlayArrow />}
               onClick={handleInteractiveExecute}
+              disabled={executeProgress}
             >
-              Execute
+              {executeProgress ? 'Executing...' : 'Execute'}
             </Button>
           </Box>
 
@@ -161,6 +177,9 @@ export default function InteractiveSession() {
                 <Typography variant="subtitle1">{action.title}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {action.instruction}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {action.tool}
                 </Typography>
               </CardContent>
             </Card>

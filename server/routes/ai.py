@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
 
 
-class Action(BaseModel):
+class ActionStep(BaseModel):
     title: str = Field(
         description='A short title for the action, e.g. "Open settings menu"',
     )
@@ -49,7 +49,7 @@ class VideoAnalysisResponse(BaseModel):
     description: str = Field(
         description='A short summary of the automation, remain high level',
     )
-    actions: List[Action] = Field(
+    actions: List[ActionStep] = Field(
         description='Describe the expected screen state, instruct the operator to get the system into the initial state. Then describe the actions the user took to complete the task in great detail, in particular which buttons or input fields are used, use the tools available to the model to describe the actions, follow the format of the HOW_TO_PROMPT.md file',
     )
     prompt_cleanup: str = Field(
