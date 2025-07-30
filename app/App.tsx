@@ -28,6 +28,7 @@ import TargetList from './components/TargetList';
 import VncViewer from './components/VncViewer';
 import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
+import type { Session } from './gen/endpoints';
 import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
 
 // Create a dark theme
@@ -61,14 +62,11 @@ const darkTheme = createTheme({
 
 // Context for sharing selected session across components
 export const SessionContext = React.createContext({
-  selectedSessionId: null,
-  setSelectedSessionId: () => {},
-  currentSession: null,
-  setCurrentSession: () => {},
+  selectedSessionId: null as string | null,
+  setSelectedSessionId: (_id: string | null) => {},
+  currentSession: null as Session | null,
+  setCurrentSession: (_session: Session | null) => {},
 });
-
-// Add browser globals for linter
-const { URLSearchParams } = globalThis;
 
 // Placeholder component for archived sessions
 const ArchivedSessionPlaceholder = () => {
@@ -97,9 +95,9 @@ const ArchivedSessionPlaceholder = () => {
 };
 
 // Placeholder for sessions that are not ready
-const NotReadySessionPlaceholder = ({ session }) => {
+const NotReadySessionPlaceholder = ({ session }: { session: Session }) => {
   // Get a user-friendly message based on the state
-  const getStateMessage = state => {
+  const getStateMessage = (state: Session['state']) => {
     switch (state) {
       case 'initializing':
         return 'The session is initializing. Please wait while the container starts up.';
@@ -156,8 +154,8 @@ const NotReadySessionPlaceholder = ({ session }) => {
 // Layout component that conditionally renders the VNC viewer
 const AppLayout = () => {
   const location = useLocation();
-  const [selectedSessionId, setSelectedSessionId] = useState(null);
-  const [currentSession, setCurrentSession] = useState(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const { apiKey, setIsApiKeyValid } = useApiKey();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);

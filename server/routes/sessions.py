@@ -5,7 +5,7 @@ Session management routes.
 import asyncio
 import logging
 import re
-from typing import Any, Dict
+from typing import Any, Dict, List
 from uuid import UUID
 
 import requests
@@ -38,7 +38,7 @@ session_router = APIRouter(prefix='/sessions', tags=['Session Management'])
 websocket_router = APIRouter(prefix='/sessions', tags=['WebSocket Endpoints'])
 
 
-@session_router.get('/')
+@session_router.get('/', response_model=List[Session])
 async def list_sessions(include_archived: bool = False, db=Depends(get_tenant_db)):
     """List all active sessions."""
     sessions = db.list_sessions(include_archived)

@@ -1,11 +1,13 @@
 import axios from 'axios';
+import { listSessionsSessionsGet, type Session } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 
-// Always use the same API URL with /api prefix - Vite will proxy this to the backend
-const API_URL = '/api';
+// Always use the API_URL from environment variables
+// This should be set to the full URL of your API server (e.g., http://localhost:8088)
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
 
 // Create an axios instance with default config
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_URL,
 });
 
@@ -14,6 +16,18 @@ apiClient.interceptors.request.use(config => {
   forwardDistinctId(config);
   return config;
 });
+
+// Function to set the API key for all requests
+export const setApiKeyHeader = (apiKey: string | null) => {
+  if (apiKey) {
+    apiClient.defaults.headers.common['X-API-Key'] = apiKey;
+    // Also store in localStorage for the interceptor
+    localStorage.setItem('apiKey', apiKey);
+  } else {
+    delete apiClient.defaults.headers.common['X-API-Key'];
+    localStorage.removeItem('apiKey');
+  }
+};
 
 // Add a request interceptor to ensure API key is set for every request
 apiClient.interceptors.request.use(
@@ -34,20 +48,8 @@ apiClient.interceptors.request.use(
 // Add browser globals for linter
 const { localStorage } = globalThis;
 
-// Function to set the API key for all requests
-export const setApiKeyHeader = apiKey => {
-  if (apiKey) {
-    apiClient.defaults.headers.common['X-API-Key'] = apiKey;
-    // Also store in localStorage for the interceptor
-    localStorage.setItem('apiKey', apiKey);
-  } else {
-    delete apiClient.defaults.headers.common['X-API-Key'];
-    localStorage.removeItem('apiKey');
-  }
-};
-
 // Function to test if an API key is valid
-export const testApiKey = async apiKey => {
+export const testApiKey = async (apiKey: string) => {
   try {
     // Create a temporary axios instance with the API key
     const tempClient = axios.create({
@@ -78,7 +80,7 @@ export const getProviders = async () => {
 };
 
 // Function to update provider settings
-export const updateProviderSettings = async (provider, credentials) => {
+export const updateProviderSettings = async (provider: any, credentials: any) => {
   try {
     const response = await apiClient.post('/settings/providers', {
       provider,
@@ -98,7 +100,7 @@ export const checkApiProviderConfiguration = async () => {
     const providersData = await getProviders();
 
     // Check if any provider is configured (has available = true)
-    const configuredProviders = providersData.providers.filter(provider => provider.available);
+    const configuredProviders = providersData.providers.filter((provider: any) => provider.available);
     const hasConfiguredProvider = configuredProviders.length > 0;
 
     return {
@@ -109,7 +111,7 @@ export const checkApiProviderConfiguration = async () => {
       allProviders: providersData.providers,
       error: null,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error checking API provider configuration:', error);
     return {
       hasApiKey: !!localStorage.getItem('apiKey'),
@@ -133,7 +135,7 @@ export const getApiDefinitions = async (include_archived = false) => {
   }
 };
 
-export const exportApiDefinition = async apiName => {
+export const exportApiDefinition = async (apiName: string) => {
   try {
     const response = await apiClient.get(`/api/definitions/${apiName}/export`);
     return response.data;
@@ -143,7 +145,7 @@ export const exportApiDefinition = async apiName => {
   }
 };
 
-export const importApiDefinition = async apiDefinition => {
+export const importApiDefinition = async (apiDefinition: any) => {
   try {
     const response = await apiClient.post('/api/definitions/import', {
       api_definition: apiDefinition,
@@ -155,7 +157,7 @@ export const importApiDefinition = async apiDefinition => {
   }
 };
 
-export const getApiDefinitionDetails = async apiName => {
+export const getApiDefinitionDetails = async (apiName: string) => {
   try {
     // First, get the metadata to check if the API is archived
     const metadataResponse = await apiClient.get(`/api/definitions/${apiName}/metadata`);
@@ -171,7 +173,7 @@ export const getApiDefinitionDetails = async apiName => {
       ...apiDefinition,
       is_archived: isArchived,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error fetching API definition details for ${apiName}:`, error);
 
     // If we get a 404 error, it might be because the API is archived
@@ -192,7 +194,7 @@ export const getApiDefinitionDetails = async apiName => {
   }
 };
 
-export const getApiDefinitionVersions = async apiName => {
+export const getApiDefinitionVersions = async (apiName: string) => {
   try {
     const response = await apiClient.get(`/api/definitions/${apiName}/versions`);
     return response.data.versions;
@@ -202,7 +204,7 @@ export const getApiDefinitionVersions = async apiName => {
   }
 };
 
-export const getApiDefinitionVersion = async (apiName, versionId) => {
+export const getApiDefinitionVersion = async (apiName: string, versionId: string) => {
   try {
     const response = await apiClient.get(`/api/definitions/${apiName}/versions/${versionId}`);
     return response.data.version;
@@ -212,7 +214,7 @@ export const getApiDefinitionVersion = async (apiName, versionId) => {
   }
 };
 
-export const updateApiDefinition = async (apiName, apiDefinition) => {
+export const updateApiDefinition = async (apiName: string, apiDefinition: any) => {
   try {
     const response = await apiClient.put(`/api/definitions/${apiName}`, {
       api_definition: apiDefinition,
@@ -224,7 +226,7 @@ export const updateApiDefinition = async (apiName, apiDefinition) => {
   }
 };
 
-export const archiveApiDefinition = async apiName => {
+export const archiveApiDefinition = async (apiName: string) => {
   try {
     const response = await apiClient.delete(`/api/definitions/${apiName}`);
     return response.data;
@@ -234,7 +236,7 @@ export const archiveApiDefinition = async apiName => {
   }
 };
 
-export const unarchiveApiDefinition = async apiName => {
+export const unarchiveApiDefinition = async (apiName: string) => {
   try {
     const response = await apiClient.post(`/api/definitions/${apiName}/unarchive`);
     return response.data;
@@ -245,17 +247,11 @@ export const unarchiveApiDefinition = async apiName => {
 };
 
 // Sessions
-export const getSessions = async (include_archived = false) => {
-  try {
-    const response = await apiClient.get('/sessions/', { params: { include_archived } });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching sessions:', error);
-    throw error;
-  }
+export const getSessions = async (include_archived = false): Promise<Session[]> => {
+  return listSessionsSessionsGet({ include_archived });
 };
 
-export const getSession = async sessionId => {
+export const getSession = async (sessionId: string) => {
   try {
     const response = await apiClient.get(`/sessions/${sessionId}`);
     return response.data;
@@ -265,7 +261,7 @@ export const getSession = async sessionId => {
   }
 };
 
-export const createSession = async sessionData => {
+export const createSession = async (sessionData: any) => {
   try {
     const response = await apiClient.post('/sessions/', sessionData);
     return response.data;
@@ -275,7 +271,7 @@ export const createSession = async sessionData => {
   }
 };
 
-export const deleteSession = async (sessionId, hardDelete = false) => {
+export const deleteSession = async (sessionId: string, hardDelete = false) => {
   try {
     const endpoint = hardDelete ? `/sessions/${sessionId}/hard` : `/sessions/${sessionId}`;
     const response = await apiClient.delete(endpoint);
@@ -287,7 +283,7 @@ export const deleteSession = async (sessionId, hardDelete = false) => {
 };
 
 // Jobs
-export const getJobs = async targetId => {
+export const getJobs = async (targetId: string) => {
   try {
     const response = await apiClient.get(`/targets/${targetId}/jobs/`);
     return response.data;
@@ -326,7 +322,7 @@ export const getAllJobs = async (limit = 10, offset = 0, filters = {}) => {
   }
 };
 
-export const getJob = async (targetId, jobId) => {
+export const getJob = async (targetId: string, jobId: string) => {
   try {
     const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}`);
     return response.data;
@@ -336,7 +332,7 @@ export const getJob = async (targetId, jobId) => {
   }
 };
 
-export const createJob = async (targetId, jobData) => {
+export const createJob = async (targetId: string, jobData: any) => {
   try {
     const response = await apiClient.post(`/targets/${targetId}/jobs/`, jobData);
     return response.data;
@@ -346,7 +342,7 @@ export const createJob = async (targetId, jobData) => {
   }
 };
 
-export const interruptJob = async (targetId, jobId) => {
+export const interruptJob = async (targetId: string, jobId: string) => {
   try {
     const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/interrupt/`);
     return response.data;
@@ -356,7 +352,7 @@ export const interruptJob = async (targetId, jobId) => {
   }
 };
 
-export const cancelJob = async (targetId, jobId) => {
+export const cancelJob = async (targetId: string, jobId: string) => {
   try {
     const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/cancel/`);
     return response.data;
@@ -366,7 +362,7 @@ export const cancelJob = async (targetId, jobId) => {
   }
 };
 
-export const getJobLogs = async (targetId, jobId) => {
+export const getJobLogs = async (targetId: string, jobId: string) => {
   try {
     const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/logs/`);
 
@@ -374,7 +370,7 @@ export const getJobLogs = async (targetId, jobId) => {
     const logs = response.data || [];
 
     // Convert log_type to type for compatibility with LogViewer
-    return logs.map(log => ({
+    return logs.map((log: any) => ({
       ...log,
       type: log.log_type, // Add type property while preserving log_type
     }));
@@ -384,7 +380,7 @@ export const getJobLogs = async (targetId, jobId) => {
   }
 };
 
-export const getJobHttpExchanges = async (targetId, jobId) => {
+export const getJobHttpExchanges = async (targetId: string, jobId: string) => {
   try {
     const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/http_exchanges/`);
 
@@ -412,7 +408,7 @@ export const getTargets = async (include_archived = false) => {
   }
 };
 
-export const createTarget = async targetData => {
+export const createTarget = async (targetData: any) => {
   try {
     const response = await apiClient.post('/targets/', targetData);
     return response.data;
@@ -422,7 +418,7 @@ export const createTarget = async targetData => {
   }
 };
 
-export const getTarget = async targetId => {
+export const getTarget = async (targetId: string) => {
   try {
     const response = await apiClient.get(`/targets/${targetId}`);
     return response.data;
@@ -432,7 +428,7 @@ export const getTarget = async targetId => {
   }
 };
 
-export const updateTarget = async (targetId, targetData) => {
+export const updateTarget = async (targetId: string, targetData: any) => {
   try {
     const response = await apiClient.put(`/targets/${targetId}`, targetData);
     return response.data;
@@ -442,7 +438,7 @@ export const updateTarget = async (targetId, targetData) => {
   }
 };
 
-export const deleteTarget = async (targetId, hardDelete = false) => {
+export const deleteTarget = async (targetId: string, hardDelete = false) => {
   try {
     const endpoint = hardDelete ? `/targets/${targetId}/hard` : `/targets/${targetId}`;
     const response = await apiClient.delete(endpoint);
@@ -454,7 +450,7 @@ export const deleteTarget = async (targetId, hardDelete = false) => {
 };
 
 // Resolve a job (set to success with custom result)
-export const resolveJob = async (targetId, jobId, result) => {
+export const resolveJob = async (targetId: string, jobId: string, result: any) => {
   try {
     const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resolve/`, result);
     return response.data;
@@ -465,7 +461,7 @@ export const resolveJob = async (targetId, jobId, result) => {
 };
 
 // Health check
-export const checkTargetHealth = async containerIp => {
+export const checkTargetHealth = async (containerIp: string) => {
   try {
     // For health checks, we need to make a direct request to the container
     // since it's not going through the Vite proxy
@@ -488,7 +484,7 @@ export const checkTargetHealth = async containerIp => {
 };
 
 // Resume Job Function (New)
-export const resumeJob = async (targetId, jobId) => {
+export const resumeJob = async (targetId: string, jobId: string) => {
   try {
     const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resume/`);
     return response.data;
