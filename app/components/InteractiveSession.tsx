@@ -1,4 +1,4 @@
-import { Delete, PlayArrow } from '@mui/icons-material';
+import { Delete, PlayArrow, Replay } from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CardHeader, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
@@ -83,8 +83,11 @@ export default function InteractiveSession() {
                   setRecordingResult(null);
                   setAnalyzeResult(null);
                 }}
+                variant="outlined"
+                color="warning"
+                startIcon={<Replay />}
               >
-                <Delete />
+                Discard and restart
               </Button>
             ) : recordingResult ? (
               <>
