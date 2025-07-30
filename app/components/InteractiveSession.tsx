@@ -89,8 +89,13 @@ export default function InteractiveSession() {
             Recording Result
           </Typography>
 
-          <video src={recordingResult.base64_video} muted>
-            <track kind="captions" />
+          <video
+            controls
+            style={{ maxWidth: '100%', maxHeight: '200px' }}
+            src={`data:video/mp4;base64,${recordingResult.base64_video}`}
+          >
+            <track kind="captions" srcLang="en" label="English captions" />
+            Your browser does not support the video tag.
           </video>
         </Box>
       )}
