@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     FASTAPI_SERVER_PORT: int = 8088
 
     DATABASE_URL: str = 'postgresql://postgres:postgres@localhost:5432/legacy_use'
+    ALEMBIC_CONFIG_PATH: str = 'server/alembic.ini'
 
     API_KEY: str = 'not-secure-api-key'
     VITE_API_KEY: str | None = None

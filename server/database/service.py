@@ -16,6 +16,7 @@ from .models import (
     JobMessage,
     Session,
     Target,
+    Tenant,
 )
 
 
@@ -917,6 +918,103 @@ class DatabaseService:
             session.close()
 
     # --- End Job Message Methods ---
+
+    # --- Tenant Methods ---
+    def create_tenant(self, tenant_data):
+        """Create a new tenant."""
+        session = self.Session()
+        try:
+            tenant = Tenant(**tenant_data)
+            session.add(tenant)
+            session.commit()
+            return self._to_dict(tenant)
+        finally:
+            session.close()
+
+    def get_tenant(self, tenant_id):
+        """Get a tenant by ID."""
+        session = self.Session()
+        try:
+            tenant = session.query(Tenant).filter(Tenant.id == tenant_id).first()
+            return self._to_dict(tenant) if tenant else None
+        finally:
+            session.close()
+
+    def get_tenant_by_host(self, host):
+        """Get a tenant by host."""
+        session = self.Session()
+        try:
+            tenant = session.query(Tenant).filter(Tenant.host == host).first()
+            return self._to_dict(tenant) if tenant else None
+        finally:
+            session.close()
+
+    def get_tenant_by_schema(self, schema):
+        """Get a tenant by schema name."""
+        session = self.Session()
+        try:
+            tenant = session.query(Tenant).filter(Tenant.schema == schema).first()
+            return self._to_dict(tenant) if tenant else None
+        finally:
+            session.close()
+
+    def list_tenants(self, include_inactive=False):
+        """List all tenants."""
+        session = self.Session()
+        try:
+            query = session.query(Tenant)
+            if not include_inactive:
+                query = query.filter(Tenant.is_active.is_(True))
+            tenants = query.all()
+            return [self._to_dict(t) for t in tenants]
+        finally:
+            session.close()
+
+    def update_tenant(self, tenant_id, tenant_data):
+        """Update a tenant."""
+        session = self.Session()
+        try:
+            tenant = session.query(Tenant).filter(Tenant.id == tenant_id).first()
+            if not tenant:
+                return None
+
+            for key, value in tenant_data.items():
+                setattr(tenant, key, value)
+            tenant.updated_at = datetime.now()
+
+            session.commit()
+            return self._to_dict(tenant)
+        finally:
+            session.close()
+
+    def delete_tenant(self, tenant_id):
+        """Soft delete a tenant by setting is_active to False."""
+        session = self.Session()
+        try:
+            tenant = session.query(Tenant).filter(Tenant.id == tenant_id).first()
+            if tenant:
+                tenant.is_active = False
+                tenant.updated_at = datetime.now()
+                session.commit()
+                return True
+            return False
+        finally:
+            session.close()
+
+    def hard_delete_tenant(self, tenant_id):
+        """Hard delete a tenant."""
+        session = self.Session()
+        try:
+            tenant = session.query(Tenant).filter(Tenant.id == tenant_id).first()
+            if tenant:
+                session.delete(tenant)
+                session.commit()
+                return True
+            return False
+        finally:
+            session.close()
+
+    # --- End Tenant Methods ---
 
     # Example usage:
     # db = DatabaseService()
