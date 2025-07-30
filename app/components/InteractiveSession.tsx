@@ -715,11 +715,12 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Interactive Session Recording
+        Interactive Session
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Record your interactions with the session to generate automation prompts.
+        Record your interactions to generate automation workflows and teach legacy-use your use
+        cases.
       </Typography>
 
       {/* Simplified Recording Status Card */}
