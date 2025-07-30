@@ -623,7 +623,7 @@ export const hardDeleteTargetTargetsTargetIdHardDelete = <TData = AxiosResponse<
  * List all active sessions.
  * @summary List Sessions
  */
-export const listSessionsSessionsGet = <TData = AxiosResponse<unknown>>(
+export const listSessionsSessionsGet = <TData = AxiosResponse<Session[]>>(
   params?: ListSessionsSessionsGetParams,
   options?: AxiosRequestConfig,
 ): Promise<TData> => {
@@ -997,7 +997,7 @@ export type GetTargetTargetsTargetIdGetResult = AxiosResponse<Target>;
 export type UpdateTargetTargetsTargetIdPutResult = AxiosResponse<Target>;
 export type DeleteTargetTargetsTargetIdDeleteResult = AxiosResponse<unknown>;
 export type HardDeleteTargetTargetsTargetIdHardDeleteResult = AxiosResponse<unknown>;
-export type ListSessionsSessionsGetResult = AxiosResponse<unknown>;
+export type ListSessionsSessionsGetResult = AxiosResponse<Session[]>;
 export type CreateSessionSessionsPostResult = AxiosResponse<Session>;
 export type GetSessionSessionsSessionIdGetResult = AxiosResponse<unknown>;
 export type UpdateSessionSessionsSessionIdPutResult = AxiosResponse<unknown>;
