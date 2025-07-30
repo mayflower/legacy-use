@@ -76,14 +76,6 @@ export default function RecordingButton({
           Start Recording
         </Button>
       )}
-
-      <hr />
-
-      <h2>Recording Status</h2>
-      <pre style={{ maxWidth: '500px' }}>{JSON.stringify(recordingStatus, null, 2)}</pre>
-
-      <h2>Recording Result</h2>
-      <pre style={{ maxWidth: '500px' }}>{JSON.stringify(recordingResult, null, 2)}</pre>
     </div>
   );
 }
