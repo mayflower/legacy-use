@@ -128,8 +128,15 @@ export default function InteractiveSession() {
             }}
           >
             <Typography variant="h5">Actions</Typography>
-            <Button variant="contained" color="success" onClick={() => console.log('play')}>
-              <PlayArrow />
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<PlayArrow />}
+              onClick={async () => {
+                console.log('Executing...');
+              }}
+            >
+              Execute
             </Button>
           </Box>
 
