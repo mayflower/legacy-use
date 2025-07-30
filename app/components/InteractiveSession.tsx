@@ -120,6 +120,19 @@ export default function InteractiveSession() {
                 onRecordingStopped={onRecordingStopped}
               />
             )}
+
+            {recordingResult && (
+              <Box>
+                <video
+                  controls
+                  style={{ maxWidth: '100%', maxHeight: '200px' }}
+                  src={`data:video/mp4;base64,${recordingResult.base64_video}`}
+                >
+                  <track kind="captions" srcLang="en" label="English captions" />
+                  Your browser does not support the video tag.
+                </video>
+              </Box>
+            )}
           </Box>
         </CardContent>
       </Card>
