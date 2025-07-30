@@ -261,7 +261,7 @@ class RecordingResultResponse(BaseModel):
     recording_id: Optional[str] = None
     file_size_bytes: Optional[int] = None
     duration_seconds: Optional[float] = None
-    base64_video: Optional[str] = None
+    base64_video: str
     input_logs: Optional[List[InputLogEntry]] = None
 
 

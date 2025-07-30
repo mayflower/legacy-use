@@ -208,8 +208,6 @@ export type RecordingResultResponseFileSizeBytes = number | null;
 
 export type RecordingResultResponseDurationSeconds = number | null;
 
-export type RecordingResultResponseBase64Video = string | null;
-
 export type RecordingResultResponseInputLogs = InputLogEntry[] | null;
 
 export interface RecordingResultResponse {
@@ -218,7 +216,7 @@ export interface RecordingResultResponse {
   recording_id?: RecordingResultResponseRecordingId;
   file_size_bytes?: RecordingResultResponseFileSizeBytes;
   duration_seconds?: RecordingResultResponseDurationSeconds;
-  base64_video?: RecordingResultResponseBase64Video;
+  base64_video: string;
   input_logs?: RecordingResultResponseInputLogs;
 }
 
