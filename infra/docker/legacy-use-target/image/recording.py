@@ -62,6 +62,15 @@ class RecordingResponse(BaseModel):
     vnc_monitoring: Optional[bool] = None
 
 
+class RecordingStatusResponse(BaseModel):
+    status: RecordingStatus
+    recording: bool
+    vnc_monitoring: Optional[bool] = None
+    session_id: Optional[str] = None
+    file_path: Optional[str] = None
+    duration_seconds: Optional[float] = None
+
+
 class RecordingStopResponse(BaseModel):
     status: RecordingStatus
     message: str
@@ -466,11 +475,11 @@ async def get_recording_status():
         recording_start_time
 
     if recording_process is None:
-        return {
-            'status': RecordingStatus.STOPPED,
-            'recording': False,
-            'vnc_monitoring': False,
-        }
+        return RecordingStatusResponse(
+            status=RecordingStatus.STOPPED,
+            recording=False,
+            vnc_monitoring=False,
+        )
 
     # Check if process is still running
     if recording_process.returncode is not None:
@@ -480,26 +489,24 @@ async def get_recording_status():
         recording_start_time = None
         await stop_vnc_input_monitoring()
         current_recording_session_id = None
-        return {
-            'status': RecordingStatus.STOPPED,
-            'recording': False,
-            'vnc_monitoring': False,
-        }
+        return RecordingStatusResponse(
+            status=RecordingStatus.STOPPED,
+            recording=False,
+            vnc_monitoring=False,
+        )
 
     # Calculate duration if recording is active
     duration_seconds = None
     if recording_start_time:
         duration_seconds = (datetime.now() - recording_start_time).total_seconds()
 
-    return {
-        'status': RecordingStatus.RECORDING,
-        'recording': True,
-        'vnc_monitoring': vnc_monitor_process is not None
+    return RecordingStatusResponse(
+        status=RecordingStatus.RECORDING,
+        recording=True,
+        vnc_monitoring=vnc_monitor_process is not None
         and vnc_monitor_process.returncode is None,
-        'session_id': current_recording_session_id,
-        'file_path': str(recording_file) if recording_file else None,
-        'duration_seconds': duration_seconds,
-        'start_time': recording_start_time.isoformat()
-        if recording_start_time
-        else None,
-    }
+        session_id=current_recording_session_id,
+        file_path=str(recording_file) if recording_file else None,
+        duration_seconds=duration_seconds,
+        start_time=recording_start_time.isoformat() if recording_start_time else None,
+    )
