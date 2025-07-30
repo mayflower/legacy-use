@@ -1,15 +1,12 @@
-import { Cancel, Circle, PlayArrow, Replay } from '@mui/icons-material';
+import { Cancel, Circle, Replay } from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
-import {
-  type AnalyzeVideoAiAnalyzePostResult,
-  executeWorkflowInteractiveSessionsSessionIdWorkflowPost,
-  type RecordingResultResponse,
-} from '../gen/endpoints';
+import type { AnalyzeVideoAiAnalyzePostResult, RecordingResultResponse } from '../gen/endpoints';
 import { analyzeVideo } from '../services/apiService';
 import { base64ToVideoFile } from '../utils/video';
+import InteractiveBuilder from './InteractiveBuilder';
 import RecordingButton from './RecordingButton';
 import RecordingResultViewer from './RecordingResultViewer';
 
@@ -29,9 +26,6 @@ export default function InteractiveSession() {
   );
   const [analyzeError, setAnalyzeError] = useState<null | string>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(false);
-
-  // Execute state
-  const [executeProgress, setExecuteProgress] = useState(false);
 
   const handleAnalyzeRecording = async (recording: RecordingResultResponse) => {
     setAnalyzeProgress(true);
@@ -70,18 +64,6 @@ export default function InteractiveSession() {
       </Box>
     );
   }
-
-  const handleInteractiveExecute = async () => {
-    console.log('handleInteractiveExecute', analyzeResult);
-
-    setExecuteProgress(true);
-
-    await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(currentSession?.id, {
-      steps: analyzeResult?.actions ?? [],
-    });
-
-    setExecuteProgress(false);
-  };
 
   return (
     <Box>
@@ -150,61 +132,7 @@ export default function InteractiveSession() {
       )}
 
       {analyzeResult && (
-        <Box>
-          <Box
-            sx={{
-              mb: 2,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <Typography variant="h5">Actions</Typography>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<PlayArrow />}
-              onClick={handleInteractiveExecute}
-              disabled={executeProgress}
-            >
-              {executeProgress ? 'Executing...' : 'Execute'}
-            </Button>
-          </Box>
-
-          {analyzeResult.actions.map(action => (
-            <Card key={action.title} sx={{ mb: 3 }}>
-              <CardContent>
-                <Box
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <Typography variant="subtitle1">{action.title}</Typography>
-                  <Typography fontSize={12} fontFamily="monospace" color="text.secondary">
-                    {action.tool}
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  {action.instruction}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            Parameters
-          </Typography>
-          {analyzeResult.parameters.map(parameter => (
-            <Card key={parameter.name} sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="subtitle1">
-                  {parameter.name}: {parameter.type}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {parameter.description}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
+        <InteractiveBuilder currentSession={currentSession} analyzeResult={analyzeResult} />
       )}
     </Box>
   );
