@@ -202,21 +202,24 @@ export interface RecordingRequest {
   capture_vnc_input?: RecordingRequestCaptureVncInput;
 }
 
-export type RecordingResponseRecordingId = string | null;
+export type RecordingResultResponseRecordingId = string | null;
 
-export type RecordingResponseFilePath = string | null;
+export type RecordingResultResponseFileSizeBytes = number | null;
 
-export type RecordingResponseVncMonitoring = boolean | null;
+export type RecordingResultResponseDurationSeconds = number | null;
 
-/**
- * Response model for recording operations
- */
-export interface RecordingResponse {
+export type RecordingResultResponseBase64Video = string | null;
+
+export type RecordingResultResponseInputLogs = InputLogEntry[] | null;
+
+export interface RecordingResultResponse {
   status: RecordingStatus;
   message: string;
-  recording_id?: RecordingResponseRecordingId;
-  file_path?: RecordingResponseFilePath;
-  vnc_monitoring?: RecordingResponseVncMonitoring;
+  recording_id?: RecordingResultResponseRecordingId;
+  file_size_bytes?: RecordingResultResponseFileSizeBytes;
+  duration_seconds?: RecordingResultResponseDurationSeconds;
+  base64_video?: RecordingResultResponseBase64Video;
+  input_logs?: RecordingResultResponseInputLogs;
 }
 
 export type RecordingStatus = (typeof RecordingStatus)[keyof typeof RecordingStatus];
@@ -229,6 +232,8 @@ export const RecordingStatus = {
   recording: 'recording',
 } as const;
 
+export type RecordingStatusResponseRecordingId = string | null;
+
 export type RecordingStatusResponseVncMonitoring = boolean | null;
 
 export type RecordingStatusResponseSessionId = string | null;
@@ -239,45 +244,15 @@ export type RecordingStatusResponseDurationSeconds = number | null;
 
 export type RecordingStatusResponseStartTime = string | null;
 
-/**
- * Response model for recording status
- */
 export interface RecordingStatusResponse {
   status: RecordingStatus;
-  recording: boolean;
+  message: string;
+  recording_id?: RecordingStatusResponseRecordingId;
   vnc_monitoring?: RecordingStatusResponseVncMonitoring;
   session_id?: RecordingStatusResponseSessionId;
   file_path?: RecordingStatusResponseFilePath;
   duration_seconds?: RecordingStatusResponseDurationSeconds;
   start_time?: RecordingStatusResponseStartTime;
-}
-
-export type RecordingStopResponseRecordingId = string | null;
-
-export type RecordingStopResponseFileSizeBytes = number | null;
-
-export type RecordingStopResponseDurationSeconds = number | null;
-
-export type RecordingStopResponseBase64Video = string | null;
-
-export type RecordingStopResponseInputLogs = InputLogEntry[] | null;
-
-export type RecordingStopResponseInputLogSummaryAnyOf = { [key: string]: unknown };
-
-export type RecordingStopResponseInputLogSummary = RecordingStopResponseInputLogSummaryAnyOf | null;
-
-/**
- * Response model for stopping a recording
- */
-export interface RecordingStopResponse {
-  status: RecordingStatus;
-  message: string;
-  recording_id?: RecordingStopResponseRecordingId;
-  file_size_bytes?: RecordingStopResponseFileSizeBytes;
-  duration_seconds?: RecordingStopResponseDurationSeconds;
-  base64_video?: RecordingStopResponseBase64Video;
-  input_logs?: RecordingStopResponseInputLogs;
-  input_log_summary?: RecordingStopResponseInputLogSummary;
 }
 
 export type SessionDescription = string | null;
@@ -888,7 +863,7 @@ export const startSessionRecordingSessionsSessionIdRecordingStartPost = (
   sessionId: string,
   recordingRequest: RecordingRequest,
 ) => {
-  return customInstance<RecordingResponse>({
+  return customInstance<RecordingStatusResponse>({
     url: `/sessions/${sessionId}/recording/start`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -901,7 +876,7 @@ export const startSessionRecordingSessionsSessionIdRecordingStartPost = (
  * @summary Stop Session Recording
  */
 export const stopSessionRecordingSessionsSessionIdRecordingStopPost = (sessionId: string) => {
-  return customInstance<RecordingStopResponse>({
+  return customInstance<RecordingResultResponse>({
     url: `/sessions/${sessionId}/recording/stop`,
     method: 'POST',
   });

@@ -2,7 +2,7 @@ import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 import {
   type RecordingRequest,
-  type RecordingResponse,
+  type RecordingResultResponse,
   RecordingStatus,
   type RecordingStatusResponse,
 } from '../gen/endpoints';
@@ -21,7 +21,7 @@ const recordingOptions: RecordingRequest = {
 
 export default function RecordingButton({ sessionId }: RecordingButtonProps) {
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatusResponse | null>(null);
-  const [recordingResult, setRecordingResult] = useState<RecordingResponse | null>(null);
+  const [recordingResult, setRecordingResult] = useState<RecordingResultResponse | null>(null);
 
   useEffect(() => {
     const interval = setInterval(async () => {
