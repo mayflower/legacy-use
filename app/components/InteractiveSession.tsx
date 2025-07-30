@@ -77,15 +77,34 @@ export default function InteractiveSession() {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-            <RecordingButton
-              sessionId={currentSession.id}
-              onRecordingStopped={onRecordingStopped}
-            />
-
-            {recordingResult && (
-              <Button onClick={() => setRecordingResult(null)}>
+            {analyzeResult ? (
+              <Button
+                onClick={() => {
+                  setRecordingResult(null);
+                  setAnalyzeResult(null);
+                }}
+              >
                 <Delete />
               </Button>
+            ) : recordingResult ? (
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleAnalyzeRecording(recordingResult)}
+                  disabled={analyzeProgress}
+                >
+                  Analyze
+                </Button>
+                <Button onClick={() => setRecordingResult(null)}>
+                  <Delete />
+                </Button>
+              </>
+            ) : (
+              <RecordingButton
+                sessionId={currentSession.id}
+                onRecordingStopped={onRecordingStopped}
+              />
             )}
           </Box>
         </CardContent>
