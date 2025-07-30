@@ -23,6 +23,7 @@ import {
   stopRecording,
 } from '../services/apiService';
 import { formatDuration } from '../utils/formatDuration';
+import RecordingButton from './RecordingButton';
 import type { RecordingHistory } from './RecordingHistory';
 
 // Keyframes for pulsing record dot
@@ -70,41 +71,6 @@ export default function InteractiveSession() {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to fetch recording status from server
-  const fetchRecordingStatus = async (showLoading = true) => {
-    if (!currentSession?.id) return;
-
-    try {
-      if (showLoading) {
-        setStatusLoading(true);
-      }
-
-      const status = await getRecordingStatus(currentSession.id);
-
-      // Update state based on server status
-      if (status.recording) {
-        setRecordingState('recording');
-        // Update duration from server
-        setRecordingDuration(status.duration_seconds || 0);
-      } else if (recordingState === 'recording') {
-        // Recording was stopped externally
-        setRecordingState('initial');
-        setRecordingDuration(0);
-      }
-
-      // Clear any previous errors when status is fetched successfully
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching recording status:', err);
-      if (showLoading) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        setError(`Failed to get recording status: ${errorMessage}`);
-      }
-    } finally {
-      if (showLoading) {
-        setStatusLoading(false);
-      }
-    }
-  };
 
   // Load recording history from localStorage on mount and check server status
   useEffect(() => {
@@ -131,9 +97,6 @@ export default function InteractiveSession() {
         console.error('Error loading recording history:', e);
       }
     }
-
-    // Check initial recording status from server
-    fetchRecordingStatus(true);
   }, [currentSession?.id]);
 
   // Save recording history to localStorage
@@ -142,26 +105,6 @@ export default function InteractiveSession() {
       localStorage.setItem(`recording-history-${currentSession.id}`, JSON.stringify(history));
     }
   };
-
-  // Polling for recording status (only when recording or when we have a session)
-  useEffect(() => {
-    if (currentSession?.id) {
-      pollingIntervalRef.current = setInterval(() => {
-        fetchRecordingStatus(false); // Don't show loading during polling
-      }, 1000);
-    } else {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    };
-  }, [recordingState, currentSession?.id]);
 
   const handleStartRecording = async () => {
     if (!currentSession?.id) {
@@ -720,7 +663,7 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-            {renderRecordingButton()}
+            <RecordingButton sessionId={currentSession.id} />
           </Box>
         </CardContent>
       </Card>
