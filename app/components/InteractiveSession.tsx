@@ -7,22 +7,18 @@ import {
   CardContent,
   CircularProgress,
   IconButton,
-  keyframes,
   Paper,
   Typography,
 } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SessionContext } from '../App';
-import type { RecordingStopResponse } from '../gen/endpoints';
 import {
   analyzeVideo,
-  getRecordingStatus,
   importApiDefinition,
   startRecording,
   stopRecording,
 } from '../services/apiService';
-import { formatDuration } from '../utils/formatDuration';
 import RecordingButton from './RecordingButton';
 import type { RecordingHistory } from './RecordingHistory';
 
@@ -314,19 +310,6 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
     }
   };
 
-  const handleShowRecordingDetails = (
-    event: React.MouseEvent<HTMLElement>,
-    recording: RecordingHistory,
-  ) => {
-    setPopoverAnchor(event.currentTarget);
-    setCurrentRecordingForPopover(recording);
-  };
-
-  const handleClosePopover = () => {
-    setPopoverAnchor(null);
-    setCurrentRecordingForPopover(null);
-  };
-
   // Format file size
   const formatFileSize = (bytes: number) => {
     if (!bytes) return 'Unknown';
@@ -365,273 +348,6 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
       </Box>
     );
   }
-
-  const renderRecordingButton = () => {
-    // Show loading state while checking initial status
-    if (statusLoading && recordingState === 'initial') {
-      return (
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          startIcon={<CircularProgress size={20} color="inherit" />}
-          disabled
-          sx={{ minWidth: 160 }}
-        >
-          Checking Status...
-        </Button>
-      );
-    }
-
-    switch (recordingState) {
-      case 'initial':
-        return (
-          <Button
-            variant="contained"
-            color="error"
-            size="large"
-            startIcon={
-              loading ? <CircularProgress size={20} color="inherit" /> : <FiberManualRecord />
-            }
-            onClick={handleStartRecording}
-            disabled={loading}
-            sx={{ minWidth: 160 }}
-          >
-            {loading ? 'Starting...' : 'Start Recording'}
-          </Button>
-        );
-
-      case 'recording':
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              startIcon={
-                loading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  <FiberManualRecord
-                    sx={{
-                      animation: `${pulse} 1.5s ease-in-out infinite`,
-                      color: '#ff0000',
-                    }}
-                  />
-                )
-              }
-              onClick={handleStopRecording}
-              disabled={loading}
-              sx={{ minWidth: 160 }}
-            >
-              {loading ? 'Stopping...' : 'Stop Recording'}
-            </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FiberManualRecord
-                sx={{
-                  fontSize: 12,
-                  color: '#ff0000',
-                  animation: `${pulse} 1.5s ease-in-out infinite`,
-                }}
-              />
-              <Typography variant="body2" color="text.secondary">
-                {formatDuration(recordingDuration)}
-              </Typography>
-            </Box>
-          </Box>
-        );
-
-      case 'recorded':
-        if (analyzingProgress) {
-          return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                startIcon={<CircularProgress size={20} color="inherit" />}
-                disabled
-                sx={{ minWidth: 160 }}
-              >
-                Analyzing...
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleCancelAnalysis}
-                startIcon={<Cancel />}
-              >
-                Cancel
-              </Button>
-              {recordingResult && (
-                <IconButton
-                  color="primary"
-                  onClick={e =>
-                    handleShowRecordingDetails(e, {
-                      id: recordingResult.recording_id || 'current',
-                      timestamp: new Date(),
-                      duration: recordingDuration,
-                      status: 'recorded',
-                      recordingResult,
-                    })
-                  }
-                >
-                  <Info />
-                </IconButton>
-              )}
-            </Box>
-          );
-        }
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body1">
-              Recording completed. Analysis will start automatically...
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  const newRecording: RecordingHistory = {
-                    id: recordingResult.recording_id || Date.now().toString(),
-                    timestamp: recordingResult.timestamp,
-                    duration: recordingDuration,
-                    status: 'recorded',
-                    recordingResult: recordingResult,
-                  };
-                  handleAnalyzeRecording(newRecording);
-                }}
-              >
-                Analyze again
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => {
-                  handleStartNewRecording();
-                }}
-              >
-                Discard
-              </Button>
-            </Typography>
-            {recordingResult && (
-              <IconButton
-                color="primary"
-                onClick={e =>
-                  handleShowRecordingDetails(e, {
-                    id: recordingResult.recording_id || 'current',
-                    timestamp: new Date(),
-                    duration: recordingDuration,
-                    status: 'recorded',
-                    recordingResult,
-                  })
-                }
-              >
-                <Info />
-              </IconButton>
-            )}
-          </Box>
-        );
-
-      case 'analyzed':
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button
-              variant="contained"
-              color="success"
-              size="large"
-              startIcon={<PlayArrow />}
-              onClick={handleStartNewRecording}
-              sx={{ minWidth: 160 }}
-            >
-              New Recording
-            </Button>
-            {recordingResult && (
-              <IconButton
-                color="primary"
-                onClick={e =>
-                  handleShowRecordingDetails(e, {
-                    id: recordingResult.recording_id || 'current',
-                    timestamp: new Date(),
-                    duration: recordingDuration,
-                    status: 'recorded',
-                    recordingResult,
-                  })
-                }
-              >
-                <Info />
-              </IconButton>
-            )}
-          </Box>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const renderContent = () => {
-    if (recordingState === 'analyzed' && generatedPrompt) {
-      // Find the current recording to get the API definition
-      const currentRecording = recordingHistory.find(r => r.status === 'analyzed');
-
-      return (
-        <Box sx={{ mt: 3 }}>
-          <Box
-            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
-          >
-            <Typography variant="h6">Generated Automation API</Typography>
-            {currentRecording?.apiDefinition && (
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                {currentRecording.apiDefinitionSaved ? (
-                  <Link to={`/apis/${currentRecording.apiDefinitionName}/edit`}>
-                    <Button variant="outlined" color="success" disabled startIcon={<CheckCircle />}>
-                      API Saved
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleSaveApiDefinition(currentRecording)}
-                    disabled={savingApiDefinition}
-                    startIcon={savingApiDefinition ? <CircularProgress size={20} /> : undefined}
-                  >
-                    {savingApiDefinition ? 'Saving...' : 'Save as API'}
-                  </Button>
-                )}
-              </Box>
-            )}
-          </Box>
-
-          <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
-            <Typography
-              component="div"
-              variant="body2"
-              sx={{
-                whiteSpace: 'pre-wrap',
-                '& h1, & h2, & h3': { mt: 2, mb: 1 },
-                '& p': { mb: 1 },
-                '& pre': {
-                  bgcolor: 'rgba(0,0,0,0.3)',
-                  p: 2,
-                  borderRadius: 1,
-                  overflow: 'auto',
-                },
-                '& code': {
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  px: 0.5,
-                  borderRadius: 0.5,
-                  fontFamily: 'monospace',
-                },
-              }}
-            >
-              {generatedPrompt}
-            </Typography>
-          </Paper>
-        </Box>
-      );
-    }
-    return null;
-  };
 
   return (
     <Box>
