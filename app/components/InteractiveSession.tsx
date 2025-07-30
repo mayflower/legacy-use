@@ -1,17 +1,5 @@
-import { Cancel, CheckCircle, FiberManualRecord, Info, PlayArrow } from '@mui/icons-material';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Card, CardContent, Typography } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { SessionContext } from '../App';
 import {
   analyzeVideo,

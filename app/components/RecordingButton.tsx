@@ -12,6 +12,8 @@ import RecordIcon from './RecordIcon';
 
 interface RecordingButtonProps {
   sessionId: string;
+  onRecordingStarted?: (recordingStatus: RecordingStatusResponse) => void;
+  onRecordingStopped?: (recordingResult: RecordingResultResponse) => void;
 }
 
 const recordingOptions: RecordingRequest = {
@@ -21,7 +23,11 @@ const recordingOptions: RecordingRequest = {
   capture_vnc_input: true,
 };
 
-export default function RecordingButton({ sessionId }: RecordingButtonProps) {
+export default function RecordingButton({
+  sessionId,
+  onRecordingStarted,
+  onRecordingStopped,
+}: RecordingButtonProps) {
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatusResponse | null>(null);
   const [recordingResult, setRecordingResult] = useState<RecordingResultResponse | null>(null);
 
@@ -37,11 +43,13 @@ export default function RecordingButton({ sessionId }: RecordingButtonProps) {
   const handleStartRecording = async () => {
     const result = await startRecording(sessionId, recordingOptions);
     setRecordingStatus(result);
+    onRecordingStarted?.(result);
   };
 
   const handleStopRecording = async () => {
     const result = await stopRecording(sessionId);
     setRecordingResult(result);
+    onRecordingStopped?.(result);
   };
 
   if (!recordingStatus) {
