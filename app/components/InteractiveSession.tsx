@@ -71,6 +71,14 @@ export default function InteractiveSession() {
           </Box>
         </CardContent>
       </Card>
+
+      {recordingResult && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            Recording Result
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }
