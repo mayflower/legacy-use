@@ -105,7 +105,14 @@ export default function InteractiveSession() {
                 >
                   {analyzeProgress ? 'Analyzing...' : 'Analyze'}
                 </Button>
-                <Button color="warning" onClick={() => setRecordingResult(null)}>
+                <Button
+                  color="warning"
+                  onClick={() => {
+                    setRecordingResult(null);
+                    setAnalyzeError(null);
+                    setAnalyzeProgress(false);
+                  }}
+                >
                   <Cancel />
                 </Button>
               </>
