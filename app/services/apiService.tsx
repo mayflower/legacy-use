@@ -1,5 +1,13 @@
 import axios from 'axios';
-import { listSessionsSessionsGet, type Session } from '../gen/endpoints';
+import {
+  analyzeVideoAiAnalyzePost,
+  getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
+  listSessionsSessionsGet,
+  type RecordingRequest,
+  type Session,
+  startSessionRecordingSessionsSessionIdRecordingStartPost,
+  stopSessionRecordingSessionsSessionIdRecordingStopPost,
+} from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 
 // Always use the API_URL from environment variables
@@ -480,52 +488,19 @@ export const resumeJob = async (targetId, jobId) => {
 };
 
 // Recording functions
-export const startRecording = async (sessionId: string, options = {}) => {
-  try {
-    const response = await apiClient.post(`/sessions/${sessionId}/recording/start`, options);
-    return response.data;
-  } catch (error) {
-    console.error('Error starting recording:', error);
-    throw error;
-  }
+export const startRecording = async (sessionId: string, options: RecordingRequest) => {
+  return startSessionRecordingSessionsSessionIdRecordingStartPost(sessionId, options);
 };
 
 export const stopRecording = async (sessionId: string) => {
-  try {
-    const response = await apiClient.post(`/sessions/${sessionId}/recording/stop`);
-    return response.data;
-  } catch (error) {
-    console.error('Error stopping recording:', error);
-    throw error;
-  }
+  return stopSessionRecordingSessionsSessionIdRecordingStopPost(sessionId);
 };
 
 // AI Analysis
-export const analyzeVideo = async videoFile => {
-  try {
-    const formData = new FormData();
-    formData.append('video', videoFile);
-
-    const response = await apiClient.post('/ai/analyze', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 120000, // 2 minute timeout for video analysis
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error analyzing video:', error);
-    throw error;
-  }
+export const analyzeVideo = async (videoFile: Blob) => {
+  return analyzeVideoAiAnalyzePost({ video: videoFile });
 };
 
 export const getRecordingStatus = async (sessionId: string) => {
-  try {
-    const response = await apiClient.get(`/sessions/${sessionId}/recording/status`);
-    return response.data;
-  } catch (error) {
-    console.error('Error getting recording status:', error);
-    throw error;
-  }
+  return getSessionRecordingStatusSessionsSessionIdRecordingStatusGet(sessionId);
 };
