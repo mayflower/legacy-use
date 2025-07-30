@@ -2,9 +2,8 @@ import axios from 'axios';
 import { listSessionsSessionsGet, type Session } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 
-// Always use the API_URL from environment variables
-// This should be set to the full URL of your API server (e.g., http://localhost:8088)
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
+// Always use /api for API calls since it's proxied by Vite
+export const API_URL = '/api';
 
 // Create an axios instance with default config
 export const apiClient = axios.create({
@@ -60,7 +59,7 @@ export const testApiKey = async (apiKey: string) => {
     });
 
     // Try to access an endpoint that requires authentication
-    const response = await tempClient.get(`${API_URL}/api/definitions`);
+    const response = await tempClient.get('/definitions');
     return response.data;
   } catch (error) {
     console.error('Error testing API key:', error);
@@ -463,18 +462,9 @@ export const resolveJob = async (targetId: string, jobId: string, result: any) =
 // Health check
 export const checkTargetHealth = async (containerIp: string) => {
   try {
-    // For health checks, we need to make a direct request to the container
-    // since it's not going through the Vite proxy
-    const healthUrl = `http://${containerIp}:8088/health`;
-    
-    // Set the Host header to the current hostname for multi-tenant support
-    const headers = {
-      'Host': window.location.hostname,
-    };
-    
-    const response = await axios.get(healthUrl, { 
+    // Use the proxy for health checks as well
+    const response = await apiClient.get('/health', { 
       timeout: 2000,
-      headers
     });
     return response.data;
   } catch (error) {
