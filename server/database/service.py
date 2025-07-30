@@ -11,7 +11,6 @@ from server.settings import settings
 from .models import (
     APIDefinition,
     APIDefinitionVersion,
-    Base,
     Job,
     JobLog,
     JobMessage,
@@ -26,7 +25,6 @@ class DatabaseService:
             db_url = settings.DATABASE_URL
 
         self.engine = create_engine(db_url)
-        Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
 
     # Target methods
