@@ -16,9 +16,6 @@ apiClient.interceptors.request.use(config => {
   return config;
 });
 
-// Add browser globals for linter
-const { localStorage } = globalThis;
-
 // Function to set the API key for all requests
 export const setApiKeyHeader = apiKey => {
   if (apiKey) {
