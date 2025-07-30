@@ -16,6 +16,35 @@ export interface APIDefinition {
   is_archived?: boolean;
 }
 
+/**
+ * The tool to use to complete the action
+ */
+export type ActionTool = (typeof ActionTool)[keyof typeof ActionTool];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionTool = {
+  type: 'type',
+  press_key: 'press_key',
+  click: 'click',
+  scroll_up: 'scroll_up',
+  scroll_down: 'scroll_down',
+  ui_not_as_expected: 'ui_not_as_expected',
+  extract_tool: 'extract_tool',
+} as const;
+
+export interface Action {
+  /** A short title for the action, e.g. "Open settings menu" */
+  title: string;
+  /** Describe the action the user took to complete the task, formulated as instruction for the operator */
+  instruction: string;
+  /** The tool to use to complete the action */
+  tool: ActionTool;
+}
+
+export interface BodyAnalyzeVideoAiAnalyzePost {
+  video: Blob;
+}
+
 export interface HTTPValidationError {
   detail?: ValidationError[];
 }
@@ -34,6 +63,19 @@ export type ImportApiDefinitionRequestApiDefinition = { [key: string]: unknown }
 
 export interface ImportApiDefinitionRequest {
   api_definition: ImportApiDefinitionRequestApiDefinition;
+}
+
+export type InputLogEntryDetails = { [key: string]: unknown };
+
+/**
+ * Model for individual input log entries
+ */
+export interface InputLogEntry {
+  timestamp: string;
+  session_id: string;
+  source: string;
+  action_type: string;
+  details: InputLogEntryDetails;
 }
 
 export type JobSessionId = string | null;
@@ -140,6 +182,92 @@ export interface ProviderConfiguration {
 export interface ProvidersResponse {
   current_provider: string;
   providers: ProviderConfiguration[];
+}
+
+export type RecordingRequestFramerate = number | null;
+
+export type RecordingRequestQuality = string | null;
+
+export type RecordingRequestFormat = string | null;
+
+export type RecordingRequestCaptureVncInput = boolean | null;
+
+/**
+ * Request model for starting a recording
+ */
+export interface RecordingRequest {
+  framerate?: RecordingRequestFramerate;
+  quality?: RecordingRequestQuality;
+  format?: RecordingRequestFormat;
+  capture_vnc_input?: RecordingRequestCaptureVncInput;
+}
+
+export type RecordingResponseRecordingId = string | null;
+
+export type RecordingResponseFilePath = string | null;
+
+export type RecordingResponseVncMonitoring = boolean | null;
+
+/**
+ * Response model for recording operations
+ */
+export interface RecordingResponse {
+  status: string;
+  message: string;
+  recording_id?: RecordingResponseRecordingId;
+  file_path?: RecordingResponseFilePath;
+  vnc_monitoring?: RecordingResponseVncMonitoring;
+}
+
+export type RecordingStatusResponseVncMonitoring = boolean | null;
+
+export type RecordingStatusResponseSessionId = string | null;
+
+export type RecordingStatusResponseFilePath = string | null;
+
+export type RecordingStatusResponseDurationSeconds = number | null;
+
+export type RecordingStatusResponseStartTime = string | null;
+
+/**
+ * Response model for recording status
+ */
+export interface RecordingStatusResponse {
+  status: string;
+  recording: boolean;
+  vnc_monitoring?: RecordingStatusResponseVncMonitoring;
+  session_id?: RecordingStatusResponseSessionId;
+  file_path?: RecordingStatusResponseFilePath;
+  duration_seconds?: RecordingStatusResponseDurationSeconds;
+  start_time?: RecordingStatusResponseStartTime;
+}
+
+export type RecordingStopResponseRecordingId = string | null;
+
+export type RecordingStopResponseFileSizeBytes = number | null;
+
+export type RecordingStopResponseDurationSeconds = number | null;
+
+export type RecordingStopResponseBase64Video = string | null;
+
+export type RecordingStopResponseInputLogs = InputLogEntry[] | null;
+
+export type RecordingStopResponseInputLogSummaryAnyOf = { [key: string]: unknown };
+
+export type RecordingStopResponseInputLogSummary = RecordingStopResponseInputLogSummaryAnyOf | null;
+
+/**
+ * Response model for stopping a recording
+ */
+export interface RecordingStopResponse {
+  status: string;
+  message: string;
+  recording_id?: RecordingStopResponseRecordingId;
+  file_size_bytes?: RecordingStopResponseFileSizeBytes;
+  duration_seconds?: RecordingStopResponseDurationSeconds;
+  base64_video?: RecordingStopResponseBase64Video;
+  input_logs?: RecordingStopResponseInputLogs;
+  input_log_summary?: RecordingStopResponseInputLogSummary;
 }
 
 export type SessionDescription = string | null;
@@ -346,6 +474,29 @@ export interface ValidationError {
   type: string;
 }
 
+/**
+ * Expected response from the automation
+ */
+export type VideoAnalysisResponseResponseExample = { [key: string]: unknown };
+
+/**
+ * Response model for video analysis
+ */
+export interface VideoAnalysisResponse {
+  /** A short name for the automation */
+  name: string;
+  /** A short summary of the automation, remain high level */
+  description: string;
+  /** Describe the expected screen state, instruct the operator to get the system into the initial state. Then describe the actions the user took to complete the task in great detail, in particular which buttons or input fields are used, use the tools available to the model to describe the actions, follow the format of the HOW_TO_PROMPT.md file */
+  actions: Action[];
+  /** Instructions to return the system to its original state */
+  prompt_cleanup: string;
+  /** Parameters and user input needed to run the automation another time with different values */
+  parameters: Parameter[];
+  /** Expected response from the automation */
+  response_example: VideoAnalysisResponseResponseExample;
+}
+
 export type GetApiDefinitionsApiDefinitionsGetParams = {
   include_archived?: boolean;
 };
@@ -534,6 +685,28 @@ export const getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet = (apiName
 };
 
 /**
+ * Analyze a video recording and generate an API definition for automation.
+
+This endpoint accepts a video file upload, analyzes it using Google Vertex Gemini Pro,
+and returns a structured API definition that can be used to automate the workflow
+shown in the video.
+ * @summary Analyze Video
+ */
+export const analyzeVideoAiAnalyzePost = (
+  bodyAnalyzeVideoAiAnalyzePost: BodyAnalyzeVideoAiAnalyzePost,
+) => {
+  const formData = new FormData();
+  formData.append(`video`, bodyAnalyzeVideoAiAnalyzePost.video);
+
+  return customInstance<VideoAnalysisResponse>({
+    url: `/ai/analyze`,
+    method: 'POST',
+    headers: { 'Content-Type': 'multipart/form-data' },
+    data: formData,
+  });
+};
+
+/**
  * List all available targets.
  * @summary List Targets
  */
@@ -695,6 +868,44 @@ export const updateSessionStateSessionsSessionIdStatePut = (
   params: UpdateSessionStateSessionsSessionIdStatePutParams,
 ) => {
   return customInstance<unknown>({ url: `/sessions/${sessionId}/state`, method: 'PUT', params });
+};
+
+/**
+ * Start screen recording on a session
+ * @summary Start Session Recording
+ */
+export const startSessionRecordingSessionsSessionIdRecordingStartPost = (
+  sessionId: string,
+  recordingRequest: RecordingRequest,
+) => {
+  return customInstance<RecordingResponse>({
+    url: `/sessions/${sessionId}/recording/start`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: recordingRequest,
+  });
+};
+
+/**
+ * Stop screen recording on a session and get the video
+ * @summary Stop Session Recording
+ */
+export const stopSessionRecordingSessionsSessionIdRecordingStopPost = (sessionId: string) => {
+  return customInstance<RecordingStopResponse>({
+    url: `/sessions/${sessionId}/recording/stop`,
+    method: 'POST',
+  });
+};
+
+/**
+ * Get recording status from a session
+ * @summary Get Session Recording Status
+ */
+export const getSessionRecordingStatusSessionsSessionIdRecordingStatusGet = (sessionId: string) => {
+  return customInstance<RecordingStatusResponse>({
+    url: `/sessions/${sessionId}/recording/status`,
+    method: 'GET',
+  });
 };
 
 /**
@@ -933,6 +1144,9 @@ export type UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePostResult = Non
 export type GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGetResult = NonNullable<
   Awaited<ReturnType<typeof getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet>>
 >;
+export type AnalyzeVideoAiAnalyzePostResult = NonNullable<
+  Awaited<ReturnType<typeof analyzeVideoAiAnalyzePost>>
+>;
 export type ListTargetsTargetsGetResult = NonNullable<
   Awaited<ReturnType<typeof listTargetsTargetsGet>>
 >;
@@ -977,6 +1191,15 @@ export type ProxyVncSessionsSessionIdVncPathGetResult = NonNullable<
 >;
 export type UpdateSessionStateSessionsSessionIdStatePutResult = NonNullable<
   Awaited<ReturnType<typeof updateSessionStateSessionsSessionIdStatePut>>
+>;
+export type StartSessionRecordingSessionsSessionIdRecordingStartPostResult = NonNullable<
+  Awaited<ReturnType<typeof startSessionRecordingSessionsSessionIdRecordingStartPost>>
+>;
+export type StopSessionRecordingSessionsSessionIdRecordingStopPostResult = NonNullable<
+  Awaited<ReturnType<typeof stopSessionRecordingSessionsSessionIdRecordingStopPost>>
+>;
+export type GetSessionRecordingStatusSessionsSessionIdRecordingStatusGetResult = NonNullable<
+  Awaited<ReturnType<typeof getSessionRecordingStatusSessionsSessionIdRecordingStatusGet>>
 >;
 export type ListAllJobsJobsGetResult = NonNullable<Awaited<ReturnType<typeof listAllJobsJobsGet>>>;
 export type ListTargetJobsTargetsTargetIdJobsGetResult = NonNullable<
