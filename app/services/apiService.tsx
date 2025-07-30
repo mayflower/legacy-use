@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { forwardDistinctId } from './telemetryService';
 
-// Always use the API_URL from environment variables
-// This should be set to the full URL of your API server (e.g., http://localhost:8088)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088';
+// Always use the same API URL with /api prefix - Vite will proxy this to the backend
+const API_URL = '/api';
 
 // Create an axios instance with default config
 const apiClient = axios.create({
@@ -15,21 +14,6 @@ apiClient.interceptors.request.use(config => {
   forwardDistinctId(config);
   return config;
 });
-
-// Add browser globals for linter
-const { localStorage } = globalThis;
-
-// Function to set the API key for all requests
-export const setApiKeyHeader = apiKey => {
-  if (apiKey) {
-    apiClient.defaults.headers.common['X-API-Key'] = apiKey;
-    // Also store in localStorage for the interceptor
-    localStorage.setItem('apiKey', apiKey);
-  } else {
-    delete apiClient.defaults.headers.common['X-API-Key'];
-    localStorage.removeItem('apiKey');
-  }
-};
 
 // Add a request interceptor to ensure API key is set for every request
 apiClient.interceptors.request.use(
@@ -46,6 +30,21 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   },
 );
+
+// Add browser globals for linter
+const { localStorage } = globalThis;
+
+// Function to set the API key for all requests
+export const setApiKeyHeader = apiKey => {
+  if (apiKey) {
+    apiClient.defaults.headers.common['X-API-Key'] = apiKey;
+    // Also store in localStorage for the interceptor
+    localStorage.setItem('apiKey', apiKey);
+  } else {
+    delete apiClient.defaults.headers.common['X-API-Key'];
+    localStorage.removeItem('apiKey');
+  }
+};
 
 // Function to test if an API key is valid
 export const testApiKey = async apiKey => {
@@ -468,7 +467,19 @@ export const resolveJob = async (targetId, jobId, result) => {
 // Health check
 export const checkTargetHealth = async containerIp => {
   try {
-    const response = await axios.get(`http://${containerIp}:8088/health`, { timeout: 2000 });
+    // For health checks, we need to make a direct request to the container
+    // since it's not going through the Vite proxy
+    const healthUrl = `http://${containerIp}:8088/health`;
+    
+    // Set the Host header to the current hostname for multi-tenant support
+    const headers = {
+      'Host': window.location.hostname,
+    };
+    
+    const response = await axios.get(healthUrl, { 
+      timeout: 2000,
+      headers
+    });
     return response.data;
   } catch (error) {
     console.error('Error checking target health:', error);

@@ -24,6 +24,7 @@ from server.utils.auth import get_api_key
 from server.utils.job_execution import job_queue_initializer
 from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
+from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
 
 from .settings import settings
 
@@ -197,6 +198,34 @@ app.openapi_components = {
         }
     }
 }
+
+
+# Exception handlers for multi-tenancy
+@app.exception_handler(TenantNotFoundError)
+async def tenant_not_found_handler(request: Request, exc: TenantNotFoundError):
+    """Handle tenant not found errors."""
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={
+            'detail': 'Tenant not found',
+            'error_type': 'tenant_not_found',
+            'message': str(exc),
+        },
+    )
+
+
+@app.exception_handler(TenantInactiveError)
+async def tenant_inactive_handler(request: Request, exc: TenantInactiveError):
+    """Handle inactive tenant errors."""
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={
+            'detail': 'Tenant is inactive',
+            'error_type': 'tenant_inactive',
+            'message': str(exc),
+        },
+    )
+
 
 app.openapi_security = [{'ApiKeyAuth': []}]
 

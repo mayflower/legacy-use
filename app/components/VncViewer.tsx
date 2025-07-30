@@ -66,8 +66,8 @@ const VncViewer = () => {
     return null;
   }
 
-  // Base API URL from environment or default
-  const baseApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8088';
+  // Use the same hostname as the frontend - Vite will proxy /api requests to the backend
+  const baseApiUrl = window.location.origin;
 
   // Show loading while we're getting session ID or setting cookie
   if (loading || !cookieSet) {

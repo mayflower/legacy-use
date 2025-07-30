@@ -15,8 +15,16 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    allowedHosts: ['.lvh.me'],
     watch: {
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
+    },
+    proxy: {
+      '/api': {
+        target: 'http://backend:8088',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
   },
   // Fixes ambiguous behavior with initial loading of MUI and Emotion packages

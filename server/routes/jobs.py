@@ -23,13 +23,14 @@ from datetime import datetime
 from typing import Annotated, Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Body, HTTPException, Request
+from fastapi import APIRouter, Body, HTTPException, Request, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from server.core import APIGatewayCore
-from server.database.service import DatabaseService
 from server.models.base import Job, JobCreate, JobStatus
 from server.settings import settings
+from server.utils.db_dependencies import get_tenant_db
 from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
@@ -80,9 +81,6 @@ class PaginatedJobsResponse(BaseModel):
     jobs: List[Job]
 
 
-# Initialize database
-db = DatabaseService()
-
 # Dictionary to store completion futures
 completion_futures = {}
 
@@ -94,6 +92,7 @@ async def list_all_jobs(
     status: Optional[str] = None,
     target_id: Optional[UUID] = None,
     api_name: Optional[str] = None,
+    db: Session = Depends(get_tenant_db),
 ):
     """List all jobs across all targets with pagination and filtering options."""
     # Build filters dict from parameters
@@ -126,7 +125,12 @@ async def list_all_jobs(
 
 
 @job_router.get('/targets/{target_id}/jobs/', response_model=List[Job])
-async def list_target_jobs(target_id: UUID, limit: int = 10, offset: int = 0):
+async def list_target_jobs(
+    target_id: UUID,
+    limit: int = 10,
+    offset: int = 0,
+    db: Session = Depends(get_tenant_db),
+):
     """List all jobs for a specific target with pagination."""
     if not db.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
@@ -147,7 +151,12 @@ async def list_target_jobs(target_id: UUID, limit: int = 10, offset: int = 0):
 
 
 @job_router.post('/targets/{target_id}/jobs/', response_model=Job)
-async def create_job(target_id: UUID, job: JobCreate, request: Request):
+async def create_job(
+    target_id: UUID,
+    job: JobCreate,
+    request: Request,
+    db: Session = Depends(get_tenant_db),
+):
     """Create a new job for a target.
 
     The endpoint will return immediately after adding the job to the queue.
@@ -200,7 +209,7 @@ async def create_job(target_id: UUID, job: JobCreate, request: Request):
 
 
 @job_router.get('/targets/{target_id}/jobs/{job_id}', response_model=Job)
-async def get_job(target_id: UUID, job_id: UUID):
+async def get_job(target_id: UUID, job_id: UUID, db: Session = Depends(get_tenant_db)):
     """Get details of a specific job."""
     # Check if target exists
     target_data = db.get_target(target_id)
@@ -238,7 +247,7 @@ async def get_job(target_id: UUID, job_id: UUID):
 
 
 @job_router.get('/jobs/queue/status')
-async def get_queue_status():
+async def get_queue_status(db: Session = Depends(get_tenant_db)):
     """Get the current status of the job queue."""
     async with job_queue_lock:
         queue_size = len(job_queue)
@@ -288,7 +297,12 @@ async def get_queue_status():
     '/targets/{target_id}/jobs/{job_id}/interrupt/',
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
-async def interrupt_job(target_id: UUID, job_id: UUID, request: Request):
+async def interrupt_job(
+    target_id: UUID,
+    job_id: UUID,
+    request: Request,
+    db: Session = Depends(get_tenant_db),
+):
     """Interrupt a running, queued, or pending job."""
     job_id_str = str(job_id)
 
@@ -399,7 +413,12 @@ async def interrupt_job(target_id: UUID, job_id: UUID, request: Request):
 
 
 @job_router.post('/targets/{target_id}/jobs/{job_id}/cancel/')
-async def cancel_job(target_id: UUID, job_id: UUID, request: Request):
+async def cancel_job(
+    target_id: UUID,
+    job_id: UUID,
+    request: Request,
+    db: Session = Depends(get_tenant_db),
+):
     """Cancel a job and mark its status as 'canceled'."""
     job_id_str = str(job_id)
 
@@ -486,7 +505,12 @@ async def cancel_job(target_id: UUID, job_id: UUID, request: Request):
     response_model=List[JobLogEntry],
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
-async def get_job_logs(target_id: UUID, job_id: UUID, request: Request):
+async def get_job_logs(
+    target_id: UUID,
+    job_id: UUID,
+    request: Request,
+    db: Session = Depends(get_tenant_db),
+):
     """Get logs for a specific job."""
     # Check if target exists
     if not db.get_target(target_id):
@@ -508,7 +532,9 @@ async def get_job_logs(target_id: UUID, job_id: UUID, request: Request):
     response_model=List[HttpExchangeLog],
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
-async def get_job_http_exchanges(target_id: UUID, job_id: UUID):
+async def get_job_http_exchanges(
+    target_id: UUID, job_id: UUID, db: Session = Depends(get_tenant_db)
+):
     """
     Get HTTP exchange logs for a specific job.
 
@@ -556,6 +582,7 @@ async def resolve_job(
     job_id: UUID,
     result: Annotated[Dict[str, Any], Body(...)],
     request: Request,
+    db: Session = Depends(get_tenant_db),
 ):
     """Resolve a job that's in error or paused state.
 
@@ -625,7 +652,7 @@ async def resolve_job(
 
 
 @job_router.post('/jobs/queue/resync', include_in_schema=False)
-async def resync_queue():
+async def resync_queue(db: Session = Depends(get_tenant_db)):
     """Manually resynchronize the job queue with the database.
 
     This is useful for troubleshooting situations where jobs are in the database
@@ -681,7 +708,12 @@ async def resync_queue():
     tags=['Jobs'],
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
-async def resume_job(target_id: UUID, job_id: UUID, request: Request):
+async def resume_job(
+    target_id: UUID,
+    job_id: UUID,
+    request: Request,
+    db: Session = Depends(get_tenant_db),
+):
     """Resumes a paused or error job by setting its status to queued."""
     job_id_str = str(job_id)
     logger.info(f'Received request to resume job {job_id_str}')
