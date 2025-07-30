@@ -1,4 +1,5 @@
-import { Alert, Box, Card, CardContent, Typography } from '@mui/material';
+import { Delete } from '@mui/icons-material';
+import { Alert, Box, Button, Card, CardContent, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { SessionContext } from '../App';
@@ -9,16 +10,18 @@ import RecordingButton from './RecordingButton';
 
 export default function InteractiveSession() {
   const { currentSession } = useContext(SessionContext);
-  const [recordingHistory, setRecordingHistory] = useLocalStorage<RecordingResultResponse[]>(
-    `recording-history-${currentSession?.id}`,
-    [],
-  );
 
   // Recording state
-  const [recordingResult, setRecordingResult] = useState<null | RecordingResultResponse>(null);
+  const [recordingResult, setRecordingResult] = useLocalStorage<null | RecordingResultResponse>(
+    `recording-result-${currentSession?.id}`,
+    null,
+  );
 
   // Analyze state
-  const [analyzeResult, setAnalyzeResult] = useState<null | AnalyzeVideoAiAnalyzePostResult>(null);
+  const [analyzeResult, setAnalyzeResult] = useLocalStorage<null | AnalyzeVideoAiAnalyzePostResult>(
+    `analyze-result-${currentSession?.id}`,
+    null,
+  );
   const [analyzeError, setAnalyzeError] = useState<null | string>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(false);
 
@@ -47,8 +50,7 @@ export default function InteractiveSession() {
 
   const onRecordingStopped = (recordingResult: RecordingResultResponse) => {
     setRecordingResult(recordingResult);
-    setRecordingHistory([recordingResult, ...recordingHistory]);
-    // handleAnalyzeRecording(recordingResult);
+    handleAnalyzeRecording(recordingResult);
   };
 
   if (!currentSession || currentSession.is_archived || currentSession.state !== 'ready') {
@@ -79,6 +81,12 @@ export default function InteractiveSession() {
               sessionId={currentSession.id}
               onRecordingStopped={onRecordingStopped}
             />
+
+            {recordingResult && (
+              <Button onClick={() => setRecordingResult(null)}>
+                <Delete />
+              </Button>
+            )}
           </Box>
         </CardContent>
       </Card>
