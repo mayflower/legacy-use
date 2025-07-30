@@ -128,6 +128,12 @@ export default function InteractiveSession() {
         </CardContent>
       </Card>
 
+      {analyzeError && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {analyzeError}
+        </Alert>
+      )}
+
       {analyzeResult && (
         <Box>
           <Box
