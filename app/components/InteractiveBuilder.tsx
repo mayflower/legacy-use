@@ -17,14 +17,10 @@ export default function InteractiveBuilder({
   const [executeProgress, setExecuteProgress] = useState(false);
 
   const handleInteractiveExecute = async () => {
-    console.log('handleInteractiveExecute', analyzeResult);
-
     setExecuteProgress(true);
-
     await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(currentSession.id, {
       steps: analyzeResult?.actions ?? [],
     });
-
     setExecuteProgress(false);
   };
 
