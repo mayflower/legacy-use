@@ -9,7 +9,6 @@ import {
   IconButton,
   keyframes,
   Paper,
-  Popover,
   Typography,
 } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -24,7 +23,7 @@ import {
   stopRecording,
 } from '../services/apiService';
 import { formatDuration } from '../utils/formatDuration';
-import RecordingHistoryComponent, { type RecordingHistory } from './RecordingHistory';
+import type { RecordingHistory } from './RecordingHistory';
 
 // Keyframes for pulsing record dot
 const pulse = keyframes`
@@ -66,11 +65,6 @@ export default function InteractiveSession() {
 
   // Recording history
   const [recordingHistory, setRecordingHistory] = useState<RecordingHistory[]>([]);
-
-  // Popover state
-  const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement | null>(null);
-  const [currentRecordingForPopover, setCurrentRecordingForPopover] =
-    useState<RecordingHistory | null>(null);
 
   // Polling refs
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -713,7 +707,7 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       <Typography variant="h4" gutterBottom>
         Interactive Session
       </Typography>
@@ -723,86 +717,13 @@ ${JSON.stringify(apiDefinition.response_example, null, 2)}
         cases.
       </Typography>
 
-      {/* Simplified Recording Status Card */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
             {renderRecordingButton()}
-            {/* Recording History Component */}
-            <RecordingHistoryComponent
-              recordingHistory={recordingHistory}
-              onSaveApiDefinition={handleSaveApiDefinition}
-              savingApiDefinition={savingApiDefinition}
-            />
           </Box>
         </CardContent>
       </Card>
-
-      {/* Error Display */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Content based on state */}
-      {renderContent()}
-
-      {/* Recording Details Popover */}
-      <Popover
-        open={Boolean(popoverAnchor)}
-        anchorEl={popoverAnchor}
-        onClose={handleClosePopover}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-      >
-        <Box sx={{ p: 3, maxWidth: 400 }}>
-          {currentRecordingForPopover?.recordingResult && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Recording Details
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Status: {currentRecordingForPopover.recordingResult.status}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Duration: {formatDuration(currentRecordingForPopover.duration || 0)}
-              </Typography>
-
-              {currentRecordingForPopover.recordingResult.file_size_bytes && (
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  File Size:{' '}
-                  {formatFileSize(currentRecordingForPopover.recordingResult.file_size_bytes)}
-                </Typography>
-              )}
-
-              {currentRecordingForPopover.recordingResult.base64_video && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" gutterBottom>
-                    Recorded Video:
-                  </Typography>
-                  <video
-                    controls
-                    style={{ maxWidth: '100%', maxHeight: '200px' }}
-                    src={`data:video/mp4;base64,${currentRecordingForPopover.recordingResult.base64_video}`}
-                  >
-                    <track kind="captions" srcLang="en" label="English captions" />
-                    Your browser does not support the video tag.
-                  </video>
-                </Box>
-              )}
-            </Box>
-          )}
-        </Box>
-      </Popover>
     </Box>
   );
 }
