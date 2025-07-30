@@ -174,12 +174,16 @@ export default function InteractiveSession() {
           {analyzeResult.actions.map(action => (
             <Card key={action.title} sx={{ mb: 3 }}>
               <CardContent>
-                <Typography variant="subtitle1">{action.title}</Typography>
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <Typography variant="subtitle1">{action.title}</Typography>
+                  <Typography fontSize={12} fontFamily="monospace" color="text.secondary">
+                    {action.tool}
+                  </Typography>
+                </Box>
                 <Typography variant="body2" color="text.secondary">
                   {action.instruction}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {action.tool}
                 </Typography>
               </CardContent>
             </Card>
