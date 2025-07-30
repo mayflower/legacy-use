@@ -5,7 +5,6 @@ import type { AnalyzeVideoAiAnalyzePostResult, RecordingResultResponse } from '.
 import { analyzeVideo } from '../services/apiService';
 import { base64ToVideoFile } from '../utils/video';
 import RecordingButton from './RecordingButton';
-import type { RecordingHistory } from './RecordingHistory';
 
 export default function InteractiveSession() {
   const { currentSession } = useContext(SessionContext);
@@ -18,26 +17,14 @@ export default function InteractiveSession() {
   const [analyzeError, setAnalyzeError] = useState<null | string>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(false);
 
-  // Save recording history to localStorage
-  const saveRecordingHistory = (history: RecordingHistory[]) => {
-    if (currentSession?.id) {
-      localStorage.setItem(`recording-history-${currentSession.id}`, JSON.stringify(history));
-    }
-  };
-
-  const handleAnalyzeRecording = async (recording: RecordingHistory) => {
+  const handleAnalyzeRecording = async (recording: RecordingResultResponse) => {
     setAnalyzeProgress(true);
     setAnalyzeError(null);
 
     try {
-      // Check if we have base64 video data
-      if (!recording.recordingResult?.base64_video) {
-        throw new Error('No video data available for analysis');
-      }
-
       const videoFile = base64ToVideoFile(
-        recording.recordingResult.base64_video,
-        `recording_${recording.id}.mp4`,
+        recording.base64_video,
+        `recording_${recording.recording_id}.mp4`,
       );
 
       const analysisResult = await analyzeVideo(videoFile);
