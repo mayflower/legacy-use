@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(config => {
 });
 
 // Function to set the API key for all requests
-export const setApiKeyHeader = apiKey => {
+export const setApiKeyHeader = (apiKey: string) => {
   if (apiKey) {
     apiClient.defaults.headers.common['X-API-Key'] = apiKey;
     // Also store in localStorage for the interceptor
@@ -45,7 +45,7 @@ apiClient.interceptors.request.use(
 );
 
 // Function to test if an API key is valid
-export const testApiKey = async apiKey => {
+export const testApiKey = async (apiKey: string) => {
   try {
     // Create a temporary axios instance with the API key
     const tempClient = axios.create({
