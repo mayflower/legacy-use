@@ -5,6 +5,12 @@ export default defineConfig({
     input: './openapi.json',
     output: {
       target: './app/gen/endpoints.ts',
+      override: {
+        mutator: {
+          path: './app/gen/custom-axios.ts',
+          name: 'customInstance',
+        },
+      },
       biome: true,
     },
   },

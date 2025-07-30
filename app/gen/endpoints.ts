@@ -5,10 +5,7 @@
  * API Gateway for AI-powered endpoints
  * OpenAPI spec version: 1.0.0
  */
-
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
-import * as axios from 'axios';
-
+import { customInstance } from './custom-axios';
 export type APIDefinitionResponseExample = { [key: string]: unknown };
 
 export interface APIDefinition {
@@ -422,215 +419,184 @@ export type UpdateProviderSettingsSettingsProvidersPost200 = { [key: string]: st
  * Get all available API definitions.
  * @summary Get Api Definitions
  */
-export const getApiDefinitionsApiDefinitionsGet = <TData = AxiosResponse<APIDefinition[]>>(
+export const getApiDefinitionsApiDefinitionsGet = (
   params?: GetApiDefinitionsApiDefinitionsGetParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/api/definitions`, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+) => {
+  return customInstance<APIDefinition[]>({ url: `/api/definitions`, method: 'GET', params });
 };
 
 /**
  * Get a specific API definition by name.
  * @summary Get Api Definition
  */
-export const getApiDefinitionApiDefinitionsApiNameGet = <TData = AxiosResponse<APIDefinition>>(
-  apiName: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/api/definitions/${apiName}`, options);
+export const getApiDefinitionApiDefinitionsApiNameGet = (apiName: string) => {
+  return customInstance<APIDefinition>({ url: `/api/definitions/${apiName}`, method: 'GET' });
 };
 
 /**
  * Update an API definition.
  * @summary Update Api Definition
  */
-export const updateApiDefinitionApiDefinitionsApiNamePut = <
-  TData = AxiosResponse<UpdateApiDefinitionApiDefinitionsApiNamePut200>,
->(
+export const updateApiDefinitionApiDefinitionsApiNamePut = (
   apiName: string,
   importApiDefinitionRequest: ImportApiDefinitionRequest,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.put(`/api/definitions/${apiName}`, importApiDefinitionRequest, options);
+) => {
+  return customInstance<UpdateApiDefinitionApiDefinitionsApiNamePut200>({
+    url: `/api/definitions/${apiName}`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: importApiDefinitionRequest,
+  });
 };
 
 /**
  * Archive an API definition (soft delete).
  * @summary Archive Api Definition
  */
-export const archiveApiDefinitionApiDefinitionsApiNameDelete = <
-  TData = AxiosResponse<ArchiveApiDefinitionApiDefinitionsApiNameDelete200>,
->(
-  apiName: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.delete(`/api/definitions/${apiName}`, options);
+export const archiveApiDefinitionApiDefinitionsApiNameDelete = (apiName: string) => {
+  return customInstance<ArchiveApiDefinitionApiDefinitionsApiNameDelete200>({
+    url: `/api/definitions/${apiName}`,
+    method: 'DELETE',
+  });
 };
 
 /**
  * Get a specific API definition in its raw format for export/backup purposes.
  * @summary Export Api Definition
  */
-export const exportApiDefinitionApiDefinitionsApiNameExportGet = <
-  TData = AxiosResponse<ExportApiDefinitionApiDefinitionsApiNameExportGet200>,
->(
-  apiName: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/api/definitions/${apiName}/export`, options);
+export const exportApiDefinitionApiDefinitionsApiNameExportGet = (apiName: string) => {
+  return customInstance<ExportApiDefinitionApiDefinitionsApiNameExportGet200>({
+    url: `/api/definitions/${apiName}/export`,
+    method: 'GET',
+  });
 };
 
 /**
  * Get all versions of a specific API definition.
  * @summary Get Api Definition Versions
  */
-export const getApiDefinitionVersionsApiDefinitionsApiNameVersionsGet = <
-  TData = AxiosResponse<GetApiDefinitionVersionsApiDefinitionsApiNameVersionsGet200>,
->(
-  apiName: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/api/definitions/${apiName}/versions`, options);
+export const getApiDefinitionVersionsApiDefinitionsApiNameVersionsGet = (apiName: string) => {
+  return customInstance<GetApiDefinitionVersionsApiDefinitionsApiNameVersionsGet200>({
+    url: `/api/definitions/${apiName}/versions`,
+    method: 'GET',
+  });
 };
 
 /**
  * Get a specific version of an API definition.
  * @summary Get Api Definition Version
  */
-export const getApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet = <
-  TData = AxiosResponse<GetApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet200>,
->(
+export const getApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet = (
   apiName: string,
   versionId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/api/definitions/${apiName}/versions/${versionId}`, options);
+) => {
+  return customInstance<GetApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet200>({
+    url: `/api/definitions/${apiName}/versions/${versionId}`,
+    method: 'GET',
+  });
 };
 
 /**
  * Import an API definition from a JSON file.
  * @summary Import Api Definition
  */
-export const importApiDefinitionApiDefinitionsImportPost = <
-  TData = AxiosResponse<ImportApiDefinitionApiDefinitionsImportPost200>,
->(
+export const importApiDefinitionApiDefinitionsImportPost = (
   importApiDefinitionRequest: ImportApiDefinitionRequest,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/api/definitions/import`, importApiDefinitionRequest, options);
+) => {
+  return customInstance<ImportApiDefinitionApiDefinitionsImportPost200>({
+    url: `/api/definitions/import`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: importApiDefinitionRequest,
+  });
 };
 
 /**
  * Unarchive an API definition.
  * @summary Unarchive Api Definition
  */
-export const unarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost = <
-  TData = AxiosResponse<UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost200>,
->(
-  apiName: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/api/definitions/${apiName}/unarchive`, undefined, options);
+export const unarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost = (apiName: string) => {
+  return customInstance<UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost200>({
+    url: `/api/definitions/${apiName}/unarchive`,
+    method: 'POST',
+  });
 };
 
 /**
  * Get metadata for a specific API definition, including archived status.
  * @summary Get Api Definition Metadata
  */
-export const getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet = <
-  TData = AxiosResponse<GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGet200>,
->(
-  apiName: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/api/definitions/${apiName}/metadata`, options);
+export const getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet = (apiName: string) => {
+  return customInstance<GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGet200>({
+    url: `/api/definitions/${apiName}/metadata`,
+    method: 'GET',
+  });
 };
 
 /**
  * List all available targets.
  * @summary List Targets
  */
-export const listTargetsTargetsGet = <TData = AxiosResponse<Target[]>>(
-  params?: ListTargetsTargetsGetParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/targets/`, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+export const listTargetsTargetsGet = (params?: ListTargetsTargetsGetParams) => {
+  return customInstance<Target[]>({ url: `/targets/`, method: 'GET', params });
 };
 
 /**
  * Create a new target.
  * @summary Create Target
  */
-export const createTargetTargetsPost = <TData = AxiosResponse<Target>>(
-  targetCreate: TargetCreate,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/targets/`, targetCreate, options);
+export const createTargetTargetsPost = (targetCreate: TargetCreate) => {
+  return customInstance<Target>({
+    url: `/targets/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: targetCreate,
+  });
 };
 
 /**
  * Get details of a specific target.
  * @summary Get Target
  */
-export const getTargetTargetsTargetIdGet = <TData = AxiosResponse<Target>>(
-  targetId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/targets/${targetId}`, options);
+export const getTargetTargetsTargetIdGet = (targetId: string) => {
+  return customInstance<Target>({ url: `/targets/${targetId}`, method: 'GET' });
 };
 
 /**
  * Update a target's configuration.
  * @summary Update Target
  */
-export const updateTargetTargetsTargetIdPut = <TData = AxiosResponse<Target>>(
-  targetId: string,
-  targetUpdate: TargetUpdate,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.put(`/targets/${targetId}`, targetUpdate, options);
+export const updateTargetTargetsTargetIdPut = (targetId: string, targetUpdate: TargetUpdate) => {
+  return customInstance<Target>({
+    url: `/targets/${targetId}`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: targetUpdate,
+  });
 };
 
 /**
  * Archive a target (soft delete).
  * @summary Delete Target
  */
-export const deleteTargetTargetsTargetIdDelete = <TData = AxiosResponse<unknown>>(
-  targetId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.delete(`/targets/${targetId}`, options);
+export const deleteTargetTargetsTargetIdDelete = (targetId: string) => {
+  return customInstance<unknown>({ url: `/targets/${targetId}`, method: 'DELETE' });
 };
 
 /**
  * Permanently delete a target (hard delete).
  * @summary Hard Delete Target
  */
-export const hardDeleteTargetTargetsTargetIdHardDelete = <TData = AxiosResponse<unknown>>(
-  targetId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.delete(`/targets/${targetId}/hard`, options);
+export const hardDeleteTargetTargetsTargetIdHardDelete = (targetId: string) => {
+  return customInstance<unknown>({ url: `/targets/${targetId}/hard`, method: 'DELETE' });
 };
 
 /**
  * List all active sessions.
  * @summary List Sessions
  */
-export const listSessionsSessionsGet = <TData = AxiosResponse<Session[]>>(
-  params?: ListSessionsSessionsGetParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/sessions/`, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+export const listSessionsSessionsGet = (params?: ListSessionsSessionsGetParams) => {
+  return customInstance<Session[]>({ url: `/sessions/`, method: 'GET', params });
 };
 
 /**
@@ -639,14 +605,16 @@ export const listSessionsSessionsGet = <TData = AxiosResponse<Session[]>>(
 If get_or_create is True, will return an existing ready session for the target if one exists.
  * @summary Create Session
  */
-export const createSessionSessionsPost = <TData = AxiosResponse<Session>>(
+export const createSessionSessionsPost = (
   sessionCreate: SessionCreate,
   params?: CreateSessionSessionsPostParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/sessions/`, sessionCreate, {
-    ...options,
-    params: { ...params, ...options?.params },
+) => {
+  return customInstance<Session>({
+    url: `/sessions/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: sessionCreate,
+    params,
   });
 };
 
@@ -654,45 +622,40 @@ export const createSessionSessionsPost = <TData = AxiosResponse<Session>>(
  * Get details of a specific session.
  * @summary Get Session
  */
-export const getSessionSessionsSessionIdGet = <TData = AxiosResponse<unknown>>(
-  sessionId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/sessions/${sessionId}`, options);
+export const getSessionSessionsSessionIdGet = (sessionId: string) => {
+  return customInstance<unknown>({ url: `/sessions/${sessionId}`, method: 'GET' });
 };
 
 /**
  * Update a session's configuration.
  * @summary Update Session
  */
-export const updateSessionSessionsSessionIdPut = <TData = AxiosResponse<unknown>>(
+export const updateSessionSessionsSessionIdPut = (
   sessionId: string,
   sessionUpdate: SessionUpdate,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.put(`/sessions/${sessionId}`, sessionUpdate, options);
+) => {
+  return customInstance<unknown>({
+    url: `/sessions/${sessionId}`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: sessionUpdate,
+  });
 };
 
 /**
  * Archive a session.
  * @summary Delete Session
  */
-export const deleteSessionSessionsSessionIdDelete = <TData = AxiosResponse<unknown>>(
-  sessionId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.delete(`/sessions/${sessionId}`, options);
+export const deleteSessionSessionsSessionIdDelete = (sessionId: string) => {
+  return customInstance<unknown>({ url: `/sessions/${sessionId}`, method: 'DELETE' });
 };
 
 /**
  * Permanently delete a session and stop its container (hard delete).
  * @summary Hard Delete Session
  */
-export const hardDeleteSessionSessionsSessionIdHardDelete = <TData = AxiosResponse<unknown>>(
-  sessionId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.delete(`/sessions/${sessionId}/hard`, options);
+export const hardDeleteSessionSessionsSessionIdHardDelete = (sessionId: string) => {
+  return customInstance<unknown>({ url: `/sessions/${sessionId}/hard`, method: 'DELETE' });
 };
 
 /**
@@ -701,18 +664,16 @@ export const hardDeleteSessionSessionsSessionIdHardDelete = <TData = AxiosRespon
 This endpoint forwards API requests to the container running the session.
  * @summary Execute Api On Session
  */
-export const executeApiOnSessionSessionsSessionIdExecutePost = <
-  TData = AxiosResponse<ExecuteApiOnSessionSessionsSessionIdExecutePost200>,
->(
+export const executeApiOnSessionSessionsSessionIdExecutePost = (
   sessionId: string,
   executeApiOnSessionSessionsSessionIdExecutePostBody: ExecuteApiOnSessionSessionsSessionIdExecutePostBody,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(
-    `/sessions/${sessionId}/execute`,
-    executeApiOnSessionSessionsSessionIdExecutePostBody,
-    options,
-  );
+) => {
+  return customInstance<ExecuteApiOnSessionSessionsSessionIdExecutePost200>({
+    url: `/sessions/${sessionId}/execute`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: executeApiOnSessionSessionsSessionIdExecutePostBody,
+  });
 };
 
 /**
@@ -721,56 +682,38 @@ export const executeApiOnSessionSessionsSessionIdExecutePost = <
 This endpoint forwards VNC viewer requests to the container's VNC server running on port 6080.
  * @summary Proxy Vnc
  */
-export const proxyVncSessionsSessionIdVncPathGet = <TData = AxiosResponse<unknown>>(
-  sessionId: string,
-  path: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/sessions/${sessionId}/vnc/${path}`, options);
+export const proxyVncSessionsSessionIdVncPathGet = (sessionId: string, path: string) => {
+  return customInstance<unknown>({ url: `/sessions/${sessionId}/vnc/${path}`, method: 'GET' });
 };
 
 /**
  * Update the state of a session.
  * @summary Update Session State
  */
-export const updateSessionStateSessionsSessionIdStatePut = <TData = AxiosResponse<unknown>>(
+export const updateSessionStateSessionsSessionIdStatePut = (
   sessionId: string,
   params: UpdateSessionStateSessionsSessionIdStatePutParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.put(`/sessions/${sessionId}/state`, undefined, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+) => {
+  return customInstance<unknown>({ url: `/sessions/${sessionId}/state`, method: 'PUT', params });
 };
 
 /**
  * List all jobs across all targets with pagination and filtering options.
  * @summary List All Jobs
  */
-export const listAllJobsJobsGet = <TData = AxiosResponse<PaginatedJobsResponse>>(
-  params?: ListAllJobsJobsGetParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/jobs/`, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+export const listAllJobsJobsGet = (params?: ListAllJobsJobsGetParams) => {
+  return customInstance<PaginatedJobsResponse>({ url: `/jobs/`, method: 'GET', params });
 };
 
 /**
  * List all jobs for a specific target with pagination.
  * @summary List Target Jobs
  */
-export const listTargetJobsTargetsTargetIdJobsGet = <TData = AxiosResponse<Job[]>>(
+export const listTargetJobsTargetsTargetIdJobsGet = (
   targetId: string,
   params?: ListTargetJobsTargetsTargetIdJobsGetParams,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/targets/${targetId}/jobs/`, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+) => {
+  return customInstance<Job[]>({ url: `/targets/${targetId}/jobs/`, method: 'GET', params });
 };
 
 /**
@@ -782,70 +725,65 @@ Note: Jobs have a token usage limit of 15,000 tokens (combined input and output)
 Jobs exceeding this limit will be automatically terminated.
  * @summary Create Job
  */
-export const createJobTargetsTargetIdJobsPost = <TData = AxiosResponse<Job>>(
-  targetId: string,
-  jobCreate: JobCreate,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/targets/${targetId}/jobs/`, jobCreate, options);
+export const createJobTargetsTargetIdJobsPost = (targetId: string, jobCreate: JobCreate) => {
+  return customInstance<Job>({
+    url: `/targets/${targetId}/jobs/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: jobCreate,
+  });
 };
 
 /**
  * Get details of a specific job.
  * @summary Get Job
  */
-export const getJobTargetsTargetIdJobsJobIdGet = <TData = AxiosResponse<Job>>(
-  targetId: string,
-  jobId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/targets/${targetId}/jobs/${jobId}`, options);
+export const getJobTargetsTargetIdJobsJobIdGet = (targetId: string, jobId: string) => {
+  return customInstance<Job>({ url: `/targets/${targetId}/jobs/${jobId}`, method: 'GET' });
 };
 
 /**
  * Get the current status of the job queue.
  * @summary Get Queue Status
  */
-export const getQueueStatusJobsQueueStatusGet = <TData = AxiosResponse<unknown>>(
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/jobs/queue/status`, options);
+export const getQueueStatusJobsQueueStatusGet = () => {
+  return customInstance<unknown>({ url: `/jobs/queue/status`, method: 'GET' });
 };
 
 /**
  * Interrupt a running, queued, or pending job.
  * @summary Interrupt Job
  */
-export const interruptJobTargetsTargetIdJobsJobIdInterruptPost = <TData = AxiosResponse<unknown>>(
+export const interruptJobTargetsTargetIdJobsJobIdInterruptPost = (
   targetId: string,
   jobId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/targets/${targetId}/jobs/${jobId}/interrupt/`, undefined, options);
+) => {
+  return customInstance<unknown>({
+    url: `/targets/${targetId}/jobs/${jobId}/interrupt/`,
+    method: 'POST',
+  });
 };
 
 /**
  * Cancel a job and mark its status as 'canceled'.
  * @summary Cancel Job
  */
-export const cancelJobTargetsTargetIdJobsJobIdCancelPost = <TData = AxiosResponse<unknown>>(
-  targetId: string,
-  jobId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/targets/${targetId}/jobs/${jobId}/cancel/`, undefined, options);
+export const cancelJobTargetsTargetIdJobsJobIdCancelPost = (targetId: string, jobId: string) => {
+  return customInstance<unknown>({
+    url: `/targets/${targetId}/jobs/${jobId}/cancel/`,
+    method: 'POST',
+  });
 };
 
 /**
  * Get logs for a specific job.
  * @summary Get Job Logs
  */
-export const getJobLogsTargetsTargetIdJobsJobIdLogsGet = <TData = AxiosResponse<JobLogEntry[]>>(
-  targetId: string,
-  jobId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/targets/${targetId}/jobs/${jobId}/logs/`, options);
+export const getJobLogsTargetsTargetIdJobsJobIdLogsGet = (targetId: string, jobId: string) => {
+  return customInstance<JobLogEntry[]>({
+    url: `/targets/${targetId}/jobs/${jobId}/logs/`,
+    method: 'GET',
+  });
 };
 
 /**
@@ -856,14 +794,14 @@ Args:
     job_id: ID of the job
  * @summary Get Job Http Exchanges
  */
-export const getJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGet = <
-  TData = AxiosResponse<HttpExchangeLog[]>,
->(
+export const getJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGet = (
   targetId: string,
   jobId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/targets/${targetId}/jobs/${jobId}/http_exchanges/`, options);
+) => {
+  return customInstance<HttpExchangeLog[]>({
+    url: `/targets/${targetId}/jobs/${jobId}/http_exchanges/`,
+    method: 'GET',
+  });
 };
 
 /**
@@ -873,29 +811,25 @@ This endpoint allows setting a result for a job and marking it as successful.
 If all error/paused jobs for this target are resolved, the queue will automatically resume.
  * @summary Resolve Job
  */
-export const resolveJobTargetsTargetIdJobsJobIdResolvePost = <TData = AxiosResponse<unknown>>(
+export const resolveJobTargetsTargetIdJobsJobIdResolvePost = (
   targetId: string,
   jobId: string,
   resolveJobTargetsTargetIdJobsJobIdResolvePostBody: ResolveJobTargetsTargetIdJobsJobIdResolvePostBody,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(
-    `/targets/${targetId}/jobs/${jobId}/resolve/`,
-    resolveJobTargetsTargetIdJobsJobIdResolvePostBody,
-    options,
-  );
+) => {
+  return customInstance<unknown>({
+    url: `/targets/${targetId}/jobs/${jobId}/resolve/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: resolveJobTargetsTargetIdJobsJobIdResolvePostBody,
+  });
 };
 
 /**
  * Resumes a paused or error job by setting its status to queued.
  * @summary Resume Job
  */
-export const resumeJobTargetsTargetIdJobsJobIdResumePost = <TData = AxiosResponse<Job>>(
-  targetId: string,
-  jobId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/targets/${targetId}/jobs/${jobId}/resume/`, undefined, options);
+export const resumeJobTargetsTargetIdJobsJobIdResumePost = (targetId: string, jobId: string) => {
+  return customInstance<Job>({ url: `/targets/${targetId}/jobs/${jobId}/resume/`, method: 'POST' });
 };
 
 /**
@@ -905,10 +839,8 @@ This is a temporary endpoint to help diagnose issues with the job processing sys
 It provides insights into why jobs might be stuck in the QUEUED state.
  * @summary Diagnose Job Queue
  */
-export const diagnoseJobQueueDiagnosticsQueueGet = <TData = AxiosResponse<unknown>>(
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/diagnostics/queue`, options);
+export const diagnoseJobQueueDiagnosticsQueueGet = () => {
+  return customInstance<unknown>({ url: `/diagnostics/queue`, method: 'GET' });
 };
 
 /**
@@ -918,10 +850,8 @@ This endpoint can be used to manually start the job queue processor if it's
 not running or has stopped due to an exception.
  * @summary Start Job Processor
  */
-export const startJobProcessorDiagnosticsQueueStartPost = <TData = AxiosResponse<unknown>>(
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/diagnostics/queue/start`, undefined, options);
+export const startJobProcessorDiagnosticsQueueStartPost = () => {
+  return customInstance<unknown>({ url: `/diagnostics/queue/start`, method: 'POST' });
 };
 
 /**
@@ -931,99 +861,167 @@ This can help diagnose why jobs for a specific target might be stuck in the QUEU
 For jobs to run, there needs to be at least one session in the "ready" state.
  * @summary Check Target Sessions
  */
-export const checkTargetSessionsDiagnosticsTargetsTargetIdSessionsGet = <
-  TData = AxiosResponse<unknown>,
->(
-  targetId: string,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/diagnostics/targets/${targetId}/sessions`, options);
+export const checkTargetSessionsDiagnosticsTargetsTargetIdSessionsGet = (targetId: string) => {
+  return customInstance<unknown>({
+    url: `/diagnostics/targets/${targetId}/sessions`,
+    method: 'GET',
+  });
 };
 
 /**
  * Get available VLM providers and their configurations.
  * @summary Get Providers
  */
-export const getProvidersSettingsProvidersGet = <TData = AxiosResponse<ProvidersResponse>>(
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/settings/providers`, options);
+export const getProvidersSettingsProvidersGet = () => {
+  return customInstance<ProvidersResponse>({ url: `/settings/providers`, method: 'GET' });
 };
 
 /**
  * Update provider configuration and set as active provider.
  * @summary Update Provider Settings
  */
-export const updateProviderSettingsSettingsProvidersPost = <
-  TData = AxiosResponse<UpdateProviderSettingsSettingsProvidersPost200>,
->(
+export const updateProviderSettingsSettingsProvidersPost = (
   updateProviderRequest: UpdateProviderRequest,
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.post(`/settings/providers`, updateProviderRequest, options);
+) => {
+  return customInstance<UpdateProviderSettingsSettingsProvidersPost200>({
+    url: `/settings/providers`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: updateProviderRequest,
+  });
 };
 
 /**
  * Root endpoint.
  * @summary Root
  */
-export const rootGet = <TData = AxiosResponse<unknown>>(
-  options?: AxiosRequestConfig,
-): Promise<TData> => {
-  return axios.default.get(`/`, options);
+export const rootGet = () => {
+  return customInstance<unknown>({ url: `/`, method: 'GET' });
 };
 
-export type GetApiDefinitionsApiDefinitionsGetResult = AxiosResponse<APIDefinition[]>;
-export type GetApiDefinitionApiDefinitionsApiNameGetResult = AxiosResponse<APIDefinition>;
-export type UpdateApiDefinitionApiDefinitionsApiNamePutResult =
-  AxiosResponse<UpdateApiDefinitionApiDefinitionsApiNamePut200>;
-export type ArchiveApiDefinitionApiDefinitionsApiNameDeleteResult =
-  AxiosResponse<ArchiveApiDefinitionApiDefinitionsApiNameDelete200>;
-export type ExportApiDefinitionApiDefinitionsApiNameExportGetResult =
-  AxiosResponse<ExportApiDefinitionApiDefinitionsApiNameExportGet200>;
-export type GetApiDefinitionVersionsApiDefinitionsApiNameVersionsGetResult =
-  AxiosResponse<GetApiDefinitionVersionsApiDefinitionsApiNameVersionsGet200>;
-export type GetApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGetResult =
-  AxiosResponse<GetApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet200>;
-export type ImportApiDefinitionApiDefinitionsImportPostResult =
-  AxiosResponse<ImportApiDefinitionApiDefinitionsImportPost200>;
-export type UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePostResult =
-  AxiosResponse<UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost200>;
-export type GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGetResult =
-  AxiosResponse<GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGet200>;
-export type ListTargetsTargetsGetResult = AxiosResponse<Target[]>;
-export type CreateTargetTargetsPostResult = AxiosResponse<Target>;
-export type GetTargetTargetsTargetIdGetResult = AxiosResponse<Target>;
-export type UpdateTargetTargetsTargetIdPutResult = AxiosResponse<Target>;
-export type DeleteTargetTargetsTargetIdDeleteResult = AxiosResponse<unknown>;
-export type HardDeleteTargetTargetsTargetIdHardDeleteResult = AxiosResponse<unknown>;
-export type ListSessionsSessionsGetResult = AxiosResponse<Session[]>;
-export type CreateSessionSessionsPostResult = AxiosResponse<Session>;
-export type GetSessionSessionsSessionIdGetResult = AxiosResponse<unknown>;
-export type UpdateSessionSessionsSessionIdPutResult = AxiosResponse<unknown>;
-export type DeleteSessionSessionsSessionIdDeleteResult = AxiosResponse<unknown>;
-export type HardDeleteSessionSessionsSessionIdHardDeleteResult = AxiosResponse<unknown>;
-export type ExecuteApiOnSessionSessionsSessionIdExecutePostResult =
-  AxiosResponse<ExecuteApiOnSessionSessionsSessionIdExecutePost200>;
-export type ProxyVncSessionsSessionIdVncPathGetResult = AxiosResponse<unknown>;
-export type UpdateSessionStateSessionsSessionIdStatePutResult = AxiosResponse<unknown>;
-export type ListAllJobsJobsGetResult = AxiosResponse<PaginatedJobsResponse>;
-export type ListTargetJobsTargetsTargetIdJobsGetResult = AxiosResponse<Job[]>;
-export type CreateJobTargetsTargetIdJobsPostResult = AxiosResponse<Job>;
-export type GetJobTargetsTargetIdJobsJobIdGetResult = AxiosResponse<Job>;
-export type GetQueueStatusJobsQueueStatusGetResult = AxiosResponse<unknown>;
-export type InterruptJobTargetsTargetIdJobsJobIdInterruptPostResult = AxiosResponse<unknown>;
-export type CancelJobTargetsTargetIdJobsJobIdCancelPostResult = AxiosResponse<unknown>;
-export type GetJobLogsTargetsTargetIdJobsJobIdLogsGetResult = AxiosResponse<JobLogEntry[]>;
-export type GetJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGetResult = AxiosResponse<
-  HttpExchangeLog[]
+type AwaitedInput<T> = PromiseLike<T> | T;
+
+type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
+export type GetApiDefinitionsApiDefinitionsGetResult = NonNullable<
+  Awaited<ReturnType<typeof getApiDefinitionsApiDefinitionsGet>>
 >;
-export type ResolveJobTargetsTargetIdJobsJobIdResolvePostResult = AxiosResponse<unknown>;
-export type ResumeJobTargetsTargetIdJobsJobIdResumePostResult = AxiosResponse<Job>;
-export type DiagnoseJobQueueDiagnosticsQueueGetResult = AxiosResponse<unknown>;
-export type StartJobProcessorDiagnosticsQueueStartPostResult = AxiosResponse<unknown>;
-export type CheckTargetSessionsDiagnosticsTargetsTargetIdSessionsGetResult = AxiosResponse<unknown>;
-export type GetProvidersSettingsProvidersGetResult = AxiosResponse<ProvidersResponse>;
-export type UpdateProviderSettingsSettingsProvidersPostResult =
-  AxiosResponse<UpdateProviderSettingsSettingsProvidersPost200>;
-export type RootGetResult = AxiosResponse<unknown>;
+export type GetApiDefinitionApiDefinitionsApiNameGetResult = NonNullable<
+  Awaited<ReturnType<typeof getApiDefinitionApiDefinitionsApiNameGet>>
+>;
+export type UpdateApiDefinitionApiDefinitionsApiNamePutResult = NonNullable<
+  Awaited<ReturnType<typeof updateApiDefinitionApiDefinitionsApiNamePut>>
+>;
+export type ArchiveApiDefinitionApiDefinitionsApiNameDeleteResult = NonNullable<
+  Awaited<ReturnType<typeof archiveApiDefinitionApiDefinitionsApiNameDelete>>
+>;
+export type ExportApiDefinitionApiDefinitionsApiNameExportGetResult = NonNullable<
+  Awaited<ReturnType<typeof exportApiDefinitionApiDefinitionsApiNameExportGet>>
+>;
+export type GetApiDefinitionVersionsApiDefinitionsApiNameVersionsGetResult = NonNullable<
+  Awaited<ReturnType<typeof getApiDefinitionVersionsApiDefinitionsApiNameVersionsGet>>
+>;
+export type GetApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGetResult = NonNullable<
+  Awaited<ReturnType<typeof getApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet>>
+>;
+export type ImportApiDefinitionApiDefinitionsImportPostResult = NonNullable<
+  Awaited<ReturnType<typeof importApiDefinitionApiDefinitionsImportPost>>
+>;
+export type UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePostResult = NonNullable<
+  Awaited<ReturnType<typeof unarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost>>
+>;
+export type GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGetResult = NonNullable<
+  Awaited<ReturnType<typeof getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet>>
+>;
+export type ListTargetsTargetsGetResult = NonNullable<
+  Awaited<ReturnType<typeof listTargetsTargetsGet>>
+>;
+export type CreateTargetTargetsPostResult = NonNullable<
+  Awaited<ReturnType<typeof createTargetTargetsPost>>
+>;
+export type GetTargetTargetsTargetIdGetResult = NonNullable<
+  Awaited<ReturnType<typeof getTargetTargetsTargetIdGet>>
+>;
+export type UpdateTargetTargetsTargetIdPutResult = NonNullable<
+  Awaited<ReturnType<typeof updateTargetTargetsTargetIdPut>>
+>;
+export type DeleteTargetTargetsTargetIdDeleteResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTargetTargetsTargetIdDelete>>
+>;
+export type HardDeleteTargetTargetsTargetIdHardDeleteResult = NonNullable<
+  Awaited<ReturnType<typeof hardDeleteTargetTargetsTargetIdHardDelete>>
+>;
+export type ListSessionsSessionsGetResult = NonNullable<
+  Awaited<ReturnType<typeof listSessionsSessionsGet>>
+>;
+export type CreateSessionSessionsPostResult = NonNullable<
+  Awaited<ReturnType<typeof createSessionSessionsPost>>
+>;
+export type GetSessionSessionsSessionIdGetResult = NonNullable<
+  Awaited<ReturnType<typeof getSessionSessionsSessionIdGet>>
+>;
+export type UpdateSessionSessionsSessionIdPutResult = NonNullable<
+  Awaited<ReturnType<typeof updateSessionSessionsSessionIdPut>>
+>;
+export type DeleteSessionSessionsSessionIdDeleteResult = NonNullable<
+  Awaited<ReturnType<typeof deleteSessionSessionsSessionIdDelete>>
+>;
+export type HardDeleteSessionSessionsSessionIdHardDeleteResult = NonNullable<
+  Awaited<ReturnType<typeof hardDeleteSessionSessionsSessionIdHardDelete>>
+>;
+export type ExecuteApiOnSessionSessionsSessionIdExecutePostResult = NonNullable<
+  Awaited<ReturnType<typeof executeApiOnSessionSessionsSessionIdExecutePost>>
+>;
+export type ProxyVncSessionsSessionIdVncPathGetResult = NonNullable<
+  Awaited<ReturnType<typeof proxyVncSessionsSessionIdVncPathGet>>
+>;
+export type UpdateSessionStateSessionsSessionIdStatePutResult = NonNullable<
+  Awaited<ReturnType<typeof updateSessionStateSessionsSessionIdStatePut>>
+>;
+export type ListAllJobsJobsGetResult = NonNullable<Awaited<ReturnType<typeof listAllJobsJobsGet>>>;
+export type ListTargetJobsTargetsTargetIdJobsGetResult = NonNullable<
+  Awaited<ReturnType<typeof listTargetJobsTargetsTargetIdJobsGet>>
+>;
+export type CreateJobTargetsTargetIdJobsPostResult = NonNullable<
+  Awaited<ReturnType<typeof createJobTargetsTargetIdJobsPost>>
+>;
+export type GetJobTargetsTargetIdJobsJobIdGetResult = NonNullable<
+  Awaited<ReturnType<typeof getJobTargetsTargetIdJobsJobIdGet>>
+>;
+export type GetQueueStatusJobsQueueStatusGetResult = NonNullable<
+  Awaited<ReturnType<typeof getQueueStatusJobsQueueStatusGet>>
+>;
+export type InterruptJobTargetsTargetIdJobsJobIdInterruptPostResult = NonNullable<
+  Awaited<ReturnType<typeof interruptJobTargetsTargetIdJobsJobIdInterruptPost>>
+>;
+export type CancelJobTargetsTargetIdJobsJobIdCancelPostResult = NonNullable<
+  Awaited<ReturnType<typeof cancelJobTargetsTargetIdJobsJobIdCancelPost>>
+>;
+export type GetJobLogsTargetsTargetIdJobsJobIdLogsGetResult = NonNullable<
+  Awaited<ReturnType<typeof getJobLogsTargetsTargetIdJobsJobIdLogsGet>>
+>;
+export type GetJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGetResult = NonNullable<
+  Awaited<ReturnType<typeof getJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGet>>
+>;
+export type ResolveJobTargetsTargetIdJobsJobIdResolvePostResult = NonNullable<
+  Awaited<ReturnType<typeof resolveJobTargetsTargetIdJobsJobIdResolvePost>>
+>;
+export type ResumeJobTargetsTargetIdJobsJobIdResumePostResult = NonNullable<
+  Awaited<ReturnType<typeof resumeJobTargetsTargetIdJobsJobIdResumePost>>
+>;
+export type DiagnoseJobQueueDiagnosticsQueueGetResult = NonNullable<
+  Awaited<ReturnType<typeof diagnoseJobQueueDiagnosticsQueueGet>>
+>;
+export type StartJobProcessorDiagnosticsQueueStartPostResult = NonNullable<
+  Awaited<ReturnType<typeof startJobProcessorDiagnosticsQueueStartPost>>
+>;
+export type CheckTargetSessionsDiagnosticsTargetsTargetIdSessionsGetResult = NonNullable<
+  Awaited<ReturnType<typeof checkTargetSessionsDiagnosticsTargetsTargetIdSessionsGet>>
+>;
+export type GetProvidersSettingsProvidersGetResult = NonNullable<
+  Awaited<ReturnType<typeof getProvidersSettingsProvidersGet>>
+>;
+export type UpdateProviderSettingsSettingsProvidersPostResult = NonNullable<
+  Awaited<ReturnType<typeof updateProviderSettingsSettingsProvidersPost>>
+>;
+export type RootGetResult = NonNullable<Awaited<ReturnType<typeof rootGet>>>;
