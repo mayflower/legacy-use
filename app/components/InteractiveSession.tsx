@@ -150,6 +150,22 @@ export default function InteractiveSession() {
               </CardContent>
             </Card>
           ))}
+
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            Parameters
+          </Typography>
+          {analyzeResult.parameters.map(parameter => (
+            <Card key={parameter.name} sx={{ mb: 3 }}>
+              <CardContent>
+                <Typography variant="subtitle1">
+                  {parameter.name}: {parameter.type}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {parameter.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          ))}
         </Box>
       )}
 
