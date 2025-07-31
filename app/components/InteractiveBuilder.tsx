@@ -17,7 +17,6 @@ interface ActionStepCardProps {
 function ActionStepCard({ action, onUpdate }: ActionStepCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedAction, setEditedAction] = useState(action);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleSave = () => {
     onUpdate(editedAction);
@@ -38,11 +37,7 @@ function ActionStepCard({ action, onUpdate }: ActionStepCardProps) {
   };
 
   return (
-    <Card
-      sx={{ mb: 3, position: 'relative' }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <Card sx={{ mb: 3, position: 'relative' }}>
       <CardContent>
         {isEditing ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -81,15 +76,6 @@ function ActionStepCard({ action, onUpdate }: ActionStepCardProps) {
                 <Typography fontSize={12} fontFamily="monospace" color="text.secondary">
                   {action.tool}
                 </Typography>
-                {isHovered && (
-                  <IconButton
-                    size="small"
-                    onClick={() => setIsEditing(true)}
-                    sx={{ opacity: 0.7, '&:hover': { opacity: 1 } }}
-                  >
-                    <Edit fontSize="small" />
-                  </IconButton>
-                )}
               </Box>
             </Box>
             <Typography variant="body2" color="text.secondary">
@@ -98,6 +84,37 @@ function ActionStepCard({ action, onUpdate }: ActionStepCardProps) {
           </>
         )}
       </CardContent>
+      {!isEditing && (
+        <Box
+          onClick={() => setIsEditing(true)}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'transparent',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              '& .edit-icon': {
+                opacity: 1,
+              },
+            },
+          }}
+        >
+          <Edit
+            className="edit-icon"
+            sx={{
+              color: 'white',
+              fontSize: 32,
+              opacity: 0,
+              transition: 'opacity 0.2s',
+            }}
+          />
+        </Box>
+      )}
     </Card>
   );
 }
@@ -110,7 +127,6 @@ interface ParameterCardProps {
 function ParameterCard({ parameter, onUpdate }: ParameterCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedParameter, setEditedParameter] = useState(parameter);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleSave = () => {
     onUpdate(editedParameter);
@@ -131,11 +147,7 @@ function ParameterCard({ parameter, onUpdate }: ParameterCardProps) {
   };
 
   return (
-    <Card
-      sx={{ mb: 3, position: 'relative' }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <Card sx={{ mb: 3, position: 'relative' }}>
       <CardContent>
         {isEditing ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -182,15 +194,6 @@ function ParameterCard({ parameter, onUpdate }: ParameterCardProps) {
               <Typography variant="subtitle1">
                 {parameter.name}: {parameter.type}
               </Typography>
-              {isHovered && (
-                <IconButton
-                  size="small"
-                  onClick={() => setIsEditing(true)}
-                  sx={{ opacity: 0.7, '&:hover': { opacity: 1 } }}
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-              )}
             </Box>
             <Typography variant="body2" color="text.secondary">
               {parameter.description}
@@ -198,6 +201,37 @@ function ParameterCard({ parameter, onUpdate }: ParameterCardProps) {
           </>
         )}
       </CardContent>
+      {!isEditing && (
+        <Box
+          onClick={() => setIsEditing(true)}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'transparent',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              '& .edit-icon': {
+                opacity: 1,
+              },
+            },
+          }}
+        >
+          <Edit
+            className="edit-icon"
+            sx={{
+              color: 'white',
+              fontSize: 32,
+              opacity: 0,
+              transition: 'opacity 0.2s',
+            }}
+          />
+        </Box>
+      )}
     </Card>
   );
 }
