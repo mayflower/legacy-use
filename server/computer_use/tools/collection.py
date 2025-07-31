@@ -22,21 +22,16 @@ def validate_tool_input(
     input_params = set(tool_input.keys())
 
     func = tool.__call__
-
     signature = inspect.signature(func)
-
     expected_params = set(signature.parameters.items())
 
     required_params = set()
-    optional_params = set()
 
     for param, value in expected_params:
         # skip self, session_id, kwargs
         if param in {'self', 'session_id', 'kwargs'}:
             continue
-        if value.default is not inspect.Parameter.empty:
-            optional_params.add(param)
-        else:
+        if value.default is inspect.Parameter.empty:
             required_params.add(param)
 
     missing_params = required_params - set(input_params)
