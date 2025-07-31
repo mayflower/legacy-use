@@ -2,7 +2,7 @@
 
 import inspect
 from typing import Any
-
+from server.computer_use.logging import logger
 from anthropic.types.beta import BetaToolUnionParam
 
 from .base import (
@@ -19,7 +19,7 @@ def validate_tool_input(
 ) -> tuple[bool, str | None]:
     """Validate tool input against the tool's input schema."""
 
-    print('tool_input', tool_input.keys())
+    input_params = set(tool_input.keys())
 
     func = tool.__call__
 
@@ -38,11 +38,13 @@ def validate_tool_input(
             optional_params.add(param)
         else:
             required_params.add(param)
-    print('required_params', required_params)
-    print('optional_params', optional_params)
-    missing_params = required_params - set(tool_input.keys())
-    print('missing_params', missing_params)
+
+    missing_params = required_params - set(input_params)
+
     if missing_params:
+        logger.error(
+            f'Tool {tool.name} input is missing required parameters: {missing_params}'
+        )
         return (
             False,
             f'Tool {tool.name} input is missing required parameters: {missing_params}',
@@ -73,14 +75,10 @@ class ToolCollection:
         # Validate tool input
         valid, error = validate_tool_input(tool, tool_input)
 
-        # debug
-        valid = False
-        error = 'Tool is missing required parameters'
-
         if not valid:
-            # create tool result to prompt the AI to fix the input
+            # Create tool result prompting the AI to fix the input
             return ToolResult(
-                output=f'Tool {name} input is invalid: {error}',
+                output=f'The tool {name} failed! Reason: "{error}". Please fix the input and try again.',
             )
 
         try:
