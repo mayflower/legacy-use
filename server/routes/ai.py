@@ -147,7 +147,7 @@ Analyze the provided video recording of a user interacting with a software appli
 
 1. **Identify the core workflow** - What is the user trying to accomplish?
 2. **Break down the steps** - What are the individual actions taken?
-3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized?
+3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized? Like text, dates, names, values, etc. the user entered, selected or modified.
 4. **Create an API definition** - Generate a complete API definition that could automate this workflow.
 
 ## Analysis Guidelines
@@ -165,7 +165,7 @@ Create an API definition with:
 1. **Name**: A clear, descriptive name for the automation (use snake_case)
 2. **Description**: A comprehensive description of what the automation does
 3. **Parameters**: List of parameters needed (with types: string, number, boolean, list)
-4. **Prompt**: Detailed step-by-step instructions following the HOW_TO_PROMPT.md format
+4. **Prompt**: Detailed step-by-step instructions following the HOW_TO_PROMPT.md format, make sure to replace the identified parameters with the `{{...}}` syntax.
 5. **Prompt Cleanup**: Instructions to return the system to its original state
 6. **Response Example**: Expected JSON structure for the result
 
