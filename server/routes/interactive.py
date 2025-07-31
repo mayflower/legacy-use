@@ -50,11 +50,10 @@ class WorkflowResponse(BaseModel):
 
 def create_action_prompt(action_step: ActionStep) -> str:
     """Create a prompt for the AI to execute a specific action"""
-    base_prompt = f'Please execute the following action: {action_step.instruction}'
-
-    base_prompt += '\n\nTake a screenshot first to see the current state, then perform the requested action. Be precise and follow the instruction exactly.'
-
-    return base_prompt
+    return f"""Your goal is: {action_step.title}
+    Please execute the following action: {action_step.instruction}
+Might make sense to take a screenshot first to see the current state, then perform the requested action. Be precise and follow the instruction exactly.
+"""
 
 
 @interactive_router.post(
