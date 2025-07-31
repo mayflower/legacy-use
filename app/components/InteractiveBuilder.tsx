@@ -191,8 +191,14 @@ function ParameterCard({ parameter, onUpdate }: ParameterCardProps) {
         ) : (
           <>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle1">
-                {parameter.name}: {parameter.type}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle1">{parameter.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {JSON.stringify(parameter.default)}
+                </Typography>
+              </Box>
+              <Typography fontSize={12} fontFamily="monospace" color="text.secondary">
+                {parameter.type}
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary">
