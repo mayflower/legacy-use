@@ -61,7 +61,6 @@ def create_workflow_prompt(workflow_request: WorkflowRequest) -> str:
 
 
 def build_prompt(prompt_text: str, job_parameters: Dict[str, Any]) -> str:
-    """Build the prompt by substituting parameter values."""
     # Add current date to the parameters
     job_parameters = job_parameters.copy()
     job_parameters['now'] = datetime.now()  # TODO: Why is this needed?
@@ -139,6 +138,8 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
     # Create the prompt for the AI
     prompt_template = create_workflow_prompt(workflow_request)
     prompt = build_prompt(prompt_template, workflow_request.parameters)
+    logger.info(f'Prompt: {prompt}')
+
     # Create initial message for the sampling loop
     messages = [BetaMessageParam(role='user', content=prompt)]
 
