@@ -60,10 +60,8 @@ def create_workflow_prompt(workflow_request: WorkflowRequest) -> str:
     return prompt
 
 
-def build_prompt(self, job_parameters: Dict[str, Any]) -> str:
+def build_prompt(prompt_text: str, job_parameters: Dict[str, Any]) -> str:
     """Build the prompt by substituting parameter values."""
-    prompt_text = self.full_prompt_template
-
     # Add current date to the parameters
     job_parameters = job_parameters.copy()
     job_parameters['now'] = datetime.now()  # TODO: Why is this needed?

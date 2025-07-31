@@ -7,6 +7,7 @@ import {
   executeWorkflowInteractiveSessionsSessionIdWorkflowPost,
   type Parameter,
   type Session,
+  type WorkflowRequestParameters,
 } from '../gen/endpoints';
 
 interface ActionStepCardProps {
@@ -255,12 +256,18 @@ export default function InteractiveBuilder({
 
   const handleInteractiveExecute = async () => {
     setExecuteProgress(true);
+
+    const parametersPayload: WorkflowRequestParameters = parameters.reduce((acc, parameter) => {
+      acc[parameter.name] = parameter.default;
+      return acc;
+    }, {} as WorkflowRequestParameters);
+
     try {
       const response = await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(
         currentSession.id,
         {
           steps: actions,
-          parameters: parameters,
+          parameters: parametersPayload,
         },
       );
       console.log(response);
