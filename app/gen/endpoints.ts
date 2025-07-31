@@ -16,22 +16,6 @@ export interface APIDefinition {
   is_archived?: boolean;
 }
 
-export type ActionResponseOutput = string | null;
-
-export type ActionResponseError = string | null;
-
-export type ActionResponseBase64Image = string | null;
-
-export type ActionResponseAiReasoning = string | null;
-
-export interface ActionResponse {
-  success: boolean;
-  output?: ActionResponseOutput;
-  error?: ActionResponseError;
-  base64_image?: ActionResponseBase64Image;
-  ai_reasoning?: ActionResponseAiReasoning;
-}
-
 /**
  * The tool to use to complete the action
  */
@@ -496,20 +480,33 @@ export interface VideoAnalysisResponse {
   response_example: VideoAnalysisResponseResponseExample;
 }
 
+export type WorkflowRequestParameters = { [key: string]: unknown };
+
 export interface WorkflowRequest {
   steps: ActionStep[];
-  parameters: Parameter[];
+  parameters: WorkflowRequestParameters;
   stop_on_error?: boolean;
 }
 
-export type WorkflowResponseError = string | null;
+export type WorkflowResponseReason = string | null;
+
+export type WorkflowResponseExtractionAnyOf = { [key: string]: unknown };
+
+export type WorkflowResponseExtraction = WorkflowResponseExtractionAnyOf | null;
+
+export type WorkflowResponseExchanges = unknown[] | null;
+
+export type WorkflowResponseAiOutputParts = unknown[] | null;
+
+export type WorkflowResponseToolResults = unknown[] | null;
 
 export interface WorkflowResponse {
-  success: boolean;
-  completed_steps: number;
-  total_steps: number;
-  results: ActionResponse[];
-  error?: WorkflowResponseError;
+  status: JobStatus;
+  reason?: WorkflowResponseReason;
+  extraction?: WorkflowResponseExtraction;
+  exchanges?: WorkflowResponseExchanges;
+  ai_output_parts?: WorkflowResponseAiOutputParts;
+  tool_results?: WorkflowResponseToolResults;
 }
 
 export type GetApiDefinitionsApiDefinitionsGetParams = {
