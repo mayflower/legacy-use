@@ -6,8 +6,9 @@ or workflows using AI planning and execution, similar to the job system
 but without creating persistent jobs.
 """
 
-from datetime import datetime
 import logging
+from datetime import datetime
+from string import Template
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -61,25 +62,12 @@ def create_workflow_prompt(workflow_request: WorkflowRequest) -> str:
 
 
 def build_prompt(prompt_text: str, job_parameters: Dict[str, Any]) -> str:
-    # Add current date to the parameters
-    job_parameters = job_parameters.copy()
-    job_parameters['now'] = datetime.now()  # TODO: Why is this needed?
+    # Handle {{var}} format by temporarily replacing with {var}
+    temp_prompt = prompt_text.replace('{{', '{').replace('}}', '}')
 
-    # Replace parameter placeholders with actual values
-    for param_name, param_value in job_parameters.items():
-        # Support both {{param_name}} and {param_name} placeholder formats
-        placeholder_patterns = [
-            f'{{{{{param_name}}}}}',  # {{param_name}}
-            f'{{{param_name}}}',  # {param_name}
-        ]
-
-        for pattern in placeholder_patterns:
-            if pattern in prompt_text:
-                # Convert value to string for replacement
-                str_value = str(param_value) if param_value is not None else ''
-                prompt_text = prompt_text.replace(pattern, str_value)
-
-    return prompt_text
+    # Use Template for safe substitution, ignoring missing variables
+    template = Template(temp_prompt)
+    return template.safe_substitute(job_parameters)
 
 
 @interactive_router.post(

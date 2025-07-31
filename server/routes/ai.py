@@ -25,7 +25,7 @@ class ActionStep(BaseModel):
         description='A short title summing up the user intent for the action, e.g. "Open settings menu"',
     )
     instruction: str = Field(
-        description='Describe the action the user took to complete the task, formulated as instruction for the operator. Replace concrete values, inputs and selections with {{...}} placeholders based on the parameters of the API call, in particular dates, names, texts, values, etc.',
+        description='Describe the action the user took to complete the task, formulated as instruction for the operator. Replace concrete values, inputs and selections with {...} placeholders based on the parameters of the API call, in particular dates, names, texts, values, etc.',
     )
     tool: Literal[
         'type',
@@ -131,13 +131,13 @@ These are the predefined tools the model can use to interact with the interface:
 
 > 💡 Tip: Whenever possible, prefer using keyboard shortcuts (press key) over mouse interactions (click).  It is more reliable and less dependent on precise layout positioning.
 
-### Using Braces (`{{...}}`)
+### Using Braces (`{...}`)
 
-You can insert dynamic values into the prompt by using double braces:
+You can insert dynamic values into the prompt by using single braces:
 
-- `{{documentation_type}}`, `{{date}}`, etc.
+- `{documentation_type}`, `{date}`, etc.
 
-These are **placeholders** that will be filled with arguments provided by the **parameter** of the API call during execution.
+These are **placeholders** that will be filled with arguments provided by the **parameter** of the API call during execution. Use the concrete values as default values for the parameters.
 """
 
     prompt = f"""
@@ -147,14 +147,14 @@ Analyze the provided video recording of a user interacting with a software appli
 
 1. **Identify the core workflow** - What is the user trying to accomplish?
 2. **Break down the steps** - What are the individual actions taken?
-3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized? Like text, dates, names, values, etc. the user entered, selected or modified. Make sure to replace the identified parameters with the `{{...}}` syntax.
+3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized? Like text, dates, names, values, etc. the user entered, selected or modified. Make sure to replace the identified parameters with the `{...}` syntax.
 4. **Original state** - Describe the original state of the application before the user started the workflow and how to get back to it, meant to be used as a cleanup prompt (not within the regular workflow, nor ui_not_as_expected).
 
 ## Analysis Guidelines
 
 - Watch for UI state changes and transitions
 - Note any user inputs (text, clicks, selections)
-- Identify elements that might vary between executions (dates, names, values), and replace them with the `{{...}}` syntax in the prompt.
+- Identify elements that might vary between executions (dates, names, values), and replace them with the `{...}` syntax in the prompt.
 - Pay attention to error conditions or unexpected UI states
 - Look for confirmation steps or validation checks
 
