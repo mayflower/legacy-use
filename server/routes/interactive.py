@@ -8,7 +8,7 @@ but without creating persistent jobs.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from uuid import UUID
 
 from anthropic.types.beta import BetaMessageParam
@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from server.computer_use import get_default_model_name, get_tool_version, sampling_loop
 from server.computer_use.config import APIProvider
 from server.database import db
+from server.models.base import Parameter
 from server.routes.ai import ActionStep
 from server.settings import settings
 
@@ -37,7 +38,7 @@ class ActionResponse(BaseModel):
 
 class WorkflowRequest(BaseModel):
     steps: List[ActionStep]
-    parameters: Dict[str, Any]
+    parameters: List[Parameter]
     stop_on_error: bool = True
 
 

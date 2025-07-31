@@ -20,6 +20,7 @@ export default function InteractiveBuilder({
     setExecuteProgress(true);
     await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(currentSession.id, {
       steps: analyzeResult?.actions ?? [],
+      parameters: analyzeResult?.parameters ?? [],
     });
     setExecuteProgress(false);
   };
