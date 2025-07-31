@@ -8,7 +8,6 @@ but without creating persistent jobs.
 
 import logging
 from datetime import datetime
-from string import Template
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -65,9 +64,13 @@ def build_prompt(prompt_text: str, job_parameters: Dict[str, Any]) -> str:
     # Handle {{var}} format by temporarily replacing with {var}
     temp_prompt = prompt_text.replace('{{', '{').replace('}}', '}')
 
-    # Use Template for safe substitution, ignoring missing variables
-    template = Template(temp_prompt)
-    return template.safe_substitute(job_parameters)
+    # Use format_map for safe substitution with {var} syntax
+    try:
+        return temp_prompt.format_map(job_parameters)
+    except KeyError as e:
+        # If a parameter is missing, return the prompt with unfilled placeholders
+        logger.warning(f'Missing parameter {e}, leaving placeholder unfilled')
+        return temp_prompt
 
 
 @interactive_router.post(
