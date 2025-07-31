@@ -307,8 +307,13 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
 
                     # If there was a tool error, mark as failed
                     if final_tool_result and final_tool_result.error:
+                        db.update_job_status(job_dict['id'], 'failed')
                         success = False
                         error_msg = final_tool_result.error
+                        logger.error(f'Tool error: {error_msg}')
+                    else:
+                        # Update job status to completed
+                        db.update_job_status(job_dict['id'], 'completed')
 
                     action_response = ActionResponse(
                         success=success,
