@@ -249,11 +249,20 @@ export default function InteractiveBuilder({
 
   const handleInteractiveExecute = async () => {
     setExecuteProgress(true);
-    await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(currentSession.id, {
-      steps: actions,
-      parameters: parameters,
-    });
-    setExecuteProgress(false);
+    try {
+      const response = await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(
+        currentSession.id,
+        {
+          steps: actions,
+          parameters: parameters,
+        },
+      );
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setExecuteProgress(false);
+    }
   };
 
   const handleActionUpdate = (index: number, updatedAction: ActionStep) => {
