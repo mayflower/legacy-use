@@ -8,7 +8,7 @@ but without creating persistent jobs.
 
 from datetime import datetime
 import logging
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from anthropic.types.beta import BetaMessageParam
@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from server.computer_use import get_default_model_name, get_tool_version, sampling_loop
 from server.computer_use.config import APIProvider
 from server.database import db
-from server.models.base import JobStatus, Parameter
+from server.models.base import JobStatus
 from server.routes.ai import ActionStep
 from server.settings import settings
 
@@ -38,7 +38,7 @@ class ActionResponse(BaseModel):
 
 class WorkflowRequest(BaseModel):
     steps: List[ActionStep]
-    parameters: List[Parameter]
+    parameters: Dict[str, Any]
     stop_on_error: bool = True
 
 
@@ -58,6 +58,31 @@ def create_workflow_prompt(workflow_request: WorkflowRequest) -> str:
         prompt += f"""Step {i + 1}: {step.title}\n{step.instruction}\n---\n"""
 
     return prompt
+
+
+def build_prompt(self, job_parameters: Dict[str, Any]) -> str:
+    """Build the prompt by substituting parameter values."""
+    prompt_text = self.full_prompt_template
+
+    # Add current date to the parameters
+    job_parameters = job_parameters.copy()
+    job_parameters['now'] = datetime.now()  # TODO: Why is this needed?
+
+    # Replace parameter placeholders with actual values
+    for param_name, param_value in job_parameters.items():
+        # Support both {{param_name}} and {param_name} placeholder formats
+        placeholder_patterns = [
+            f'{{{{{param_name}}}}}',  # {{param_name}}
+            f'{{{param_name}}}',  # {param_name}
+        ]
+
+        for pattern in placeholder_patterns:
+            if pattern in prompt_text:
+                # Convert value to string for replacement
+                str_value = str(param_value) if param_value is not None else ''
+                prompt_text = prompt_text.replace(pattern, str_value)
+
+    return prompt_text
 
 
 @interactive_router.post(
@@ -106,15 +131,16 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
             'target_id': session['target_id'],
             'session_id': session_id,
             'api_name': 'interactive_workflow',
-            'parameters': {},  # TODO: fix parameters
-            'status': 'running',
+            'parameters': workflow_request.parameters,
+            'status': JobStatus.RUNNING.value,
         }
     )
     if not job:
         raise HTTPException(status_code=500, detail='Failed to create job')
 
     # Create the prompt for the AI
-    prompt = create_workflow_prompt(workflow_request)
+    prompt_template = create_workflow_prompt(workflow_request)
+    prompt = build_prompt(prompt_template, workflow_request.parameters)
     # Create initial message for the sampling loop
     messages = [BetaMessageParam(role='user', content=prompt)]
 
