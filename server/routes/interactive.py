@@ -50,12 +50,13 @@ class WorkflowResponse(BaseModel):
     error: Optional[str] = None
 
 
-def create_action_prompt(action_step: ActionStep) -> str:
-    """Create a prompt for the AI to execute a specific action"""
-    return f"""Your goal is: {action_step.title}
-    Please execute the following action: {action_step.instruction}
-Might make sense to take a screenshot first to see the current state, then perform the requested action. Be precise and follow the instruction exactly.
-"""
+def create_workflow_prompt(workflow_request: WorkflowRequest) -> str:
+    prompt = """You are an AI assistant that can control a computer through various tools.  Your goal is to execute the following steps:\n\n"""
+
+    for i, step in enumerate(workflow_request.steps):
+        prompt += f"""Step {i + 1}: {step.title}\n{step.instruction}\n---\n"""
+
+    return prompt
 
 
 @interactive_router.post(
@@ -115,13 +116,12 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
         if not job:
             raise HTTPException(status_code=500, detail='Failed to create job')
 
+        # Create the prompt for the AI
+        prompt = create_workflow_prompt(workflow_request)
+        # Create initial message for the sampling loop
+        messages = [BetaMessageParam(role='user', content=prompt)]
+
         try:
-            # Create the prompt for the AI
-            prompt = create_action_prompt(workflow_request.steps[0])
-
-            # Create initial message for the sampling loop
-            messages = [BetaMessageParam(role='user', content=prompt)]
-
             # Collect AI output and tool results
             ai_output_parts = []
             tool_results = []
