@@ -1,5 +1,5 @@
 import { Edit, PlayArrow } from '@mui/icons-material';
-import { Box, Button, Card, CardContent, IconButton, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import {
   type ActionStep,
