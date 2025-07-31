@@ -148,7 +148,7 @@ Analyze the provided video recording of a user interacting with a software appli
 1. **Identify the core workflow** - What is the user trying to accomplish?
 2. **Break down the steps** - What are the individual actions taken?
 3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized? Like text, dates, names, values, etc. the user entered, selected or modified. Make sure to replace the identified parameters with the `{{...}}` syntax.
-4. **Original state** - Describe the original state of the application before the user started the workflow and how to get back to it.
+4. **Original state** - Describe the original state of the application before the user started the workflow and how to get back to it, meant to be used as a cleanup prompt (not within the regular workflow, nor ui_not_as_expected).
 
 ## Analysis Guidelines
 
