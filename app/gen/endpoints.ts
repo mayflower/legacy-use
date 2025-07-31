@@ -496,11 +496,9 @@ export interface VideoAnalysisResponse {
   response_example: VideoAnalysisResponseResponseExample;
 }
 
-export type WorkflowRequestParameters = { [key: string]: unknown };
-
 export interface WorkflowRequest {
   steps: ActionStep[];
-  parameters: WorkflowRequestParameters;
+  parameters: Parameter[];
   stop_on_error?: boolean;
 }
 
