@@ -180,6 +180,22 @@ function ParameterCard({ parameter, onUpdate }: ParameterCardProps) {
               rows={2}
               size="small"
             />
+            <TextField
+              label="Default Value"
+              value={JSON.stringify(editedParameter.default)}
+              onChange={e => {
+                try {
+                  const parsedValue = JSON.parse(e.target.value);
+                  setEditedParameter({ ...editedParameter, default: parsedValue });
+                } catch {
+                  // Keep the raw string if it's not valid JSON yet
+                  setEditedParameter({ ...editedParameter, default: e.target.value });
+                }
+              }}
+              onKeyDown={handleKeyPress}
+              fullWidth
+              size="small"
+            />
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button size="small" variant="contained" onClick={handleSave}>
                 Save
