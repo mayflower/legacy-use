@@ -147,7 +147,8 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
         )
 
         logger.info(f'Sampling loop result: {result}')
-        logger.info(f'Sampling loop exchanges: {exchanges}')
+        exchanges_response = [exchange['response'].text for exchange in exchanges]
+        logger.info(f'Sampling loop exchanges: {exchanges_response}')
 
         job_success_update = {
             'status': JobStatus.SUCCESS.value,
@@ -159,7 +160,7 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
         return WorkflowResponse(
             status=JobStatus.SUCCESS,
             extraction=result,
-            exchanges=exchanges,
+            exchanges=exchanges_response,
             ai_output_parts=ai_output_parts,
             tool_results=tool_results,
         )
