@@ -16,16 +16,6 @@ export interface APIDefinition {
   is_archived?: boolean;
 }
 
-export type ActionRequestContext = string | null;
-
-/**
- * Request model for AI-powered action execution
- */
-export interface ActionRequest {
-  instruction: string;
-  context?: ActionRequestContext;
-}
-
 export type ActionResponseOutput = string | null;
 
 export type ActionResponseError = string | null;
@@ -506,8 +496,11 @@ export interface VideoAnalysisResponse {
   response_example: VideoAnalysisResponseResponseExample;
 }
 
+export type WorkflowRequestParameters = { [key: string]: unknown };
+
 export interface WorkflowRequest {
-  steps: ActionRequest[];
+  steps: ActionStep[];
+  parameters: WorkflowRequestParameters;
   stop_on_error?: boolean;
 }
 
@@ -1127,43 +1120,6 @@ export const updateProviderSettingsSettingsProvidersPost = (
 };
 
 /**
- * Execute a single computer action using AI planning and execution.
-
-This endpoint takes a natural language instruction and uses AI to plan
-and execute the appropriate computer actions to fulfill the request.
-
-Example usage:
-POST /interactive/sessions/{session_id}/actions
-{
-    "instruction": "Take a screenshot of the current screen"
-}
-
-POST /interactive/sessions/{session_id}/actions
-{
-    "instruction": "Click on the OK button",
-    "context": "There should be a dialog box visible with an OK button"
-}
-
-POST /interactive/sessions/{session_id}/actions
-{
-    "instruction": "Type 'Hello World' in the text field",
-    "context": "The cursor should be positioned in an input field"
-}
- * @summary Execute Action
- */
-export const executeActionInteractiveSessionsSessionIdActionsPost = (
-  sessionId: string,
-  actionRequest: ActionRequest,
-) => {
-  return customInstance<ActionResponse>({
-    url: `/interactive/sessions/${sessionId}/actions`,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    data: actionRequest,
-  });
-};
-
-/**
  * Execute a sequence of AI-powered computer actions as a workflow.
 
 This endpoint takes a list of natural language instructions and executes
@@ -1338,9 +1294,6 @@ export type GetProvidersSettingsProvidersGetResult = NonNullable<
 >;
 export type UpdateProviderSettingsSettingsProvidersPostResult = NonNullable<
   Awaited<ReturnType<typeof updateProviderSettingsSettingsProvidersPost>>
->;
-export type ExecuteActionInteractiveSessionsSessionIdActionsPostResult = NonNullable<
-  Awaited<ReturnType<typeof executeActionInteractiveSessionsSessionIdActionsPost>>
 >;
 export type ExecuteWorkflowInteractiveSessionsSessionIdWorkflowPostResult = NonNullable<
   Awaited<ReturnType<typeof executeWorkflowInteractiveSessionsSessionIdWorkflowPost>>
