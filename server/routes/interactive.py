@@ -190,7 +190,7 @@ async def execute_workflow(session_id: UUID, workflow_request: WorkflowRequest):
             results.append(action_response)
 
             # Small delay between steps to allow UI to settle
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)
 
         is_success = completed_steps == len(workflow_request.steps) and all(
             r.success for r in results
