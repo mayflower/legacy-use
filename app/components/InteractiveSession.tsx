@@ -1,4 +1,4 @@
-import { Cancel, Circle, Replay } from '@mui/icons-material';
+import { Cancel, Circle, Replay, ResetTv, RestoreFromTrash } from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Typography } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
@@ -80,17 +80,32 @@ export default function InteractiveSession() {
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
             {analyzeResult ? (
-              <Button
-                onClick={() => {
-                  setRecordingResult(null);
-                  setAnalyzeResult(null);
-                }}
-                variant="outlined"
-                color="warning"
-                startIcon={<Replay />}
-              >
-                Discard and restart
-              </Button>
+              <>
+                <Button
+                  onClick={() => {
+                    setRecordingResult(null);
+                    setAnalyzeResult(null);
+                  }}
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<RestoreFromTrash />}
+                >
+                  Start over
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (recordingResult) {
+                      setAnalyzeResult(null);
+                      handleAnalyzeRecording(recordingResult);
+                    }
+                  }}
+                  color="primary"
+                  disabled={!recordingResult || analyzeProgress}
+                  startIcon={analyzeProgress ? <CircularProgress size={16} /> : <Replay />}
+                >
+                  {analyzeProgress ? 'Re-analyzing...' : 'Analyze'}
+                </Button>
+              </>
             ) : recordingResult ? (
               <>
                 <Button
