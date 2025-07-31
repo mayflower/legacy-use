@@ -22,10 +22,10 @@ ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
 
 class ActionStep(BaseModel):
     title: str = Field(
-        description='A short title for the action, e.g. "Open settings menu"',
+        description='A short title summing up the user intent for the action, e.g. "Open settings menu"',
     )
     instruction: str = Field(
-        description='Describe the action the user took to complete the task, formulated as instruction for the operator',
+        description='Describe the action the user took to complete the task, formulated as instruction for the operator. Replace concrete values, inputs and selections with {{...}} placeholders based on the parameters of the API call, in particular dates, names, texts, values, etc.',
     )
     tool: Literal[
         'type',
