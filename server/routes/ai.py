@@ -147,27 +147,16 @@ Analyze the provided video recording of a user interacting with a software appli
 
 1. **Identify the core workflow** - What is the user trying to accomplish?
 2. **Break down the steps** - What are the individual actions taken?
-3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized? Like text, dates, names, values, etc. the user entered, selected or modified.
-4. **Create an API definition** - Generate a complete API definition that could automate this workflow.
+3. **Identify dynamic elements** - What parts of the workflow would need to be parameterized? Like text, dates, names, values, etc. the user entered, selected or modified. Make sure to replace the identified parameters with the `{{...}}` syntax.
+4. **Original state** - Describe the original state of the application before the user started the workflow and how to get back to it.
 
 ## Analysis Guidelines
 
 - Watch for UI state changes and transitions
 - Note any user inputs (text, clicks, selections)
-- Identify elements that might vary between executions (dates, names, values)
+- Identify elements that might vary between executions (dates, names, values), and replace them with the `{{...}}` syntax in the prompt.
 - Pay attention to error conditions or unexpected UI states
 - Look for confirmation steps or validation checks
-
-## API Definition Requirements
-
-Create an API definition with:
-
-1. **Name**: A clear, descriptive name for the automation (use snake_case)
-2. **Description**: A comprehensive description of what the automation does
-3. **Parameters**: List of parameters needed (with types: string, number, boolean, list)
-4. **Prompt**: Detailed step-by-step instructions following the HOW_TO_PROMPT.md format, make sure to replace the identified parameters with the `{{...}}` syntax.
-5. **Prompt Cleanup**: Instructions to return the system to its original state
-6. **Response Example**: Expected JSON structure for the result
 
 Focus on creating a robust, reusable automation that could handle variations in the workflow while maintaining reliability.
 
