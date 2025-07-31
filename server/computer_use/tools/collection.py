@@ -23,7 +23,7 @@ def validate_tool_input(
 
     func = tool.__call__
     signature = inspect.signature(func)
-    expected_params = set(signature.parameters.items())
+    expected_params = signature.parameters.items()
 
     required_params = set()
 
@@ -33,8 +33,7 @@ def validate_tool_input(
             continue
         if value.default is inspect.Parameter.empty:
             required_params.add(param)
-
-    missing_params = required_params - set(input_params)
+    missing_params = required_params - input_params
 
     if missing_params:
         logger.error(
