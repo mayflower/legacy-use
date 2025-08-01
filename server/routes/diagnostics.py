@@ -15,12 +15,12 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends
 
 from server.utils.db_dependencies import get_tenant_db
+from server.utils.tenant_utils import get_tenant
 from server.utils.job_execution import (
-    job_processor_task,
-    job_queue,
-    job_queue_lock,
-    process_job_queue,
     running_job_tasks,
+    tenant_job_queues,
+    tenant_processor_tasks,
+    tenant_resources_lock,
 )
 
 # Set up logging
@@ -31,8 +31,11 @@ diagnostics_router = APIRouter(tags=['Diagnostics'])
 
 
 @diagnostics_router.get('/diagnostics/queue')
-async def diagnose_job_queue(db=Depends(get_tenant_db)):
-    """Get diagnostic information about the job queue and running jobs.
+async def diagnose_job_queue(
+    db=Depends(get_tenant_db),
+    tenant: dict = Depends(get_tenant),
+):
+    """Get diagnostic information about the job queue and running jobs for the current tenant.
 
     This is a temporary endpoint to help diagnose issues with the job processing system.
     It provides insights into why jobs might be stuck in the QUEUED state.
@@ -40,9 +43,9 @@ async def diagnose_job_queue(db=Depends(get_tenant_db)):
     # Gather diagnostic information
     diagnostics = {
         'timestamp': datetime.now().isoformat(),
+        'tenant_schema': tenant['schema'],
         'queue_size': 0,
-        'is_processor_running': job_processor_task is not None
-        and not job_processor_task.done(),
+        'is_processor_running': False,
         'running_jobs': {},
         'queued_jobs': [],
         'available_sessions': [],
@@ -50,12 +53,19 @@ async def diagnose_job_queue(db=Depends(get_tenant_db)):
         'processor_task_status': 'Not initialized',
     }
 
-    # Get processor task status
-    if job_processor_task is not None:
-        if job_processor_task.done():
+    # Get processor task status for current tenant
+    tenant_schema = tenant['schema']
+    if (
+        tenant_schema in tenant_processor_tasks
+        and tenant_processor_tasks[tenant_schema] is not None
+    ):
+        processor_task = tenant_processor_tasks[tenant_schema]
+        diagnostics['is_processor_running'] = not processor_task.done()
+
+        if processor_task.done():
             try:
                 # Check if the task raised an exception
-                exception = job_processor_task.exception()
+                exception = processor_task.exception()
                 if exception:
                     diagnostics['processor_task_status'] = (
                         f'Failed with exception: {str(exception)}'
@@ -72,11 +82,12 @@ async def diagnose_job_queue(db=Depends(get_tenant_db)):
         else:
             diagnostics['processor_task_status'] = 'Running'
 
-    # Get queue information
-    async with job_queue_lock:
-        diagnostics['queue_size'] = len(job_queue)
+    # Get queue information for current tenant
+    async with tenant_resources_lock:
+        tenant_queue = tenant_job_queues.get(tenant_schema, [])
+        diagnostics['queue_size'] = len(tenant_queue)
         # Get details about queued jobs
-        for job in job_queue:
+        for job in tenant_queue:
             job_info = {
                 'id': str(job.id),
                 'api_name': job.api_name,
@@ -158,26 +169,35 @@ async def diagnose_job_queue(db=Depends(get_tenant_db)):
 
 
 @diagnostics_router.post('/diagnostics/queue/start')
-async def start_job_processor(db=Depends(get_tenant_db)):
-    """Manually start the job queue processor.
+async def start_job_processor(
+    db=Depends(get_tenant_db),
+    tenant: dict = Depends(get_tenant),
+):
+    """Manually start the job queue processor for the current tenant.
 
     This endpoint can be used to manually start the job queue processor if it's
     not running or has stopped due to an exception.
     """
-    global job_processor_task
+    from server.utils.job_execution import start_job_processor_for_tenant
+
+    tenant_schema = tenant['schema']
     processor_info = {
         'timestamp': datetime.now().isoformat(),
+        'tenant_schema': tenant_schema,
         'previous_state': 'Not initialized',
         'action_taken': 'None',
         'current_state': 'Not initialized',
     }
 
     # Check current state
-    if job_processor_task is None:
+    if (
+        tenant_schema not in tenant_processor_tasks
+        or tenant_processor_tasks[tenant_schema] is None
+    ):
         processor_info['previous_state'] = 'Not initialized'
-    elif job_processor_task.done():
+    elif tenant_processor_tasks[tenant_schema].done():
         try:
-            exception = job_processor_task.exception()
+            exception = tenant_processor_tasks[tenant_schema].exception()
             if exception:
                 processor_info['previous_state'] = (
                     f'Failed with exception: {str(exception)}'
@@ -193,16 +213,18 @@ async def start_job_processor(db=Depends(get_tenant_db)):
 
     # Start the processor
     try:
-        job_processor_task = asyncio.create_task(process_job_queue(db))
+        await start_job_processor_for_tenant(tenant_schema)
         processor_info['action_taken'] = 'Started new job processor task'
         processor_info['current_state'] = 'Running'
 
         # Add system log entry
-        logger.info('Job processor manually started')
+        logger.info(f'Job processor manually started for tenant {tenant_schema}')
     except Exception as e:
         processor_info['action_taken'] = f'Failed to start processor: {str(e)}'
         processor_info['current_state'] = 'Failed'
-        logger.error(f'Error manually starting job processor: {str(e)}')
+        logger.error(
+            f'Error manually starting job processor for tenant {tenant_schema}: {str(e)}'
+        )
 
     return processor_info
 
