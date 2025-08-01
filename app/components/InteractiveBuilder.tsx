@@ -1,14 +1,13 @@
 import { PlayArrow } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
 import { useState } from 'react';
-import {
-  type ActionStep,
-  type AnalyzeVideoAiAnalyzePostResult,
-  importApiDefinitionApiDefinitionsImportPost,
-  type Parameter,
-  type Session,
-  type WorkflowRequestParameters,
+import type {
+  ActionStep,
+  AnalyzeVideoAiAnalyzePostResult,
+  Parameter,
+  Session,
 } from '../gen/endpoints';
+import { importApiDefinition } from '../services/apiService';
 import ActionStepCard from './InteractiveBuilderActionStepCard';
 import ParameterCard from './InteractiveBuilderParameterCard';
 
@@ -28,29 +27,23 @@ export default function InteractiveBuilder({
 
     const timestamp = new Date().toISOString().split('.')[0];
 
-    const parametersPayload: WorkflowRequestParameters = parameters.reduce((acc, parameter) => {
-      acc[parameter.name] = parameter.default;
-      return acc;
-    }, {} as WorkflowRequestParameters);
-
     const prompt = analyzeResult.actions
       .map((action, index) => `Step ${index + 1}: ${action.title}\n${action.instruction}`)
       .join('---\n\n');
 
-    const api_definition = {
-      name: `interactive-${timestamp}`,
-      description: `Interactive API definition from ${timestamp}`,
-      prompt: prompt,
-      prompt_cleanup: analyzeResult.prompt_cleanup,
-      response_example: analyzeResult.response_example,
-      parameters: parameters,
-    };
+    const apiDefinition = await importApiDefinition({
+      api_definition: {
+        name: `interactive-${timestamp}`,
+        description: `Interactive API definition from ${timestamp}`,
+        prompt: prompt,
+        prompt_cleanup: analyzeResult.prompt_cleanup,
+        response_example: analyzeResult.response_example,
+        parameters: parameters,
+      },
+    });
 
-    console.log(api_definition);
-
-    const apiDefinition = await importApiDefinitionApiDefinitionsImportPost({ api_definition });
-
-    console.log(apiDefinition);
+    console.log(apiDefinition.name);
+    console.log(currentSession.id);
 
     setExecuteProgress(false);
   };

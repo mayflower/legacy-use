@@ -2,6 +2,8 @@ import axios from 'axios';
 import {
   analyzeVideoAiAnalyzePost,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
+  type ImportApiDefinitionRequest,
+  importApiDefinitionApiDefinitionsImportPost,
   listSessionsSessionsGet,
   type RecordingRequest,
   type Session,
@@ -150,16 +152,8 @@ export const exportApiDefinition = async apiName => {
   }
 };
 
-export const importApiDefinition = async apiDefinition => {
-  try {
-    const response = await apiClient.post('/api/definitions/import', {
-      api_definition: apiDefinition,
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error importing API definition:', error);
-    throw error;
-  }
+export const importApiDefinition = async (apiDefinition: ImportApiDefinitionRequest) => {
+  return importApiDefinitionApiDefinitionsImportPost(apiDefinition);
 };
 
 export const getApiDefinitionDetails = async apiName => {
