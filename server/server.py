@@ -21,7 +21,6 @@ from server.routes import (
     ai_router,
     job_router,
     target_router,
-    interactive_router,
 )
 from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
@@ -231,9 +230,6 @@ app.include_router(
 
 # Include settings router
 app.include_router(settings_router)
-
-# Include interactive router
-app.include_router(interactive_router)
 
 
 # Root endpoint

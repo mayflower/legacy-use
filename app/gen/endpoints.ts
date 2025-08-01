@@ -489,35 +489,6 @@ export interface VideoAnalysisResponse {
   response_example: VideoAnalysisResponseResponseExample;
 }
 
-export type WorkflowRequestParameters = { [key: string]: unknown };
-
-export interface WorkflowRequest {
-  steps: ActionStep[];
-  parameters: WorkflowRequestParameters;
-  stop_on_error?: boolean;
-}
-
-export type WorkflowResponseReason = string | null;
-
-export type WorkflowResponseExtractionAnyOf = { [key: string]: unknown };
-
-export type WorkflowResponseExtraction = WorkflowResponseExtractionAnyOf | null;
-
-export type WorkflowResponseExchanges = unknown[] | null;
-
-export type WorkflowResponseAiOutputParts = unknown[] | null;
-
-export type WorkflowResponseToolResults = unknown[] | null;
-
-export interface WorkflowResponse {
-  status: JobStatus;
-  reason?: WorkflowResponseReason;
-  extraction?: WorkflowResponseExtraction;
-  exchanges?: WorkflowResponseExchanges;
-  ai_output_parts?: WorkflowResponseAiOutputParts;
-  tool_results?: WorkflowResponseToolResults;
-}
-
 export type GetApiDefinitionsApiDefinitionsGetParams = {
   include_archived?: boolean;
 };
@@ -1124,37 +1095,6 @@ export const updateProviderSettingsSettingsProvidersPost = (
 };
 
 /**
- * Execute a sequence of AI-powered computer actions as a workflow.
-
-This endpoint takes a list of natural language instructions and executes
-them sequentially using AI planning and execution.
-
-Example usage:
-POST /interactive/sessions/{session_id}/workflow
-{
-    "steps": [
-        {"instruction": "Take a screenshot to see the current state"},
-        {"instruction": "Click on the File menu"},
-        {"instruction": "Click on New Document", "context": "The File menu should be open"},
-        {"instruction": "Type 'Hello World' in the document"}
-    ],
-    "stop_on_error": true
-}
- * @summary Execute Workflow
- */
-export const executeWorkflowInteractiveSessionsSessionIdWorkflowPost = (
-  sessionId: string,
-  workflowRequest: WorkflowRequest,
-) => {
-  return customInstance<WorkflowResponse>({
-    url: `/interactive/sessions/${sessionId}/workflow`,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    data: workflowRequest,
-  });
-};
-
-/**
  * Root endpoint.
  * @summary Root
  */
@@ -1298,8 +1238,5 @@ export type GetProvidersSettingsProvidersGetResult = NonNullable<
 >;
 export type UpdateProviderSettingsSettingsProvidersPostResult = NonNullable<
   Awaited<ReturnType<typeof updateProviderSettingsSettingsProvidersPost>>
->;
-export type ExecuteWorkflowInteractiveSessionsSessionIdWorkflowPostResult = NonNullable<
-  Awaited<ReturnType<typeof executeWorkflowInteractiveSessionsSessionIdWorkflowPost>>
 >;
 export type RootGetResult = NonNullable<Awaited<ReturnType<typeof rootGet>>>;
