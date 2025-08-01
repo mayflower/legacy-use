@@ -218,15 +218,13 @@ class JobStatus(str, Enum):
 class APIResponse(BaseModel):
     """Model for API execution response."""
 
-    status: str
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    token_usage: Optional[Dict[str, Any]] = None
+    status: JobStatus
+    reason: Optional[str] = None
+    extraction: Optional[Dict[str, Any]] = None
+    exchanges: List[Dict[str, Any]] = []
 
 
 # Recording Models
-
-
 class RecordingRequest(BaseModel):
     """Request model for starting a recording"""
 
