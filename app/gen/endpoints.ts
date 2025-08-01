@@ -33,9 +33,9 @@ export const ActionStepTool = {
 } as const;
 
 export interface ActionStep {
-  /** A short title for the action, e.g. "Open settings menu" */
+  /** A short title summing up the user intent for the action, e.g. "Open settings menu" */
   title: string;
-  /** Describe the action the user took to complete the task, formulated as instruction for the operator */
+  /** Describe the action the user took to complete the task, formulated as instruction for the operator. Replace concrete values, inputs and selections with {...} placeholders based on the parameters of the API call, in particular dates, names, texts, values, etc. */
   instruction: string;
   /** The tool to use to complete the action */
   tool: ActionStepTool;
@@ -59,10 +59,19 @@ export interface HttpExchangeLog {
   content: HttpExchangeLogContent;
 }
 
-export type ImportApiDefinitionRequestApiDefinition = { [key: string]: unknown };
+export type ImportApiDefinitionBodyResponseExample = { [key: string]: unknown };
+
+export interface ImportApiDefinitionBody {
+  name: string;
+  description: string;
+  parameters: Parameter[];
+  prompt: string;
+  prompt_cleanup: string;
+  response_example: ImportApiDefinitionBodyResponseExample;
+}
 
 export interface ImportApiDefinitionRequest {
-  api_definition: ImportApiDefinitionRequestApiDefinition;
+  api_definition: ImportApiDefinitionBody;
 }
 
 export type InputLogEntryDetails = { [key: string]: unknown };
