@@ -56,6 +56,12 @@ else:
         'API_SENTRY_DSN not found in environment variables. Sentry is disabled.'
     )
 
+# Normalized api slug prefix, based on settings.API_SLUG_PREFIX
+api_slug_prefix = settings.API_SLUG_PREFIX.strip()
+if not api_slug_prefix.startswith('/'):
+    api_slug_prefix = '/' + api_slug_prefix
+api_slug_prefix = api_slug_prefix.rstrip('/')
+
 
 # Handle provider-specific environment variables
 if settings.API_PROVIDER == APIProvider.BEDROCK:
@@ -96,7 +102,7 @@ app = FastAPI(
     title='AI API Gateway',
     description='API Gateway for AI-powered endpoints',
     version='1.0.0',
-    redoc_url=f'{settings.API_SLUG_PREFIX}/redoc' if settings.SHOW_DOCS else None,
+    redoc_url=f'{api_slug_prefix}/redoc' if settings.SHOW_DOCS else None,
     # Disable automatic redirect from /path to /path/
     redirect_slashes=False,
 )
@@ -200,36 +206,30 @@ app.openapi_components = {
 
 app.openapi_security = [{'ApiKeyAuth': []}]
 
-# Normalize slug prefix
-slug_prefix = settings.API_SLUG_PREFIX.strip()
-if not slug_prefix.startswith('/'):
-    slug_prefix = '/' + slug_prefix
-slug_prefix = slug_prefix.rstrip('/')
-
 # Include API router
-app.include_router(api_router, prefix=slug_prefix)
+app.include_router(api_router, prefix=api_slug_prefix)
 
 # Include core routers
-app.include_router(target_router, prefix=slug_prefix)
+app.include_router(target_router, prefix=api_slug_prefix)
 app.include_router(
     session_router,
-    prefix=slug_prefix,
+    prefix=api_slug_prefix,
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
-app.include_router(job_router, prefix=slug_prefix)
+app.include_router(job_router, prefix=api_slug_prefix)
 
 # Include WebSocket router
-app.include_router(websocket_router, prefix=slug_prefix)
+app.include_router(websocket_router, prefix=api_slug_prefix)
 
 # Include diagnostics router
 app.include_router(
     diagnostics_router,
-    prefix=slug_prefix,
+    prefix=api_slug_prefix,
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 
 # Include settings router
-app.include_router(settings_router, prefix=slug_prefix)
+app.include_router(settings_router, prefix=api_slug_prefix)
 
 
 # Root endpoint
