@@ -2,9 +2,10 @@
 Tenant utilities for multi-tenancy support.
 """
 
-from typing import Dict
+from typing import Dict, List
 from fastapi import Request
 
+from server.database import db_shared
 from server.database.multi_tenancy import get_tenant_by_host
 from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
 
@@ -50,3 +51,13 @@ def get_tenant(request: Request) -> Dict[str, str]:
         'schema': tenant.schema,
         'is_active': tenant.is_active,
     }
+
+
+def get_active_tenants() -> List[Dict]:
+    """
+    Get all active tenants from the database.
+
+    Returns:
+        List of active tenant dictionaries
+    """
+    return db_shared.list_tenants(include_inactive=False)

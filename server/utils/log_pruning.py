@@ -7,10 +7,10 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from server.database import db_shared
 from server.database.multi_tenancy import with_db
 from server.database.models import JobLog
 from server.settings import settings
+from server.utils.tenant_utils import get_active_tenants
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ async def prune_old_logs_all_tenants(days: Optional[int] = None) -> dict:
         days = settings.LOG_RETENTION_DAYS
 
     # Get all active tenants
-    tenants = db_shared.list_tenants(include_inactive=False)
+    tenants = get_active_tenants()
 
     results = {}
     total_deleted = 0

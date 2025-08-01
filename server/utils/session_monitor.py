@@ -8,12 +8,12 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-from server.database import db_shared
 from server.database.multi_tenancy import with_db
 from server.utils.docker_manager import (
     check_target_container_health,
     get_container_status,
 )
+from server.utils.tenant_utils import get_active_tenants
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,7 @@ async def monitor_session_states():
     while True:
         try:
             # Get all active tenants
-            tenants = db_shared.list_tenants(include_inactive=False)
+            tenants = get_active_tenants()
 
             # Monitor sessions for each tenant
             for tenant in tenants:
