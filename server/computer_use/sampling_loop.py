@@ -56,10 +56,6 @@ from server.database.service import DatabaseService
 from server.settings import settings
 from server.utils.docker_manager import check_target_container_health
 
-# Initialize db service - This might cause issues if DB is not ready globally.
-# Consider passing db instance instead.
-db = DatabaseService()
-
 
 async def sampling_loop(
     *,
