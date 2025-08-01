@@ -66,8 +66,8 @@ async def get_providers(request: Request, db=Depends(get_tenant_db)):
     """Get available VLM providers and their configurations."""
 
     # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
-    tenant = await get_tenant(request)
-    tenant_schema = tenant.schema
+    tenant = get_tenant(request)
+    tenant_schema = tenant['schema']
 
     # Define provider configurations using tenant settings
     provider_configs = {
@@ -158,8 +158,8 @@ async def update_provider_settings(
     """Update provider configuration and set as active provider."""
 
     # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
-    tenant = await get_tenant(http_request)
-    tenant_schema = tenant.schema
+    tenant = get_tenant(http_request)
+    tenant_schema = tenant['schema']
 
     # Validate provider
     try:
