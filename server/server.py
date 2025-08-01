@@ -26,6 +26,7 @@ from server.utils.telemetry import posthog_middleware
 from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
 
 from .settings import settings
+from server.settings_tenant import get_tenant_setting
 
 # Set up logging
 logging.basicConfig(
@@ -57,39 +58,43 @@ else:
     )
 
 
-# Handle provider-specific environment variables
-if settings.API_PROVIDER == APIProvider.BEDROCK:
-    if not all(
-        [
-            settings.AWS_ACCESS_KEY_ID,
-            settings.AWS_SECRET_ACCESS_KEY,
-            settings.AWS_REGION,
-        ]
-    ):
-        logger.warning('Using Bedrock provider but AWS credentials are missing.')
-    else:
-        # Export AWS credentials to environment if using Bedrock
-        # Ensure these are set in environment for the AnthropicBedrock client
-        os.environ['AWS_ACCESS_KEY_ID'] = settings.AWS_ACCESS_KEY_ID
-        os.environ['AWS_SECRET_ACCESS_KEY'] = settings.AWS_SECRET_ACCESS_KEY
-        os.environ['AWS_REGION'] = settings.AWS_REGION
-        logger.info(
-            f'AWS credentials loaded for Bedrock provider (region: {settings.AWS_REGION})'
-        )
-elif settings.API_PROVIDER == APIProvider.VERTEX:
-    # Get Vertex-specific environment variables
+def setup_provider_environment(tenant_schema: str):
+    """Setup provider-specific environment variables for a tenant."""
+    if not tenant_schema:
+        raise ValueError('tenant_schema is required')
 
-    if not all([settings.VERTEX_REGION, settings.VERTEX_PROJECT_ID]):
-        logger.warning(
-            'Using Vertex provider but required environment variables are missing.'
-        )
-    else:
-        # Ensure these are set in environment for the AnthropicVertex client
-        os.environ['CLOUD_ML_REGION'] = settings.VERTEX_REGION
-        os.environ['ANTHROPIC_VERTEX_PROJECT_ID'] = settings.VERTEX_PROJECT_ID
-        logger.info(
-            f'Vertex credentials loaded (region: {settings.VERTEX_REGION}, project: {settings.VERTEX_PROJECT_ID})'
-        )
+    # Use tenant-specific settings
+    provider = get_tenant_setting(tenant_schema, 'API_PROVIDER')
+
+    if provider == APIProvider.BEDROCK:
+        aws_access_key = get_tenant_setting(tenant_schema, 'AWS_ACCESS_KEY_ID')
+        aws_secret_key = get_tenant_setting(tenant_schema, 'AWS_SECRET_ACCESS_KEY')
+        aws_region = get_tenant_setting(tenant_schema, 'AWS_REGION')
+
+        if not all([aws_access_key, aws_secret_key, aws_region]):
+            logger.warning('Using Bedrock provider but AWS credentials are missing.')
+        else:
+            os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key
+            os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_key
+            os.environ['AWS_REGION'] = aws_region
+            logger.info(
+                f'AWS credentials loaded for Bedrock provider (region: {aws_region})'
+            )
+
+    elif provider == APIProvider.VERTEX:
+        vertex_region = get_tenant_setting(tenant_schema, 'VERTEX_REGION')
+        vertex_project_id = get_tenant_setting(tenant_schema, 'VERTEX_PROJECT_ID')
+
+        if not all([vertex_region, vertex_project_id]):
+            logger.warning(
+                'Using Vertex provider but required environment variables are missing.'
+            )
+        else:
+            os.environ['CLOUD_ML_REGION'] = vertex_region
+            os.environ['ANTHROPIC_VERTEX_PROJECT_ID'] = vertex_project_id
+            logger.info(
+                f'Vertex credentials loaded (region: {vertex_region}, project: {vertex_project_id})'
+            )
 
 
 app = FastAPI(

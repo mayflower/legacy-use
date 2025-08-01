@@ -54,6 +54,7 @@ from server.database.service import DatabaseService
 
 # Import the centralized health check function
 from server.settings import settings
+from server.settings_tenant import get_tenant_setting
 from server.utils.docker_manager import check_target_container_health
 
 
@@ -77,6 +78,7 @@ async def sampling_loop(
     api_key: str = '',
     only_n_most_recent_images: Optional[int] = None,
     session_id: Optional[str] = None,
+    tenant_schema: str,
     # Remove job_id from here as it's now a primary parameter
     # job_id: Optional[str] = None,
 ) -> tuple[Any, list[dict[str, Any]]]:  # Return format remains the same
@@ -179,10 +181,10 @@ async def sampling_loop(
         elif provider == APIProvider.BEDROCK:
             # AWS credentials should be set in environment variables
             # by the server.py initialization
-            aws_region = settings.AWS_REGION
-            aws_access_key = settings.AWS_ACCESS_KEY_ID
-            aws_secret_key = settings.AWS_SECRET_ACCESS_KEY
-            aws_session_token = settings.AWS_SESSION_TOKEN
+            aws_region = get_tenant_setting(tenant_schema, 'AWS_REGION')
+            aws_access_key = get_tenant_setting(tenant_schema, 'AWS_ACCESS_KEY_ID')
+            aws_secret_key = get_tenant_setting(tenant_schema, 'AWS_SECRET_ACCESS_KEY')
+            aws_session_token = get_tenant_setting(tenant_schema, 'AWS_SESSION_TOKEN')
 
             # Initialize with available credentials
             bedrock_kwargs = {'aws_region': aws_region}
@@ -196,7 +198,8 @@ async def sampling_loop(
             client = AsyncAnthropicBedrock(**bedrock_kwargs)
             logger.info(f'Using AsyncAnthropicBedrock client with region: {aws_region}')
         elif provider == APIProvider.LEGACYUSE_PROXY:
-            client = LegacyUseClient(api_key=settings.LEGACYUSE_PROXY_API_KEY)
+            proxy_api_key = get_tenant_setting(tenant_schema, 'LEGACYUSE_PROXY_API_KEY')
+            client = LegacyUseClient(api_key=proxy_api_key)
         if enable_prompt_caching:
             betas.append(PROMPT_CACHING_BETA_FLAG)
             _inject_prompt_caching(

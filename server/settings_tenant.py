@@ -43,3 +43,27 @@ def get_tenant_setting(tenant_schema: str, key: str) -> Optional[str]:
     with with_db(tenant_schema) as db:
         setting = db.query(TenantSettings).filter(TenantSettings.key == key).first()
         return setting.value if setting else default_value
+
+
+def set_tenant_setting(tenant_schema: str, key: str, value: str) -> None:
+    """
+    Set a tenant-specific setting.
+
+    Args:
+        tenant_schema: The tenant schema name
+        key: The setting key to set
+        value: The value to set
+    """
+    if key not in TENANT_SETTINGS_DEFAULTS:
+        raise ValueError(f'Unknown tenant setting key: {key}')
+
+    with with_db(tenant_schema) as db:
+        setting = db.query(TenantSettings).filter(TenantSettings.key == key).first()
+
+        if setting:
+            setting.value = value
+        else:
+            setting = TenantSettings(key=key, value=value)
+            db.add(setting)
+
+        db.commit()

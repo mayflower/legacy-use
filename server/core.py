@@ -20,16 +20,18 @@ from server.models.base import (
     APIResponse,
     JobStatus,
 )
-from server.settings import settings
+from server.settings_tenant import get_tenant_setting
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 
 class APIGatewayCore:
-    def __init__(self, db_service=None):
-        self.provider = settings.API_PROVIDER
-        self.api_key = settings.ANTHROPIC_API_KEY
+    def __init__(self, tenant_schema: str, db_service=None):
+        # Use tenant settings
+        self.provider = get_tenant_setting(tenant_schema, 'API_PROVIDER')
+        self.api_key = get_tenant_setting(tenant_schema, 'ANTHROPIC_API_KEY')
+
         # Set the model based on the provider
         self.model = get_default_model_name(self.provider)
         self.tool_version = get_tool_version(self.model)
