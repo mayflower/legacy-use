@@ -5,7 +5,6 @@ FastAPI server implementation for the API Gateway.
 import asyncio
 import logging
 import os
-from datetime import datetime, timedelta
 
 import sentry_sdk
 from fastapi import FastAPI, HTTPException, Request, status
@@ -15,13 +14,13 @@ from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 from server.computer_use import APIProvider
-from server.database import db
 from server.routes import api_router, job_router, target_router
 from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
 from server.routes.settings import settings_router
 from server.utils.auth import get_api_key
 from server.utils.job_execution import job_queue_initializer
+from server.utils.log_pruning import scheduled_log_pruning
 from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
 from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
@@ -260,31 +259,6 @@ async def root():
     return {'message': 'Welcome to the API Gateway'}
 
 
-# Scheduled task to prune old logs
-async def prune_old_logs():
-    """Prune logs older than 7 days."""
-    while True:
-        try:
-            # Sleep until next pruning time (once a day at midnight)
-            now = datetime.now()
-            next_run = (now + timedelta(days=1)).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            sleep_seconds = (next_run - now).total_seconds()
-            logger.info(
-                f'Next log pruning scheduled in {sleep_seconds / 3600:.1f} hours'
-            )
-            await asyncio.sleep(sleep_seconds)
-
-            # Prune logs
-            days_to_keep = settings.LOG_RETENTION_DAYS
-            deleted_count = db.prune_old_logs(days=days_to_keep)
-            logger.info(f'Pruned {deleted_count} logs older than {days_to_keep} days')
-        except Exception as e:
-            logger.error(f'Error pruning logs: {str(e)}')
-            await asyncio.sleep(3600)  # Sleep for an hour and try again
-
-
 @app.on_event('startup')
 async def startup_event():
     """Start background tasks on server startup."""
@@ -309,7 +283,7 @@ For more information, please refer to the migration documentation.
         raise SystemExit(1)
 
     # Start background tasks
-    asyncio.create_task(prune_old_logs())
+    asyncio.create_task(scheduled_log_pruning())
     logger.info('Started background task for pruning old logs')
 
     # Start session monitor
