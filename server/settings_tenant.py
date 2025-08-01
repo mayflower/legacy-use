@@ -12,7 +12,7 @@ from server.database.models import TenantSettings
 
 # Define the tenant-specific settings that were previously global
 TENANT_SETTINGS_DEFAULTS = {
-    'API_KEY_NAME': 'not-so-secret-key',
+    'API_KEY': 'not-secure-api-key',
     'API_PROVIDER': 'anthropic',
     'AWS_ACCESS_KEY_ID': None,
     'AWS_SECRET_ACCESS_KEY': None,
