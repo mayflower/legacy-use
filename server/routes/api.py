@@ -264,6 +264,7 @@ async def import_api_definition(body: ImportApiDefinitionRequest, request: Reque
 
         existing_api = await db.get_api_definition_by_name(api_def.name)
         api_id = ''
+        version_number = ''
 
         if existing_api:
             # Create a new version for the existing API
@@ -287,10 +288,12 @@ async def import_api_definition(body: ImportApiDefinitionRequest, request: Reque
                 name=api_def.name, description=api_def.description
             )
 
+            api_id = new_api_dict['id']
+            version_number = '1'  # Use string to ensure consistency
             # Create the first version
             await db.create_api_definition_version(
-                api_definition_id=new_api_dict['id'],
-                version_number='1',  # Use string to ensure consistency
+                api_definition_id=api_id,
+                version_number=version_number,
                 parameters=[param.model_dump() for param in api_def.parameters],
                 prompt=api_def.prompt,
                 prompt_cleanup=api_def.prompt_cleanup,
@@ -302,7 +305,7 @@ async def import_api_definition(body: ImportApiDefinitionRequest, request: Reque
         # Reload API definitions in core
         await core.load_api_definitions()
 
-        capture_api_created(request, api_def, new_api_dict['id'], str(version_number))
+        capture_api_created(request, api_def, api_id, str(version_number))
         return {'status': 'success', 'message': message, 'name': api_def.name}
     except Exception as e:
         logger.error(f'Error importing API definition: {str(e)}')
