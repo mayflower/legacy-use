@@ -4,7 +4,7 @@ Settings management routes.
 
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 
 from server.computer_use.config import (
@@ -12,6 +12,8 @@ from server.computer_use.config import (
     get_default_model_name,
 )
 from server.settings import settings
+from server.utils.db_dependencies import get_tenant_db
+from server.utils.tenant_utils import get_tenant
 
 
 def obscure_api_key(api_key: Optional[str]) -> Optional[str]:
@@ -60,8 +62,11 @@ settings_router = APIRouter(prefix='/settings', tags=['Settings'])
 
 
 @settings_router.get('/providers', response_model=ProvidersResponse)
-async def get_providers():
+async def get_providers(request: Request, db=Depends(get_tenant_db)):
     """Get available VLM providers and their configurations."""
+
+    # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
+    await get_tenant(request)
 
     # workaround to reload settings after updating the provider
     settings.__init__()
@@ -146,8 +151,13 @@ async def get_providers():
 
 
 @settings_router.post('/providers', response_model=Dict[str, str])
-async def update_provider_settings(request: UpdateProviderRequest):
+async def update_provider_settings(
+    request: UpdateProviderRequest, http_request: Request, db=Depends(get_tenant_db)
+):
     """Update provider configuration and set as active provider."""
+
+    # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
+    await get_tenant(http_request)
 
     # Validate provider
     try:
