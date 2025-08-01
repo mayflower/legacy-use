@@ -110,7 +110,13 @@ async def sampling_loop(
     """
 
     tool_group = TOOL_GROUPS_BY_VERSION[tool_version]
-    tool_collection = ToolCollection(*(ToolCls() for ToolCls in tool_group.tools))
+
+    # Create tools (no longer need database service)
+    tools = []
+    for ToolCls in tool_group.tools:
+        tools.append(ToolCls())
+
+    tool_collection = ToolCollection(*tools)
 
     # Use the original variable name 'system'
     system = BetaTextBlockParam(
@@ -360,10 +366,19 @@ async def sampling_loop(
                     }, exchanges
                 # --- Target Health Check --- END
 
+                # Get session object for computer tools
+                session_obj = None
+                if session_id:
+                    try:
+                        session_obj = db.get_session(UUID(session_id))
+                    except Exception as e:
+                        logger.warning(f'Could not retrieve session {session_id}: {e}')
+
                 result = await tool_collection.run(
                     name=content_block['name'],
                     tool_input=cast(dict[str, Any], content_block['input']),
                     session_id=session_id,
+                    session=session_obj,
                 )
 
                 # --- Save Tool Result Message to DB --- START
