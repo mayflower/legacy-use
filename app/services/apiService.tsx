@@ -1,13 +1,11 @@
 import axios from 'axios';
 import { listSessionsSessionsGet, type Session } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
-
-// Always use /api for API calls since it's proxied by Vite
-export const API_URL = '/api';
+import { API_BASE_URL } from '../utils/apiConstants';
 
 // Create an axios instance with default config
 export const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
 });
 
 // Log every request with telemetry
@@ -52,14 +50,14 @@ export const testApiKey = async (apiKey: string) => {
   try {
     // Create a temporary axios instance with the API key
     const tempClient = axios.create({
-      baseURL: API_URL,
+      baseURL: API_BASE_URL,
       headers: {
         'X-API-Key': apiKey,
       },
     });
 
     // Try to access an endpoint that requires authentication
-    const response = await tempClient.get('/definitions');
+    const response = await tempClient.get(`${API_BASE_URL}/definitions`);
     return response.data;
   } catch (error) {
     console.error('Error testing API key:', error);
@@ -124,7 +122,7 @@ export const checkApiProviderConfiguration = async () => {
 // API Definitions
 export const getApiDefinitions = async (include_archived = false) => {
   try {
-    const response = await apiClient.get('/api/definitions', {
+    const response = await apiClient.get(`${API_BASE_URL}/definitions`, {
       params: { include_archived },
     });
     return response.data;
@@ -136,7 +134,7 @@ export const getApiDefinitions = async (include_archived = false) => {
 
 export const exportApiDefinition = async (apiName: string) => {
   try {
-    const response = await apiClient.get(`/api/definitions/${apiName}/export`);
+    const response = await apiClient.get(`${API_BASE_URL}/definitions/${apiName}/export`);
     return response.data;
   } catch (error) {
     console.error(`Error exporting API definition for ${apiName}:`, error);
@@ -146,7 +144,7 @@ export const exportApiDefinition = async (apiName: string) => {
 
 export const importApiDefinition = async (apiDefinition: any) => {
   try {
-    const response = await apiClient.post('/api/definitions/import', {
+    const response = await apiClient.post(`${API_BASE_URL}/definitions/import`, {
       api_definition: apiDefinition,
     });
     return response.data;
@@ -159,12 +157,12 @@ export const importApiDefinition = async (apiDefinition: any) => {
 export const getApiDefinitionDetails = async (apiName: string) => {
   try {
     // First, get the metadata to check if the API is archived
-    const metadataResponse = await apiClient.get(`/api/definitions/${apiName}/metadata`);
+    const metadataResponse = await apiClient.get(`${API_BASE_URL}/definitions/${apiName}/metadata`);
     const isArchived = metadataResponse.data.is_archived;
 
     // For both archived and non-archived APIs, use the export endpoint
     // The backend should handle returning the correct data
-    const response = await apiClient.get(`/api/definitions/${apiName}/export`);
+    const response = await apiClient.get(`${API_BASE_URL}/definitions/${apiName}/export`);
     const apiDefinition = response.data.api_definition;
 
     // Return the API definition with the archived status
@@ -195,7 +193,7 @@ export const getApiDefinitionDetails = async (apiName: string) => {
 
 export const getApiDefinitionVersions = async (apiName: string) => {
   try {
-    const response = await apiClient.get(`/api/definitions/${apiName}/versions`);
+    const response = await apiClient.get(`${API_BASE_URL}/definitions/${apiName}/versions`);
     return response.data.versions;
   } catch (error) {
     console.error(`Error fetching API definition versions for ${apiName}:`, error);
@@ -205,7 +203,7 @@ export const getApiDefinitionVersions = async (apiName: string) => {
 
 export const getApiDefinitionVersion = async (apiName: string, versionId: string) => {
   try {
-    const response = await apiClient.get(`/api/definitions/${apiName}/versions/${versionId}`);
+    const response = await apiClient.get(`${API_BASE_URL}/definitions/${apiName}/versions/${versionId}`);
     return response.data.version;
   } catch (error) {
     console.error(`Error fetching API definition version for ${apiName} (${versionId}):`, error);
@@ -215,7 +213,7 @@ export const getApiDefinitionVersion = async (apiName: string, versionId: string
 
 export const updateApiDefinition = async (apiName: string, apiDefinition: any) => {
   try {
-    const response = await apiClient.put(`/api/definitions/${apiName}`, {
+    const response = await apiClient.put(`${API_BASE_URL}/definitions/${apiName}`, {
       api_definition: apiDefinition,
     });
     return response.data;
@@ -227,7 +225,7 @@ export const updateApiDefinition = async (apiName: string, apiDefinition: any) =
 
 export const archiveApiDefinition = async (apiName: string) => {
   try {
-    const response = await apiClient.delete(`/api/definitions/${apiName}`);
+    const response = await apiClient.delete(`${API_BASE_URL}/definitions/${apiName}`);
     return response.data;
   } catch (error) {
     console.error(`Error archiving API definition for ${apiName}:`, error);
@@ -237,7 +235,7 @@ export const archiveApiDefinition = async (apiName: string) => {
 
 export const unarchiveApiDefinition = async (apiName: string) => {
   try {
-    const response = await apiClient.post(`/api/definitions/${apiName}/unarchive`);
+    const response = await apiClient.post(`${API_BASE_URL}/definitions/${apiName}/unarchive`);
     return response.data;
   } catch (error) {
     console.error(`Error unarchiving API definition for ${apiName}:`, error);
