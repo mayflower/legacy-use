@@ -1016,9 +1016,6 @@ class DatabaseService:
 
     # --- End Tenant Methods ---
 
-    # Example usage:
-    # db = DatabaseService()
-
     def find_ready_session_for_target(self, target_id: UUID) -> Dict[str, Any] | None:
         """Find an available 'ready' and not archived session for the target."""
         session = self.Session()
