@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   type ActionStep,
   type AnalyzeVideoAiAnalyzePostResult,
-  executeWorkflowInteractiveSessionsSessionIdWorkflowPost,
+  importApiDefinitionApiDefinitionsImportPost,
   type Parameter,
   type Session,
   type WorkflowRequestParameters,
@@ -26,25 +26,33 @@ export default function InteractiveBuilder({
   const handleInteractiveExecute = async () => {
     setExecuteProgress(true);
 
+    const timestamp = new Date().toISOString().split('.')[0];
+
     const parametersPayload: WorkflowRequestParameters = parameters.reduce((acc, parameter) => {
       acc[parameter.name] = parameter.default;
       return acc;
     }, {} as WorkflowRequestParameters);
 
-    try {
-      const response = await executeWorkflowInteractiveSessionsSessionIdWorkflowPost(
-        currentSession.id,
-        {
-          steps: actions,
-          parameters: parametersPayload,
-        },
-      );
-      console.log(response);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setExecuteProgress(false);
-    }
+    const prompt = analyzeResult.actions
+      .map((action, index) => `Step ${index + 1}: ${action.title}\n${action.instruction}`)
+      .join('---\n\n');
+
+    const api_definition = {
+      name: `interactive-${timestamp}`,
+      description: `Interactive API definition from ${timestamp}`,
+      prompt: prompt,
+      prompt_cleanup: analyzeResult.prompt_cleanup,
+      response_example: analyzeResult.response_example,
+      parameters: parameters,
+    };
+
+    console.log(api_definition);
+
+    const apiDefinition = await importApiDefinitionApiDefinitionsImportPost({ api_definition });
+
+    console.log(apiDefinition);
+
+    setExecuteProgress(false);
   };
 
   const handleActionUpdate = (index: number, updatedAction: ActionStep) => {
