@@ -22,9 +22,6 @@ from server.utils.telemetry import (
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Initialize the core API Gateway
-core = APIGatewayCore()
-
 # Create router
 api_router = APIRouter(prefix='/api')  # Removed the tags=["API"] to prevent duplication
 
@@ -71,6 +68,9 @@ async def get_api_response_example(api_def, db):
 )
 async def get_api_definition(api_name: str, db=Depends(get_tenant_db)):
     """Get a specific API definition by name."""
+    # Initialize the core API Gateway with tenant-aware database
+    core = APIGatewayCore(db_service=db)
+
     # Load API definitions fresh from the database
     api_definitions = await core.load_api_definitions()
 
@@ -126,6 +126,7 @@ async def export_api_definition(api_name: str, db=Depends(get_tenant_db)):
         }
 
     # For non-archived APIs, load fresh from the database
+    core = APIGatewayCore(db_service=db)
     api_definitions = await core.load_api_definitions()
 
     if api_name not in api_definitions:
@@ -311,6 +312,7 @@ async def import_api_definition(
             message = f"Created new API '{api_def['name']}'"
 
         # Reload API definitions in core
+        core = APIGatewayCore(db_service=db)
         await core.load_api_definitions()
 
         capture_api_created(request, api_def, api_id, str(version_number))
@@ -392,6 +394,7 @@ async def update_api_definition(
         )
 
         # Reload API definitions in core
+        core = APIGatewayCore(db_service=db)
         await core.load_api_definitions()
 
         capture_api_updated(request, api_def, existing_api.id, str(version_number))
@@ -429,6 +432,7 @@ async def archive_api_definition(
         await db.archive_api_definition(api_definition.id)
 
         # Reload API definitions in core
+        core = APIGatewayCore(db_service=db)
         await core.load_api_definitions()
 
         capture_api_deleted(request, api_definition.id, api_name)
@@ -466,6 +470,7 @@ async def unarchive_api_definition(api_name: str, db=Depends(get_tenant_db)):
         await db.update_api_definition(api_definition.id, is_archived=False)
 
         # Reload API definitions in core
+        core = APIGatewayCore(db_service=db)
         await core.load_api_definitions()
 
         return {

@@ -53,9 +53,6 @@ from server.utils.telemetry import (
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Initialize core and database
-core = APIGatewayCore()
-
 # Create router
 job_router = APIRouter(tags=['Job Management'])
 
@@ -178,6 +175,7 @@ async def create_job(
     # Try to get the API definition version ID
     try:
         # Load API definitions fresh from the database
+        core = APIGatewayCore(db_service=db)
         api_definitions = await core.load_api_definitions()
 
         # Check if the API definition exists
@@ -373,7 +371,6 @@ async def interrupt_job(
                     f'Tried to interrupt queued job {job_id_str}, but it was not found in the queue.'
                 )
                 # If not in queue, it might have finished or errored already. Ensure status reflects this.
-                # Optionally check current DB status and update if needed
                 if db.get_job(job_id)['status'] == JobStatus.QUEUED:
                     db.update_job_status(job_id, JobStatus.ERROR)
                     add_job_log(
