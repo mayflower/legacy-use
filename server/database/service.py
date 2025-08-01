@@ -817,7 +817,14 @@ class DatabaseService:
     def _to_dict(self, obj):
         if obj is None:
             return None
-        result = {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+        result = {}
+        for c in obj.__table__.columns:
+            value = getattr(obj, c.name)
+            # Handle enum serialization
+            if hasattr(value, 'value'):
+                result[c.name] = value.value
+            else:
+                result[c.name] = value
         return result
 
     def get_session_job(self, session_id, job_id):
