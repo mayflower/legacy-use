@@ -204,3 +204,17 @@ class JobMessage(Base):
     job = relationship('Job', back_populates='messages')
 
     __table_args__ = (Index('ix_jobmessage_job_id_sequence', 'job_id', 'sequence'),)
+
+
+class TenantSettings(Base):
+    """Tenant-specific settings model."""
+
+    __tablename__ = 'settings'
+
+    id = Column(PostgresUUID, primary_key=True, default=uuid.uuid4)
+    key = Column(String(256), nullable=False, index=True)
+    value = Column(String(4096), nullable=True)  # Store as string, can be JSON
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (Index('ix_settings_key', 'key'),)
