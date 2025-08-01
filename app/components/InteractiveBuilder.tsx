@@ -1,13 +1,15 @@
 import { PlayArrow } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type {
   ActionStep,
   AnalyzeVideoAiAnalyzePostResult,
+  JobCreateParameters,
   Parameter,
   Session,
 } from '../gen/endpoints';
-import { importApiDefinition } from '../services/apiService';
+import { createJob, importApiDefinition } from '../services/apiService';
 import ActionStepCard from './InteractiveBuilderActionStepCard';
 import ParameterCard from './InteractiveBuilderParameterCard';
 
@@ -18,6 +20,7 @@ export default function InteractiveBuilder({
   currentSession: Session;
   analyzeResult: AnalyzeVideoAiAnalyzePostResult;
 }) {
+  const navigate = useNavigate();
   const [executeProgress, setExecuteProgress] = useState(false);
   const [actions, setActions] = useState<ActionStep[]>(analyzeResult?.actions ?? []);
   const [parameters, setParameters] = useState<Parameter[]>(analyzeResult?.parameters ?? []);
@@ -29,7 +32,7 @@ export default function InteractiveBuilder({
 
     const prompt = analyzeResult.actions
       .map((action, index) => `Step ${index + 1}: ${action.title}\n${action.instruction}`)
-      .join('---\n\n');
+      .join('\n---\n\n');
 
     const apiDefinition = await importApiDefinition({
       api_definition: {
@@ -42,8 +45,16 @@ export default function InteractiveBuilder({
       },
     });
 
-    console.log(apiDefinition.name);
-    console.log(currentSession.id);
+    const result = await createJob(currentSession.target_id, {
+      api_name: apiDefinition.name,
+      parameters: parameters.reduce((acc, parameter) => {
+        acc[parameter.name] = parameter.default ?? '';
+        return acc;
+      }, {} as JobCreateParameters),
+    });
+
+    // Navigate to the job details page with the logs tab active
+    navigate(`/jobs/${currentSession.target_id}/${result.id}`);
 
     setExecuteProgress(false);
   };

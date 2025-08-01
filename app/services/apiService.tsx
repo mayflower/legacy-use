@@ -1,9 +1,11 @@
 import axios from 'axios';
 import {
   analyzeVideoAiAnalyzePost,
+  createJobTargetsTargetIdJobsPost,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
   type ImportApiDefinitionRequest,
   importApiDefinitionApiDefinitionsImportPost,
+  type JobCreate,
   listSessionsSessionsGet,
   type RecordingRequest,
   type Session,
@@ -331,14 +333,8 @@ export const getJob = async (targetId, jobId) => {
   }
 };
 
-export const createJob = async (targetId, jobData) => {
-  try {
-    const response = await apiClient.post(`/targets/${targetId}/jobs/`, jobData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating job on target:', error);
-    throw error;
-  }
+export const createJob = async (targetId: string, jobData: JobCreate) => {
+  return createJobTargetsTargetIdJobsPost(targetId, jobData);
 };
 
 export const interruptJob = async (targetId, jobId) => {
