@@ -622,11 +622,11 @@ async def execute_api_in_background(job: Job):
             except Exception as e:
                 logger.error(f'Error setting completion future: {e}')
 
-            add_job_log(
-                job_id_str,
-                'system',
-                f'Job completed with status: {api_response.status} and reason: {api_response.reason}',
-            )
+            msg = f'Job completed with status: {api_response.status}'
+            # if status is not success, add the reason
+            if api_response.status != JobStatus.SUCCESS:
+                msg += f' and reason: {api_response.reason}'
+            add_job_log(job_id_str, 'system', msg)
 
             # Include token usage in the job data for telemetry
             # TODO: This is a hack to get the token usage into the job data for telemetry,
