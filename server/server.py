@@ -200,14 +200,11 @@ app.openapi_components = {
 
 app.openapi_security = [{'ApiKeyAuth': []}]
 
-# Helper to normalize slug prefix
+# Normalize slug prefix
 slug_prefix = settings.API_SLUG_PREFIX.strip()
-if slug_prefix:
-    if not slug_prefix.startswith('/'):
-        slug_prefix = '/' + slug_prefix
-    slug_prefix = slug_prefix.rstrip('/')
-else:
-    slug_prefix = ''
+if not slug_prefix.startswith('/'):
+    slug_prefix = '/' + slug_prefix
+slug_prefix = slug_prefix.rstrip('/')
 
 # Include API router
 app.include_router(api_router, prefix=slug_prefix)
