@@ -17,7 +17,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from server.config.default_ports import DEFAULT_PORTS
 from server.models.base import Session, SessionCreate, SessionUpdate
-from server.utils.db_dependencies import get_tenant_db
+from server.utils.db_dependencies import get_tenant_db, get_tenant_db_websocket
 from server.utils.docker_manager import (
     get_container_status,
     launch_container,
@@ -374,7 +374,7 @@ async def proxy_vnc(
 # Move the WebSocket endpoint to the websocket_router
 @websocket_router.websocket('/{session_id}/vnc/websockify')
 async def proxy_vnc_websocket(
-    websocket: WebSocket, session_id: UUID, db=Depends(get_tenant_db)
+    websocket: WebSocket, session_id: UUID, db=Depends(get_tenant_db_websocket)
 ):
     """
     Proxy WebSocket connections for the VNC viewer.

@@ -22,8 +22,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://backend:8088',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        ws: true,        
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             // Preserve the original host header for multi-tenant support

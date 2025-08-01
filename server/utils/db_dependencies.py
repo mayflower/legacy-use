@@ -6,6 +6,7 @@ from typing import Generator
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
+from starlette.websockets import WebSocket
 
 from server.database.multi_tenancy import with_db
 from server.database.service import DatabaseService
@@ -42,6 +43,49 @@ class TenantAwareDatabaseService(DatabaseService):
         self.Session = get_tenant_session
 
 
+def get_tenant_from_websocket(websocket: WebSocket) -> dict:
+    """
+    Extract tenant information from websocket headers.
+
+    Args:
+        websocket: WebSocket object containing headers
+
+    Returns:
+        Dictionary containing tenant information (name, schema, etc.)
+    """
+    # Extract host from websocket headers
+    host = websocket.headers.get('host', '')
+
+    if not host:
+        raise ValueError('No host header found in websocket request')
+
+    # Remove port if present
+    if ':' in host:
+        host = host.split(':')[0]
+
+    # Import here to avoid circular imports
+    from server.database.multi_tenancy import get_tenant_by_host
+    from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
+
+    # Look up tenant by host
+    tenant = get_tenant_by_host(host)
+
+    if not tenant:
+        raise TenantNotFoundError(f'No tenant found for host: {host}')
+
+    if not tenant.is_active:
+        raise TenantInactiveError(f'Tenant {tenant.name} is inactive')
+
+    # Return tenant information as dictionary
+    return {
+        'id': str(tenant.id),
+        'name': tenant.name,
+        'host': tenant.host,
+        'schema': tenant.schema,
+        'is_active': tenant.is_active,
+    }
+
+
 def get_tenant_db(
     tenant: dict = Depends(get_tenant),
 ) -> Generator[TenantAwareDatabaseService, None, None]:
@@ -57,6 +101,27 @@ def get_tenant_db(
     Yields:
         TenantAwareDatabaseService: Database service with tenant schema mapping
     """
+    with with_db(tenant['schema']) as db_session:
+        db_service = TenantAwareDatabaseService(db_session)
+        yield db_service
+
+
+def get_tenant_db_websocket(
+    websocket: WebSocket,
+) -> Generator[TenantAwareDatabaseService, None, None]:
+    """
+    Get a database service with tenant-specific schema mapping for WebSocket connections.
+
+    This function automatically uses the correct schema remapping based on the tenant
+    making the websocket request. All queries are then automatically run against the correct tenant.
+
+    Args:
+        websocket: WebSocket object containing headers
+
+    Yields:
+        TenantAwareDatabaseService: Database service with tenant schema mapping
+    """
+    tenant = get_tenant_from_websocket(websocket)
     with with_db(tenant['schema']) as db_session:
         db_service = TenantAwareDatabaseService(db_session)
         yield db_service

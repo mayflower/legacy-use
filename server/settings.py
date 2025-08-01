@@ -56,9 +56,7 @@ class Settings(BaseSettings):
     LOG_RETENTION_DAYS: int = 7
     SHOW_DOCS: bool = True
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
-    API_SLUG_PREFIX: str = (
-        ''  # Slug prefix for all API routes, e.g. '/slug'. Default is empty (no prefix)
-    )
+    API_SLUG_PREFIX: str = '/api'  # Slug prefix for all API routes, e.g. '/slug'. Default is empty (no prefix)
 
     model_config = SettingsConfigDict(
         env_file=get_setting_env_file(),
