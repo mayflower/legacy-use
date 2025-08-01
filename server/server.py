@@ -57,10 +57,10 @@ else:
     )
 
 # Normalized api slug prefix, based on settings.API_SLUG_PREFIX
-api_slug_prefix = settings.API_SLUG_PREFIX.strip()
-if not api_slug_prefix.startswith('/'):
-    api_slug_prefix = '/' + api_slug_prefix
-api_slug_prefix = api_slug_prefix.rstrip('/')
+api_prefix = settings.API_SLUG_PREFIX.strip()
+if not api_prefix.startswith('/'):
+    api_prefix = '/' + api_prefix
+api_prefix = api_prefix.rstrip('/')
 
 
 # Handle provider-specific environment variables
@@ -102,7 +102,7 @@ app = FastAPI(
     title='AI API Gateway',
     description='API Gateway for AI-powered endpoints',
     version='1.0.0',
-    redoc_url=f'{api_slug_prefix}/redoc' if settings.SHOW_DOCS else None,
+    redoc_url=f'{api_prefix}/redoc' if settings.SHOW_DOCS else None,
     # Disable automatic redirect from /path to /path/
     redirect_slashes=False,
 )
@@ -207,29 +207,29 @@ app.openapi_components = {
 app.openapi_security = [{'ApiKeyAuth': []}]
 
 # Include API router
-app.include_router(api_router, prefix=api_slug_prefix)
+app.include_router(api_router, prefix=api_prefix)
 
 # Include core routers
-app.include_router(target_router, prefix=api_slug_prefix)
+app.include_router(target_router, prefix=api_prefix)
 app.include_router(
     session_router,
-    prefix=api_slug_prefix,
+    prefix=api_prefix,
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
-app.include_router(job_router, prefix=api_slug_prefix)
+app.include_router(job_router, prefix=api_prefix)
 
 # Include WebSocket router
-app.include_router(websocket_router, prefix=api_slug_prefix)
+app.include_router(websocket_router, prefix=api_prefix)
 
 # Include diagnostics router
 app.include_router(
     diagnostics_router,
-    prefix=api_slug_prefix,
+    prefix=api_prefix,
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 
 # Include settings router
-app.include_router(settings_router, prefix=api_slug_prefix)
+app.include_router(settings_router, prefix=api_prefix)
 
 
 # Root endpoint
