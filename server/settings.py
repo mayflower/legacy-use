@@ -26,28 +26,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str = 'postgresql://postgres:postgres@localhost:5432/legacy_use'
     ALEMBIC_CONFIG_PATH: str = 'server/alembic.ini'
 
-    API_KEY: str = 'not-secure-api-key'
-    VITE_API_KEY: str | None = None
     API_KEY_NAME: str = 'X-API-Key'
 
-    API_PROVIDER: str = 'anthropic'
-
-    AWS_ACCESS_KEY_ID: str | None = None
-    AWS_SECRET_ACCESS_KEY: str | None = None
-    AWS_REGION: str | None = None
-    AWS_SESSION_TOKEN: str | None = None
-
-    ANTHROPIC_API_KEY: str | None = None
-
-    VERTEX_REGION: str | None = None
-    VERTEX_PROJECT_ID: str | None = None
-
     LEGACYUSE_PROXY_BASE_URL: str = 'https://api.legacy-use.com/'
-    LEGACYUSE_PROXY_API_KEY: str | None = None
 
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
-    VITE_SENTRY_DSN_UI: str | None = None
 
     VITE_PUBLIC_POSTHOG_HOST: str = 'https://eu.i.posthog.com'
     VITE_PUBLIC_POSTHOG_KEY: str = 'phc_i1lWRELFSWLrbwV8M8sddiFD83rVhWzyZhP27T3s6V8'

@@ -11,7 +11,6 @@ server-tests:
 
 setup:
 	touch .env.local
-	uv run python generate_api_key.py
 
 # Docker Compose Commands
 docker-dev: 
