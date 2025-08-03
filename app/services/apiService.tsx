@@ -322,6 +322,11 @@ export const getAllJobs = async (limit = 10, offset = 0, filters = {}) => {
 export const getJob = async (targetId, jobId) => {
   try {
     const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}`);
+    // add Z suffix to the date so JS can parse it as UTC
+    response.data.created_at = response.data.created_at + 'Z';
+    if (response.data.completed_at) {
+      response.data.completed_at = response.data.completed_at + 'Z';
+    }
     return response.data;
   } catch (error) {
     console.error('Error fetching job:', error);
