@@ -6,13 +6,9 @@ from contextlib import contextmanager
 from typing import Optional
 
 import sqlalchemy as sa
-from alembic import script
-from alembic.config import Config
-from alembic.runtime.migration import MigrationContext
 from sqlalchemy.orm import Session
 
 from server.database.models import Base, Tenant
-from server.settings import settings
 
 
 def get_shared_metadata():
@@ -57,18 +53,13 @@ def with_db(tenant_schema: Optional[str]):
 
 def tenant_create(name: str, schema: str, host: str) -> None:
     """Create a new tenant with its schema and tables."""
-    # Load Alembic config
-    alembic_config = Config(settings.ALEMBIC_CONFIG_PATH)
+
+    # Check schema name against blacklist
+    blacklisted_names = {'cloud', 'www', 'admin', 'local', 'api'}
+    if schema.lower() in blacklisted_names:
+        raise ValueError(f'Schema name "{schema}" is not allowed (blacklisted)')
 
     with with_db(schema) as db_tenant:
-        # Check if migrations are up to date
-        context = MigrationContext.configure(db_tenant.connection())
-        script_dir = script.ScriptDirectory.from_config(alembic_config)
-        if context.get_current_revision() != script_dir.get_current_head():
-            raise RuntimeError(
-                'Database is not up-to-date. Execute migrations before adding new tenants.'
-            )
-
         # Create tenant record
         tenant = Tenant(
             name=name,
