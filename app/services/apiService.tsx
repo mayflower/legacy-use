@@ -59,99 +59,64 @@ apiClient.interceptors.request.use(
 
 // Function to test if an API key is valid
 export const testApiKey = async (apiKey: string) => {
-  try {
-    // Create a temporary axios instance with the API key
-    const tempClient = axios.create({
-      baseURL: API_URL,
-      headers: {
-        'X-API-Key': apiKey,
-      },
-    });
+  // Create a temporary axios instance with the API key
+  const tempClient = axios.create({
+    baseURL: API_URL,
+    headers: {
+      'X-API-Key': apiKey,
+    },
+  });
 
-    // Try to access an endpoint that requires authentication
-    const response = await tempClient.get(`${API_URL}/api/definitions`);
-    return response.data;
-  } catch (error) {
-    console.error('Error testing API key:', error);
-    throw error;
-  }
+  // Try to access an endpoint that requires authentication
+  const response = await tempClient.get(`${API_URL}/api/definitions`);
+  return response.data;
 };
 
 // Function to get provider configuration
 export const getProviders = async () => {
-  try {
-    const response = await apiClient.get('/settings/providers');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching providers:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/settings/providers');
+  return response.data;
 };
 
 // Function to update provider settings
 export const updateProviderSettings = async (provider, credentials) => {
-  try {
-    const response = await apiClient.post('/settings/providers', {
-      provider,
-      credentials,
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error updating provider settings:', error);
-    throw error;
-  }
+  const response = await apiClient.post('/settings/providers', {
+    provider,
+    credentials,
+  });
+  return response.data;
 };
 
 // Function to check if any API provider is configured (after ensuring API key is provided)
 export const checkApiProviderConfiguration = async () => {
-  try {
-    // Get provider configuration
-    const providersData = await getProviders();
+  // Get provider configuration
+  const providersData = await getProviders();
 
-    // Check if any provider is configured (has available = true)
-    const configuredProviders = providersData.providers.filter(provider => provider.available);
-    const hasConfiguredProvider = configuredProviders.length > 0;
+  // Check if any provider is configured (has available = true)
+  const configuredProviders = providersData.providers.filter(provider => provider.available);
+  const hasConfiguredProvider = configuredProviders.length > 0;
 
-    return {
-      hasApiKey: true,
-      hasConfiguredProvider,
-      currentProvider: providersData.current_provider,
-      configuredProviders,
-      allProviders: providersData.providers,
-      error: null,
-    };
-  } catch (error) {
-    console.error('Error checking API provider configuration:', error);
-    return {
-      hasApiKey: !!localStorage.getItem('apiKey'),
-      hasConfiguredProvider: false,
-      error: `Failed to check provider configuration: ${error.message}`,
-      providers: [],
-    };
-  }
+  return {
+    hasApiKey: true,
+    hasConfiguredProvider,
+    currentProvider: providersData.current_provider,
+    configuredProviders,
+    allProviders: providersData.providers,
+    error: null,
+  };
 };
 
 // API Definitions
 export const getApiDefinitions = async (include_archived = false) => {
-  try {
-    const response = await apiClient.get('/api/definitions', {
-      params: { include_archived },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching API definitions:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/api/definitions', {
+    params: { include_archived },
+  });
+  return response.data;
 };
 
 export const exportApiDefinition = async apiName => {
-  try {
-    const response = await apiClient.get(`/api/definitions/${apiName}/export`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error exporting API definition for ${apiName}:`, error);
-    throw error;
-  }
+  const response = await apiClient.get(`/api/definitions/${apiName}/export`);
+  return response.data;
 };
 
 export const importApiDefinition = async (apiDefinition: ImportApiDefinitionRequest) => {
@@ -159,92 +124,47 @@ export const importApiDefinition = async (apiDefinition: ImportApiDefinitionRequ
 };
 
 export const getApiDefinitionDetails = async apiName => {
-  try {
-    // First, get the metadata to check if the API is archived
-    const metadataResponse = await apiClient.get(`/api/definitions/${apiName}/metadata`);
-    const isArchived = metadataResponse.data.is_archived;
+  // First, get the metadata to check if the API is archived
+  const metadataResponse = await apiClient.get(`/api/definitions/${apiName}/metadata`);
+  const isArchived = metadataResponse.data.is_archived;
 
-    // For both archived and non-archived APIs, use the export endpoint
-    // The backend should handle returning the correct data
-    const response = await apiClient.get(`/api/definitions/${apiName}/export`);
-    const apiDefinition = response.data.api_definition;
+  // For both archived and non-archived APIs, use the export endpoint
+  // The backend should handle returning the correct data
+  const response = await apiClient.get(`/api/definitions/${apiName}/export`);
+  const apiDefinition = response.data.api_definition;
 
-    // Return the API definition with the archived status
-    return {
-      ...apiDefinition,
-      is_archived: isArchived,
-    };
-  } catch (error) {
-    console.error(`Error fetching API definition details for ${apiName}:`, error);
-
-    // If we get a 404 error, it might be because the API is archived
-    // In this case, we'll return a basic API definition with just the name and archived status
-    if (error.response && error.response.status === 404) {
-      return {
-        name: apiName,
-        description: 'This API is archived and its definition is not available.',
-        parameters: [],
-        prompt: '',
-        prompt_cleanup: '',
-        response_example: {},
-        is_archived: true,
-      };
-    }
-
-    throw error;
-  }
+  // Return the API definition with the archived status
+  return {
+    ...apiDefinition,
+    is_archived: isArchived,
+  };
 };
 
 export const getApiDefinitionVersions = async apiName => {
-  try {
-    const response = await apiClient.get(`/api/definitions/${apiName}/versions`);
-    return response.data.versions;
-  } catch (error) {
-    console.error(`Error fetching API definition versions for ${apiName}:`, error);
-    throw error;
-  }
+  const response = await apiClient.get(`/api/definitions/${apiName}/versions`);
+  return response.data.versions;
 };
 
 export const getApiDefinitionVersion = async (apiName, versionId) => {
-  try {
-    const response = await apiClient.get(`/api/definitions/${apiName}/versions/${versionId}`);
-    return response.data.version;
-  } catch (error) {
-    console.error(`Error fetching API definition version for ${apiName} (${versionId}):`, error);
-    throw error;
-  }
+  const response = await apiClient.get(`/api/definitions/${apiName}/versions/${versionId}`);
+  return response.data.version;
 };
 
 export const updateApiDefinition = async (apiName, apiDefinition) => {
-  try {
-    const response = await apiClient.put(`/api/definitions/${apiName}`, {
-      api_definition: apiDefinition,
-    });
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating API definition for ${apiName}:`, error);
-    throw error;
-  }
+  const response = await apiClient.put(`/api/definitions/${apiName}`, {
+    api_definition: apiDefinition,
+  });
+  return response.data;
 };
 
 export const archiveApiDefinition = async apiName => {
-  try {
-    const response = await apiClient.delete(`/api/definitions/${apiName}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error archiving API definition for ${apiName}:`, error);
-    throw error;
-  }
+  const response = await apiClient.delete(`/api/definitions/${apiName}`);
+  return response.data;
 };
 
 export const unarchiveApiDefinition = async apiName => {
-  try {
-    const response = await apiClient.post(`/api/definitions/${apiName}/unarchive`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error unarchiving API definition for ${apiName}:`, error);
-    throw error;
-  }
+  const response = await apiClient.post(`/api/definitions/${apiName}/unarchive`);
+  return response.data;
 };
 
 // Sessions
@@ -253,89 +173,53 @@ export const getSessions = async (include_archived = false): Promise<Session[]> 
 };
 
 export const getSession = async sessionId => {
-  try {
-    const response = await apiClient.get(`/sessions/${sessionId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching session ${sessionId}:`, error);
-    throw error;
-  }
+  const response = await apiClient.get(`/sessions/${sessionId}`);
+  return response.data;
 };
 
 export const createSession = async sessionData => {
-  try {
-    const response = await apiClient.post('/sessions/', sessionData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating session:', error);
-    throw error;
-  }
+  const response = await apiClient.post('/sessions/', sessionData);
+  return response.data;
 };
 
 export const deleteSession = async (sessionId, hardDelete = false) => {
-  try {
-    const endpoint = hardDelete ? `/sessions/${sessionId}/hard` : `/sessions/${sessionId}`;
-    const response = await apiClient.delete(endpoint);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting session:', error);
-    throw error;
-  }
+  const endpoint = hardDelete ? `/sessions/${sessionId}/hard` : `/sessions/${sessionId}`;
+  const response = await apiClient.delete(endpoint);
+  return response.data;
 };
 
 // Jobs
 export const getJobs = async targetId => {
-  try {
-    const response = await apiClient.get(`/targets/${targetId}/jobs/`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching jobs for target ${targetId}:`, error);
-    throw error;
-  }
+  const response = await apiClient.get(`/targets/${targetId}/jobs/`);
+  return response.data;
 };
 
 export const getJobQueueStatus = async () => {
-  try {
-    const response = await apiClient.get('/jobs/queue/status');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching job queue status:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/jobs/queue/status');
+  return response.data;
 };
 
 export const getAllJobs = async (limit = 10, offset = 0, filters = {}) => {
-  try {
-    const params = {
-      limit,
-      offset,
-      ...filters, // Include any additional filters: status, target_id, api_name
-    };
+  const params = {
+    limit,
+    offset,
+    ...filters, // Include any additional filters: status, target_id, api_name
+  };
 
-    const response = await apiClient.get('/jobs/', { params });
+  const response = await apiClient.get('/jobs/', { params });
 
-    // Return the full response - it contains a jobs array and total_count
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching all jobs:', error);
-    // Return an empty response with default values to avoid null errors
-    return { jobs: [], total_count: 0 };
-  }
+  // Return the full response - it contains a jobs array and total_count
+  return response.data;
 };
 
 export const getJob = async (targetId, jobId) => {
-  try {
-    const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}`);
-    // add Z suffix to the date so JS can parse it as UTC
-    response.data.created_at = response.data.created_at + 'Z';
-    if (response.data.completed_at) {
-      response.data.completed_at = response.data.completed_at + 'Z';
-    }
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching job:', error);
-    throw error;
+  const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}`);
+  // add Z suffix to the date so JS can parse it as UTC
+  response.data.created_at = response.data.created_at + 'Z';
+  if (response.data.completed_at) {
+    response.data.completed_at = response.data.completed_at + 'Z';
   }
+  return response.data;
 };
 
 export const createJob = async (targetId: string, jobData: JobCreate) => {
@@ -343,58 +227,38 @@ export const createJob = async (targetId: string, jobData: JobCreate) => {
 };
 
 export const interruptJob = async (targetId, jobId) => {
-  try {
-    const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/interrupt/`);
-    return response.data;
-  } catch (error) {
-    console.error('Error interrupting job:', error);
-    throw error;
-  }
+  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/interrupt/`);
+  return response.data;
 };
 
 export const cancelJob = async (targetId, jobId) => {
-  try {
-    const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/cancel/`);
-    return response.data;
-  } catch (error) {
-    console.error('Error canceling job:', error);
-    throw error;
-  }
+  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/cancel/`);
+  return response.data;
 };
 
 export const getJobLogs = async (targetId, jobId) => {
-  try {
-    const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/logs/`);
+  const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/logs/`);
 
-    // The response is now a direct array of log objects
-    const logs = response.data || [];
+  // The response is now a direct array of log objects
+  const logs = response.data || [];
 
-    // Convert log_type to type for compatibility with LogViewer
-    return logs.map(log => ({
-      ...log,
-      type: log.log_type, // Add type property while preserving log_type
-    }));
-  } catch (error) {
-    console.error('Error fetching job logs:', error);
-    throw error;
-  }
+  // Convert log_type to type for compatibility with LogViewer
+  return logs.map(log => ({
+    ...log,
+    type: log.log_type, // Add type property while preserving log_type
+  }));
 };
 
 export const getJobHttpExchanges = async (targetId, jobId) => {
-  try {
-    const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/http_exchanges/`);
+  const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/http_exchanges/`);
 
-    // Handle the new response format where the endpoint directly returns an array
-    // instead of a nested structure with http_exchanges key
-    const httpExchanges = Array.isArray(response.data)
-      ? response.data
-      : response.data.http_exchanges || [];
+  // Handle the new response format where the endpoint directly returns an array
+  // instead of a nested structure with http_exchanges key
+  const httpExchanges = Array.isArray(response.data)
+    ? response.data
+    : response.data.http_exchanges || [];
 
-    return httpExchanges;
-  } catch (error) {
-    console.error('Error fetching job HTTP exchanges:', error);
-    throw error;
-  }
+  return httpExchanges;
 };
 
 // Targets
