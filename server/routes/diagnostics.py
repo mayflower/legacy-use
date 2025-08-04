@@ -15,7 +15,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends
 
 from server.utils.db_dependencies import get_tenant_db
-from server.utils.tenant_utils import get_tenant
+from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import (
     running_job_tasks,
     tenant_job_queues,
@@ -33,7 +33,7 @@ diagnostics_router = APIRouter(tags=['Diagnostics'])
 @diagnostics_router.get('/diagnostics/queue')
 async def diagnose_job_queue(
     db_tenant=Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Get diagnostic information about the job queue and running jobs for the current tenant.
 
@@ -171,7 +171,7 @@ async def diagnose_job_queue(
 @diagnostics_router.post('/diagnostics/queue/start')
 async def start_job_processor(
     db_tenant=Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Manually start the job queue processor for the current tenant.
 

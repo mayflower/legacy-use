@@ -31,7 +31,7 @@ from server.core import APIGatewayCore
 from server.models.base import Job, JobCreate, JobStatus
 from server.settings import settings
 from server.utils.db_dependencies import get_tenant_db
-from server.utils.tenant_utils import get_tenant
+from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
@@ -154,7 +154,7 @@ async def create_job(
     job: JobCreate,
     request: Request,
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Create a new job for a target.
 
@@ -276,7 +276,7 @@ async def get_job(
 @job_router.get('/jobs/queue/status')
 async def get_queue_status(
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Get the current status of the job queue for the current tenant."""
     from server.utils.job_execution import (
@@ -340,7 +340,7 @@ async def interrupt_job(
     job_id: UUID,
     request: Request,
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Interrupt a running, queued, or pending job."""
     job_id_str = str(job_id)
@@ -467,7 +467,7 @@ async def cancel_job(
     job_id: UUID,
     request: Request,
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Cancel a job and mark its status as 'canceled'."""
     job_id_str = str(job_id)
@@ -653,7 +653,7 @@ async def resolve_job(
     result: Annotated[Dict[str, Any], Body(...)],
     request: Request,
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Resolve a job that's in error or paused state.
 
@@ -726,7 +726,7 @@ async def resolve_job(
 @job_router.post('/jobs/queue/resync', include_in_schema=False)
 async def resync_queue(
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Manually resynchronize the job queue with the database for the current tenant.
 
@@ -794,7 +794,7 @@ async def resume_job(
     job_id: UUID,
     request: Request,
     db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ):
     """Resumes a paused or error job by setting its status to queued."""
     job_id_str = str(job_id)

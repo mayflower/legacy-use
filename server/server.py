@@ -24,7 +24,7 @@ from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
 from server.routes.settings import settings_router
 from server.utils.auth import get_api_key
-from server.utils.tenant_utils import get_tenant
+from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import job_queue_initializer
 from server.utils.log_pruning import scheduled_log_pruning
 from server.utils.session_monitor import start_session_monitor
@@ -154,7 +154,7 @@ async def auth_middleware(request: Request, call_next):
         api_key = await get_api_key(request)
 
         # Get tenant by host header
-        tenant = get_tenant(request)
+        tenant = get_tenant_from_request(request)
         tenant_schema = tenant['schema']
 
         # Check if API key matches tenant-specific API key

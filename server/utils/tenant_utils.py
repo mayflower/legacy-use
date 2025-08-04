@@ -10,7 +10,7 @@ from server.database.multi_tenancy import get_tenant_by_host
 from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
 
 
-def get_tenant(request: Request) -> Dict[str, str]:
+def get_tenant_from_request(request: Request) -> Dict[str, str]:
     """
     Extract tenant information from the request.
 

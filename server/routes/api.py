@@ -71,9 +71,9 @@ async def get_api_definition(
 ):
     """Get a specific API definition by name."""
     # Get tenant schema for APIGatewayCore
-    from server.utils.tenant_utils import get_tenant
+    from server.utils.tenant_utils import get_tenant_from_request
 
-    tenant = get_tenant(request)
+    tenant = get_tenant_from_request(request)
 
     # Initialize the core API Gateway with tenant-aware database
     core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
@@ -138,9 +138,9 @@ async def export_api_definition(
 
     # For non-archived APIs, load fresh from the database
     # Get tenant schema for APIGatewayCore
-    from server.utils.tenant_utils import get_tenant
+    from server.utils.tenant_utils import get_tenant_from_request
 
-    tenant = get_tenant(request)
+    tenant = get_tenant_from_request(request)
 
     core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
     api_definitions = await core.load_api_definitions()
@@ -324,9 +324,9 @@ async def import_api_definition(
             message = f"Created new API '{api_def.name}'"
 
         # Get tenant schema for APIGatewayCore
-        from server.utils.tenant_utils import get_tenant
+        from server.utils.tenant_utils import get_tenant_from_request
 
-        tenant = get_tenant(request)
+        tenant = get_tenant_from_request(request)
 
         # Reload API definitions in core
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
@@ -397,9 +397,9 @@ async def update_api_definition(
         )
 
         # Get tenant schema for APIGatewayCore
-        from server.utils.tenant_utils import get_tenant
+        from server.utils.tenant_utils import get_tenant_from_request
 
-        tenant = get_tenant(request)
+        tenant = get_tenant_from_request(request)
 
         # Reload API definitions in core
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
@@ -440,9 +440,9 @@ async def archive_api_definition(
         await db_tenant.archive_api_definition(api_definition.id)
 
         # Get tenant schema for APIGatewayCore
-        from server.utils.tenant_utils import get_tenant
+        from server.utils.tenant_utils import get_tenant_from_request
 
-        tenant = get_tenant(request)
+        tenant = get_tenant_from_request(request)
 
         # Reload API definitions in core
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
@@ -485,9 +485,9 @@ async def unarchive_api_definition(
         await db_tenant.update_api_definition(api_definition.id, is_archived=False)
 
         # Get tenant schema for APIGatewayCore
-        from server.utils.tenant_utils import get_tenant
+        from server.utils.tenant_utils import get_tenant_from_request
 
-        tenant = get_tenant(request)
+        tenant = get_tenant_from_request(request)
 
         # Reload API definitions in core
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)

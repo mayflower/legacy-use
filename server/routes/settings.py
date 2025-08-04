@@ -13,7 +13,7 @@ from server.computer_use.config import (
 )
 from server.settings_tenant import get_tenant_setting, set_tenant_setting
 from server.utils.db_dependencies import get_tenant_db
-from server.utils.tenant_utils import get_tenant
+from server.utils.tenant_utils import get_tenant_from_request
 
 
 def obscure_api_key(api_key: Optional[str]) -> Optional[str]:
@@ -66,7 +66,7 @@ async def get_providers(request: Request, db_tenant=Depends(get_tenant_db)):
     """Get available VLM providers and their configurations."""
 
     # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
-    tenant = get_tenant(request)
+    tenant = get_tenant_from_request(request)
     tenant_schema = tenant['schema']
 
     # Define provider configurations using tenant settings
@@ -160,7 +160,7 @@ async def update_provider_settings(
     """Update provider configuration and set as active provider."""
 
     # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
-    tenant = get_tenant(http_request)
+    tenant = get_tenant_from_request(http_request)
     tenant_schema = tenant['schema']
 
     # Validate provider

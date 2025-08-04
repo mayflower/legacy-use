@@ -10,7 +10,7 @@ from starlette.websockets import WebSocket
 
 from server.database.multi_tenancy import with_db
 from server.database.service import DatabaseService
-from server.utils.tenant_utils import get_tenant
+from server.utils.tenant_utils import get_tenant_from_request
 
 
 class TenantAwareDatabaseService(DatabaseService):
@@ -87,7 +87,7 @@ def get_tenant_from_websocket(websocket: WebSocket) -> dict:
 
 
 def get_tenant_db(
-    tenant: dict = Depends(get_tenant),
+    tenant: dict = Depends(get_tenant_from_request),
 ) -> Generator[TenantAwareDatabaseService, None, None]:
     """
     Get a database service with tenant-specific schema mapping.
