@@ -20,7 +20,6 @@ const recordingOptions: RecordingRequest = {
   framerate: 30,
   quality: 'fast',
   format: 'mp4',
-  capture_vnc_input: true,
 };
 
 export default function RecordingButton({

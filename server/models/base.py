@@ -233,7 +233,6 @@ class RecordingRequest(BaseModel):
         'ultrafast'  # ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
     )
     format: Optional[str] = 'mp4'  # mp4, avi, mkv
-    capture_vnc_input: Optional[bool] = True
 
 
 class InputLogEntry(BaseModel):
@@ -267,7 +266,6 @@ class RecordingStatusResponse(BaseModel):
     status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
-    vnc_monitoring: Optional[bool] = None
     session_id: Optional[str] = None
     file_path: Optional[str] = None
     duration_seconds: Optional[float] = None

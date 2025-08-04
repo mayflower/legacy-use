@@ -199,8 +199,6 @@ export type RecordingRequestQuality = string | null;
 
 export type RecordingRequestFormat = string | null;
 
-export type RecordingRequestCaptureVncInput = boolean | null;
-
 /**
  * Request model for starting a recording
  */
@@ -208,7 +206,6 @@ export interface RecordingRequest {
   framerate?: RecordingRequestFramerate;
   quality?: RecordingRequestQuality;
   format?: RecordingRequestFormat;
-  capture_vnc_input?: RecordingRequestCaptureVncInput;
 }
 
 export type RecordingResultResponseRecordingId = string | null;
@@ -241,8 +238,6 @@ export const RecordingStatus = {
 
 export type RecordingStatusResponseRecordingId = string | null;
 
-export type RecordingStatusResponseVncMonitoring = boolean | null;
-
 export type RecordingStatusResponseSessionId = string | null;
 
 export type RecordingStatusResponseFilePath = string | null;
@@ -255,7 +250,6 @@ export interface RecordingStatusResponse {
   status: RecordingStatus;
   message: string;
   recording_id?: RecordingStatusResponseRecordingId;
-  vnc_monitoring?: RecordingStatusResponseVncMonitoring;
   session_id?: RecordingStatusResponseSessionId;
   file_path?: RecordingStatusResponseFilePath;
   duration_seconds?: RecordingStatusResponseDurationSeconds;

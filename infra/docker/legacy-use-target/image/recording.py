@@ -36,7 +36,6 @@ class RecordingRequest(BaseModel):
         ]
     ] = 'ultrafast'
     format: Optional[Literal['mp4', 'avi', 'mkv']] = 'mp4'
-    capture_vnc_input: Optional[bool] = True
 
 
 class InputLogEntry(BaseModel):
@@ -58,7 +57,6 @@ class RecordingStatusResponse(BaseModel):
     status: RecordingStatus
     message: str
     recording_id: Optional[str] = None
-    vnc_monitoring: Optional[bool] = None
     session_id: Optional[str] = None
     file_path: Optional[str] = None
     duration_seconds: Optional[float] = None
@@ -345,16 +343,14 @@ async def start_recording(
             )
 
         # Start VNC input monitoring if requested
-        if request.capture_vnc_input:
-            current_recording_session_id = recording_id
-            await start_vnc_input_monitoring(recording_id)
+        current_recording_session_id = recording_id
+        await start_vnc_input_monitoring(recording_id)
 
         return RecordingStatusResponse(
             status=RecordingStatus.STARTED,
             message='Screen recording started successfully',
             recording_id=recording_id,
             file_path=str(recording_file),
-            vnc_monitoring=request.capture_vnc_input,
         )
 
     except Exception as e:
@@ -474,7 +470,6 @@ async def get_recording_status() -> RecordingStatusResponse:
         return RecordingStatusResponse(
             status=RecordingStatus.STOPPED,
             message='Recording stopped',
-            vnc_monitoring=False,
         )
 
     # Check if process is still running
@@ -488,7 +483,6 @@ async def get_recording_status() -> RecordingStatusResponse:
         return RecordingStatusResponse(
             status=RecordingStatus.STOPPED,
             message='Recording stopped',
-            vnc_monitoring=False,
         )
 
     # Calculate duration if recording is active
@@ -499,8 +493,6 @@ async def get_recording_status() -> RecordingStatusResponse:
     return RecordingStatusResponse(
         status=RecordingStatus.RECORDING,
         message='Recording in progress',
-        vnc_monitoring=vnc_monitor_process is not None
-        and vnc_monitor_process.returncode is None,
         session_id=current_recording_session_id,
         file_path=str(recording_file) if recording_file else None,
         duration_seconds=duration_seconds,
