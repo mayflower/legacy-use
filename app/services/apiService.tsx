@@ -96,9 +96,6 @@ apiClient.interceptors.request.use(
   },
 );
 
-// Add browser globals for linter
-const { localStorage } = globalThis;
-
 // Function to test if an API key is valid
 export const testApiKey = async (apiKey: string): Promise<APIDefinition[]> => {
   // Create a temporary axios instance with the API key
