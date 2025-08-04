@@ -73,7 +73,7 @@ const TargetDetails = () => {
           if (!sessionToSelect) {
             // Sort sessions by creation date (newest first)
             const sortedSessions = [...filteredSessions].sort(
-              (a, b) => new Date(b.created_at) - new Date(a.created_at),
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
             );
 
             sessionToSelect = sortedSessions[0];
