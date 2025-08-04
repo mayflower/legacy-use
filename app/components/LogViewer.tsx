@@ -170,7 +170,7 @@ const LogViewer = ({ logs }) => {
 
   // Handle keyboard navigation for the modal
   const handleKeyDown = useCallback(
-    event => {
+    (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
         navigateToScreenshot('prev');
       } else if (event.key === 'ArrowRight') {
