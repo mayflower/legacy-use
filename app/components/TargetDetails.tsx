@@ -5,6 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
+import type { Job, Session, Target } from '@/gen/endpoints';
 import { SessionContext } from '../App';
 import {
   deleteSession,
@@ -28,16 +29,16 @@ const TargetDetails = () => {
   const queryParams = new URLSearchParams(location.search);
   const sessionIdFromUrl = queryParams.get('sessionId');
 
-  const [target, setTarget] = useState(null);
-  const [targetSessions, setTargetSessions] = useState([]);
-  const [selectedSession, setSelectedSession] = useState(null);
-  const [jobs, setJobs] = useState([]);
-  const [queuedJobs, setQueuedJobs] = useState([]);
-  const [executedJobs, setExecutedJobs] = useState([]);
-  const [blockingJobs, setBlockingJobs] = useState([]);
+  const [target, setTarget] = useState<Target | null>(null);
+  const [targetSessions, setTargetSessions] = useState<Session[]>([]);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [queuedJobs, setQueuedJobs] = useState<Job[]>([]);
+  const [executedJobs, setExecutedJobs] = useState<Job[]>([]);
+  const [blockingJobs, setBlockingJobs] = useState<Job[]>([]);
   const [queueStatus, setQueueStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [showContainerDetails, setShowContainerDetails] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [hardDelete, setHardDelete] = useState(false);
