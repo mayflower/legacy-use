@@ -62,7 +62,7 @@ const TargetDetails = () => {
 
         // If there are sessions, select the appropriate one
         if (filteredSessions.length > 0) {
-          let sessionToSelect;
+          let sessionToSelect: Session | undefined;
 
           // If we have a sessionId from URL, try to find that session
           if (sessionIdFromUrl) {
