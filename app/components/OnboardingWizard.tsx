@@ -69,7 +69,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
 
   // Timer effect for resend countdown
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval>;
     if (resendTimer > 0) {
       interval = setInterval(() => {
         setResendTimer(prev => prev - 1);
