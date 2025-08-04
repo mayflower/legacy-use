@@ -195,7 +195,7 @@ const TargetDetails = () => {
     }
   };
 
-  const getStatusColor = status => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'running':
         return 'warning';
@@ -214,7 +214,7 @@ const TargetDetails = () => {
     }
   };
 
-  const formatDate = dateString => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
@@ -230,7 +230,7 @@ const TargetDetails = () => {
     return 'Unknown';
   };
 
-  const getContainerName = sessionId => {
+  const getContainerName = (sessionId: string) => {
     if (!sessionId) return 'N/A';
     // Use the same naming convention as in the backend
     const shortId = sessionId.replace(/-/g, '').substring(0, 12);
