@@ -25,7 +25,14 @@ class DatabaseService:
         if db_url is None:
             db_url = settings.DATABASE_URL
 
-        self.engine = create_engine(db_url)
+        self.engine = create_engine(
+            db_url,
+            pool_size=settings.DATABASE_POOL_SIZE,
+            max_overflow=settings.DATABASE_MAX_OVERFLOW,
+            pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+            pool_recycle=settings.DATABASE_POOL_RECYCLE,
+            pool_pre_ping=settings.DATABASE_POOL_PRE_PING,
+        )
         self.Session = sessionmaker(bind=self.engine)
 
     # Target methods
