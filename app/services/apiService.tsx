@@ -263,87 +263,47 @@ export const getJobHttpExchanges = async (targetId, jobId) => {
 
 // Targets
 export const getTargets = async (include_archived = false) => {
-  try {
-    const response = await apiClient.get('/targets/', { params: { include_archived } });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching targets:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/targets/', { params: { include_archived } });
+  return response.data;
 };
 
 export const createTarget = async targetData => {
-  try {
-    const response = await apiClient.post('/targets/', targetData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating target:', error);
-    throw error;
-  }
+  const response = await apiClient.post('/targets/', targetData);
+  return response.data;
 };
 
 export const getTarget = async targetId => {
-  try {
-    const response = await apiClient.get(`/targets/${targetId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching target:', error);
-    throw error;
-  }
+  const response = await apiClient.get(`/targets/${targetId}`);
+  return response.data;
 };
 
 export const updateTarget = async (targetId, targetData) => {
-  try {
-    const response = await apiClient.put(`/targets/${targetId}`, targetData);
-    return response.data;
-  } catch (error) {
-    console.error('Error updating target:', error);
-    throw error;
-  }
+  const response = await apiClient.put(`/targets/${targetId}`, targetData);
+  return response.data;
 };
 
 export const deleteTarget = async (targetId, hardDelete = false) => {
-  try {
-    const endpoint = hardDelete ? `/targets/${targetId}/hard` : `/targets/${targetId}`;
-    const response = await apiClient.delete(endpoint);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting target:', error);
-    throw error;
-  }
+  const endpoint = hardDelete ? `/targets/${targetId}/hard` : `/targets/${targetId}`;
+  const response = await apiClient.delete(endpoint);
+  return response.data;
 };
 
 // Resolve a job (set to success with custom result)
 export const resolveJob = async (targetId, jobId, result) => {
-  try {
-    const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resolve/`, result);
-    return response.data;
-  } catch (error) {
-    console.error('Error resolving job:', error);
-    throw error;
-  }
+  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resolve/`, result);
+  return response.data;
 };
 
 // Health check
 export const checkTargetHealth = async containerIp => {
-  try {
-    const response = await axios.get(`http://${containerIp}:8088/health`, { timeout: 2000 });
-    return response.data;
-  } catch (error) {
-    console.error('Error checking target health:', error);
-    throw error;
-  }
+  const response = await axios.get(`http://${containerIp}:8088/health`, { timeout: 2000 });
+  return response.data;
 };
 
 // Resume Job Function (New)
 export const resumeJob = async (targetId, jobId) => {
-  try {
-    const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resume/`);
-    return response.data;
-  } catch (error) {
-    console.error('Error resuming job:', error);
-    throw error;
-  }
+  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resume/`);
+  return response.data;
 };
 
 // Recording functions
