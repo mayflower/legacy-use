@@ -8,9 +8,6 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-// Add browser globals
-const { URL } = globalThis;
-
 // Custom component for displaying HTTP exchanges
 const HttpExchangeViewer = ({ exchanges }) => {
   if (!exchanges || exchanges.length === 0) {
@@ -47,7 +44,7 @@ const HttpExchangeItem = ({ exchange }) => {
   const method = request.method || exchangeData.method || 'Unknown Method';
 
   // Handle different status code locations
-  let status;
+  let status: number | undefined;
   if (response.status_code) status = response.status_code;
   else if (response.status) status = response.status;
   else if (exchangeData.status_code) status = exchangeData.status_code;

@@ -5,6 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
+import type { Job, Session, Target } from '@/gen/endpoints';
 import { SessionContext } from '../App';
 import {
   deleteSession,
@@ -28,16 +29,16 @@ const TargetDetails = () => {
   const queryParams = new URLSearchParams(location.search);
   const sessionIdFromUrl = queryParams.get('sessionId');
 
-  const [target, setTarget] = useState(null);
-  const [targetSessions, setTargetSessions] = useState([]);
-  const [selectedSession, setSelectedSession] = useState(null);
-  const [jobs, setJobs] = useState([]);
-  const [queuedJobs, setQueuedJobs] = useState([]);
-  const [executedJobs, setExecutedJobs] = useState([]);
-  const [blockingJobs, setBlockingJobs] = useState([]);
+  const [target, setTarget] = useState<Target | null>(null);
+  const [targetSessions, setTargetSessions] = useState<Session[]>([]);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [queuedJobs, setQueuedJobs] = useState<Job[]>([]);
+  const [executedJobs, setExecutedJobs] = useState<Job[]>([]);
+  const [blockingJobs, setBlockingJobs] = useState<Job[]>([]);
   const [queueStatus, setQueueStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [showContainerDetails, setShowContainerDetails] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [hardDelete, setHardDelete] = useState(false);
@@ -61,7 +62,7 @@ const TargetDetails = () => {
 
         // If there are sessions, select the appropriate one
         if (filteredSessions.length > 0) {
-          let sessionToSelect;
+          let sessionToSelect: Session | undefined;
 
           // If we have a sessionId from URL, try to find that session
           if (sessionIdFromUrl) {
@@ -72,7 +73,7 @@ const TargetDetails = () => {
           if (!sessionToSelect) {
             // Sort sessions by creation date (newest first)
             const sortedSessions = [...filteredSessions].sort(
-              (a, b) => new Date(b.created_at) - new Date(a.created_at),
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
             );
 
             sessionToSelect = sortedSessions[0];
@@ -194,7 +195,7 @@ const TargetDetails = () => {
     }
   };
 
-  const getStatusColor = status => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'running':
         return 'warning';
@@ -213,7 +214,7 @@ const TargetDetails = () => {
     }
   };
 
-  const formatDate = dateString => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
@@ -229,7 +230,7 @@ const TargetDetails = () => {
     return 'Unknown';
   };
 
-  const getContainerName = sessionId => {
+  const getContainerName = (sessionId: string) => {
     if (!sessionId) return 'N/A';
     // Use the same naming convention as in the backend
     const shortId = sessionId.replace(/-/g, '').substring(0, 12);
