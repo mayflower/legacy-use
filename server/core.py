@@ -39,7 +39,7 @@ class APIGatewayCore:
         self.model = get_default_model_name(self.provider)
         self.tool_version = get_tool_version(self.model)
         # Store the database service (tenant-aware or global)
-        self.db = db_service
+        self.db_tenant = db_service
 
     async def load_api_definitions(self) -> dict[str, APIDefinitionRuntime]:
         """Load API definitions from the database."""
@@ -168,7 +168,7 @@ class APIGatewayCore:
             # Execute the API call - sampling_loop will handle saving the messages if it receives any
             result, exchanges = await sampling_loop(
                 job_id=job_id,
-                db_tenant=self.db,
+                db_tenant=self.db_tenant,
                 model=self.model,
                 provider=self.provider,
                 system_prompt_suffix='',  # No additional suffix needed
