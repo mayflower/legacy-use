@@ -577,9 +577,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
             # Create tenant-aware database service for the core
             with with_db(tenant_schema) as db_session:
                 db_service = TenantAwareDatabaseService(db_session)
-                core = APIGatewayCore(
-                    tenant_schema=tenant_schema, db_service=db_service
-                )
+                core = APIGatewayCore(tenant_schema=tenant_schema, db_tenant=db_service)
 
                 # Wrap the execute_api call in its own try-except block to better handle cancellation
                 api_response = await core.execute_api(

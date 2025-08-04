@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class APIGatewayCore:
-    def __init__(self, tenant_schema: str, db_service=None):
+    def __init__(self, tenant_schema: str, db_tenant=None):
         # Store tenant schema for use in methods
         self.tenant_schema = tenant_schema
 
@@ -39,7 +39,7 @@ class APIGatewayCore:
         self.model = get_default_model_name(self.provider)
         self.tool_version = get_tool_version(self.model)
         # Store the database service (tenant-aware or global)
-        self.db_tenant = db_service
+        self.db_tenant = db_tenant
 
     async def load_api_definitions(self) -> dict[str, APIDefinitionRuntime]:
         """Load API definitions from the database."""

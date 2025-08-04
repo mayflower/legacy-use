@@ -202,7 +202,7 @@ async def create_job(
     # Try to get the API definition version ID
     try:
         # Load API definitions fresh from the database
-        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db_tenant)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
         api_definitions = await core.load_api_definitions()
 
         # Check if the API definition exists
