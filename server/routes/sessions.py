@@ -39,9 +39,11 @@ websocket_router = APIRouter(prefix='/sessions', tags=['WebSocket Endpoints'])
 
 
 @session_router.get('/', response_model=List[Session])
-async def list_sessions(include_archived: bool = False, db=Depends(get_tenant_db)):
+async def list_sessions(
+    include_archived: bool = False, db_tenant=Depends(get_tenant_db)
+):
     """List all active sessions."""
-    sessions = db.list_sessions(include_archived)
+    sessions = db_tenant.list_sessions(include_archived)
 
     # Add container status to each session with a container_id
     for session in sessions:
@@ -59,7 +61,7 @@ async def create_session(
     session: SessionCreate,
     request: Request,
     get_or_create: bool = False,
-    db=Depends(get_tenant_db),
+    db_tenant=Depends(get_tenant_db),
 ):
     """
     Create a new session for a target.
@@ -67,13 +69,13 @@ async def create_session(
     If get_or_create is True, will return an existing ready session for the target if one exists.
     """
     # Check if target exists
-    target = db.get_target(session.target_id)
+    target = db_tenant.get_target(session.target_id)
     if not target:
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Check for existing active sessions for this target (unless get_or_create is True)
     if not get_or_create:
-        active_session_info = db.has_active_session_for_target(session.target_id)
+        active_session_info = db_tenant.has_active_session_for_target(session.target_id)
         if active_session_info['has_active_session']:
             existing_session = active_session_info['session']
             raise HTTPException(
@@ -95,7 +97,7 @@ async def create_session(
 
     # If get_or_create is True, check for existing active sessions for this target
     if get_or_create:
-        target_sessions = db.list_target_sessions(
+        target_sessions = db_tenant.list_target_sessions(
             session.target_id, include_archived=False
         )
 
@@ -118,7 +120,7 @@ async def create_session(
     # No ready session found or get_or_create is False, create a new one
     session_data = session.dict()
     session_data['state'] = 'initializing'  # Set initial state
-    db_session = db.create_session(session_data)
+    db_session = db_tenant.create_session(session_data)
 
     # Prepare container parameters
     session_target_type = target.get('type')
@@ -152,7 +154,7 @@ async def create_session(
 
     if container_id and container_ip:
         # Update session with container info
-        db.update_session(
+        db_tenant.update_session(
             db_session['id'],
             {
                 'container_id': container_id,
@@ -162,7 +164,7 @@ async def create_session(
             },
         )
         # Get updated session
-        db_session = db.get_session(db_session['id'])
+        db_session = db_tenant.get_session(db_session['id'])
 
         # Add container status
         if container_id := db_session.get('container_id'):
@@ -172,7 +174,7 @@ async def create_session(
             db_session['container_status'] = container_status
     else:
         # Update session status to error if container launch failed
-        db.update_session(
+        db_tenant.update_session(
             db_session['id'], {'status': 'error', 'state': 'initializing'}
         )
 
@@ -182,9 +184,9 @@ async def create_session(
 
 
 @session_router.get('/{session_id}')
-async def get_session(session_id: UUID, db=Depends(get_tenant_db)):
+async def get_session(session_id: UUID, db_tenant=Depends(get_tenant_db)):
     """Get details of a specific session."""
-    if session := db.get_session(session_id):
+    if session := db_tenant.get_session(session_id):
         # If the session has a container_id, get container status
         if container_id := session.get('container_id'):
             container_status = await get_container_status(
@@ -199,14 +201,16 @@ async def get_session(session_id: UUID, db=Depends(get_tenant_db)):
 
 @session_router.put('/{session_id}')
 async def update_session(
-    session_id: UUID, session: SessionUpdate, db=Depends(get_tenant_db)
+    session_id: UUID, session: SessionUpdate, db_tenant=Depends(get_tenant_db)
 ):
     """Update a session's configuration."""
-    if not db.get_session(session_id):
+    if not db_tenant.get_session(session_id):
         raise HTTPException(status_code=404, detail='Session not found')
 
     # Update session
-    updated_session = db.update_session(session_id, session.dict(exclude_unset=True))
+    updated_session = db_tenant.update_session(
+        session_id, session.dict(exclude_unset=True)
+    )
 
     # Add container status if container_id exists
     if container_id := updated_session.get('container_id'):
@@ -219,15 +223,17 @@ async def update_session(
 
 
 @session_router.delete('/{session_id}')
-async def delete_session(session_id: UUID, request: Request, db=Depends(get_tenant_db)):
+async def delete_session(
+    session_id: UUID, request: Request, db_tenant=Depends(get_tenant_db)
+):
     """Archive a session."""
     # Check if session exists
-    session = db.get_session(session_id)
+    session = db_tenant.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
 
     # Update session state to destroying and set archive reason
-    db.update_session(
+    db_tenant.update_session(
         session_id,
         {
             'state': 'destroying',
@@ -251,11 +257,11 @@ async def delete_session(session_id: UUID, request: Request, db=Depends(get_tena
 
 @session_router.delete('/{session_id}/hard')
 async def hard_delete_session(
-    session_id: UUID, request: Request, db=Depends(get_tenant_db)
+    session_id: UUID, request: Request, db_tenant=Depends(get_tenant_db)
 ):
     """Permanently delete a session and stop its container (hard delete)."""
     # Get session
-    session = db.get_session(session_id)
+    session = db_tenant.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
 
@@ -264,7 +270,7 @@ async def hard_delete_session(
         stop_container(session['container_id'])
 
     # Delete session from database
-    db.hard_delete_session(session_id)
+    db_tenant.hard_delete_session(session_id)
 
     capture_session_deleted(request, session_id, True)
 
@@ -276,7 +282,7 @@ async def execute_api_on_session(
     session_id: UUID,
     api_request: Dict[str, Any],
     request: Request,
-    db=Depends(get_tenant_db),
+    db_tenant=Depends(get_tenant_db),
 ):
     """
     Execute an API call on the session's container.
@@ -284,7 +290,7 @@ async def execute_api_on_session(
     This endpoint forwards API requests to the container running the session.
     """
     # Get session
-    session = db.get_session(session_id)
+    session = db_tenant.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
 
@@ -308,7 +314,7 @@ async def execute_api_on_session(
 
 @session_router.get('/{session_id}/vnc/{path:path}', include_in_schema=True)
 async def proxy_vnc(
-    session_id: UUID, path: str, request: Request, db=Depends(get_tenant_db)
+    session_id: UUID, path: str, request: Request, db_tenant=Depends(get_tenant_db)
 ):
     """
     Proxy VNC viewer requests to the container running the session.
@@ -316,7 +322,7 @@ async def proxy_vnc(
     This endpoint forwards VNC viewer requests to the container's VNC server running on port 6080.
     """
     # Get session
-    session = db.get_session(session_id)
+    session = db_tenant.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
 
@@ -374,7 +380,7 @@ async def proxy_vnc(
 # Move the WebSocket endpoint to the websocket_router
 @websocket_router.websocket('/{session_id}/vnc/websockify')
 async def proxy_vnc_websocket(
-    websocket: WebSocket, session_id: UUID, db=Depends(get_tenant_db_websocket)
+    websocket: WebSocket, session_id: UUID, db_tenant=Depends(get_tenant_db_websocket)
 ):
     """
     Proxy WebSocket connections for the VNC viewer.
@@ -387,7 +393,7 @@ async def proxy_vnc_websocket(
     )
 
     # Get session
-    session = db.get_session(session_id)
+    session = db_tenant.get_session(session_id)
     if not session:
         logger.warning(f'[VNC-WS] Session {session_id} not found')
         await websocket.close(code=1008, reason='Session not found')
@@ -541,10 +547,12 @@ async def proxy_vnc_websocket(
 
 # Add a new endpoint to update session state
 @session_router.put('/{session_id}/state')
-async def update_session_state(session_id: UUID, state: str, db=Depends(get_tenant_db)):
+async def update_session_state(
+    session_id: UUID, state: str, db_tenant=Depends(get_tenant_db)
+):
     """Update the state of a session."""
     # Check if session exists
-    session = db.get_session(session_id)
+    session = db_tenant.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
 
@@ -563,11 +571,11 @@ async def update_session_state(session_id: UUID, state: str, db=Depends(get_tena
         )
 
     # Update session state
-    db.update_session(session_id, {'state': state})
+    db_tenant.update_session(session_id, {'state': state})
 
     # If state is "destroying", also mark the session as archived
     if state == 'destroying':
-        db.update_session(session_id, {'is_archived': True})
+        db_tenant.update_session(session_id, {'is_archived': True})
 
     # Return updated session
-    return db.get_session(session_id)
+    return db_tenant.get_session(session_id)

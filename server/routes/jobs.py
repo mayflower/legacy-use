@@ -86,7 +86,7 @@ async def list_all_jobs(
     status: Optional[str] = None,
     target_id: Optional[UUID] = None,
     api_name: Optional[str] = None,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
 ):
     """List all jobs across all targets with pagination and filtering options."""
     # Build filters dict from parameters
@@ -99,15 +99,17 @@ async def list_all_jobs(
         filters['api_name'] = api_name
 
     # Pass filters to database methods
-    jobs_data = db.list_jobs(limit=limit, offset=offset, filters=filters)
-    total_count = db.count_jobs(filters=filters)
+    jobs_data = db_tenant.list_jobs(limit=limit, offset=offset, filters=filters)
+    total_count = db_tenant.count_jobs(filters=filters)
 
     # Compute metrics for each job
     enriched_jobs = []
     for job_dict in jobs_data:
         # Convert dict to Job model if needed, or assume db returns dict compatible with Job model
         job_model = Job(**job_dict)
-        http_exchanges = db.list_job_http_exchanges(job_model.id, use_trimmed=True)
+        http_exchanges = db_tenant.list_job_http_exchanges(
+            job_model.id, use_trimmed=True
+        )
         metrics = compute_job_metrics(job_dict, http_exchanges)
         job_model_dict = job_model.model_dump()  # Use model_dump() for Pydantic v2
         job_model_dict.update(metrics)
@@ -123,19 +125,21 @@ async def list_target_jobs(
     target_id: UUID,
     limit: int = 10,
     offset: int = 0,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
 ):
     """List all jobs for a specific target with pagination."""
-    if not db.get_target(target_id):
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
-    jobs_data = db.list_target_jobs(target_id, limit=limit, offset=offset)
+    jobs_data = db_tenant.list_target_jobs(target_id, limit=limit, offset=offset)
 
     # Compute metrics for each job
     enriched_jobs = []
     for job_dict in jobs_data:
         job_model = Job(**job_dict)
-        http_exchanges = db.list_job_http_exchanges(job_model.id, use_trimmed=True)
+        http_exchanges = db_tenant.list_job_http_exchanges(
+            job_model.id, use_trimmed=True
+        )
         metrics = compute_job_metrics(job_dict, http_exchanges)
         job_model_dict = job_model.model_dump()
         job_model_dict.update(metrics)
@@ -149,7 +153,7 @@ async def create_job(
     target_id: UUID,
     job: JobCreate,
     request: Request,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Create a new job for a target.
@@ -160,7 +164,7 @@ async def create_job(
     Jobs exceeding this limit will be automatically terminated.
     """
     # Check if target exists
-    target = db.get_target(target_id)
+    target = db_tenant.get_target(target_id)
     if not target:
         raise HTTPException(status_code=404, detail='Target not found')
 
@@ -174,7 +178,7 @@ async def create_job(
     if not job_data.get('session_id'):
         try:
             # First, check if there's an active session for this target
-            active_session_info = db.has_active_session_for_target(target_id)
+            active_session_info = db_tenant.has_active_session_for_target(target_id)
             if active_session_info['has_active_session']:
                 existing_session = active_session_info['session']
                 job_data['session_id'] = existing_session['id']
@@ -198,7 +202,7 @@ async def create_job(
     # Try to get the API definition version ID
     try:
         # Load API definitions fresh from the database
-        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db_tenant)
         api_definitions = await core.load_api_definitions()
 
         # Check if the API definition exists
@@ -215,7 +219,7 @@ async def create_job(
             f"Error getting API definition during job creation for '{job.api_name}': {str(e)}"
         )
 
-    db_job_dict = db.create_job(job_data)
+    db_job_dict = db_tenant.create_job(job_data)
 
     # Create job object from the dictionary returned by the database
     job_obj = Job(**db_job_dict)
@@ -230,15 +234,17 @@ async def create_job(
 
 
 @job_router.get('/targets/{target_id}/jobs/{job_id}', response_model=Job)
-async def get_job(target_id: UUID, job_id: UUID, db: Session = Depends(get_tenant_db)):
+async def get_job(
+    target_id: UUID, job_id: UUID, db_tenant: Session = Depends(get_tenant_db)
+):
     """Get details of a specific job."""
     # Check if target exists
-    target_data = db.get_target(target_id)
+    target_data = db_tenant.get_target(target_id)
     if not target_data:
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Get job data (dictionary)
-    job_dict = db.get_target_job(target_id, job_id)
+    job_dict = db_tenant.get_target_job(target_id, job_id)
     if not job_dict:
         raise HTTPException(status_code=404, detail='Job not found')
 
@@ -246,7 +252,7 @@ async def get_job(target_id: UUID, job_id: UUID, db: Session = Depends(get_tenan
     job_model = Job(**job_dict)
 
     # Get HTTP exchanges with trimmed content for efficiency
-    http_exchanges = db.list_job_http_exchanges(job_id, use_trimmed=True)
+    http_exchanges = db_tenant.list_job_http_exchanges(job_id, use_trimmed=True)
     metrics = compute_job_metrics(job_dict, http_exchanges)
     job_model_dict = job_model.model_dump()
     job_model_dict.update(metrics)
@@ -256,7 +262,7 @@ async def get_job(target_id: UUID, job_id: UUID, db: Session = Depends(get_tenan
 
     # Only persist token usage if job is not running
     if job_model_with_metrics.status != JobStatus.RUNNING:
-        db.update_job(
+        db_tenant.update_job(
             job_id,
             {
                 'total_input_tokens': metrics['total_input_tokens'],
@@ -269,7 +275,7 @@ async def get_job(target_id: UUID, job_id: UUID, db: Session = Depends(get_tenan
 
 @job_router.get('/jobs/queue/status')
 async def get_queue_status(
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Get the current status of the job queue for the current tenant."""
@@ -295,7 +301,7 @@ async def get_queue_status(
         if running_job_id_str:
             try:
                 running_job_id = UUID(running_job_id_str)
-                running_job_dict = db.get_job(running_job_id)
+                running_job_dict = db_tenant.get_job(running_job_id)
             except ValueError:
                 logger.error(
                     f'Invalid UUID format for running job ID: {running_job_id_str}'
@@ -304,7 +310,7 @@ async def get_queue_status(
                 logger.error(f'Error fetching running job {running_job_id_str}: {e}')
 
     # Count jobs with QUEUED status in the database for current tenant
-    all_jobs = db.list_jobs(limit=1000)
+    all_jobs = db_tenant.list_jobs(limit=1000)
     db_queued_count = sum(
         1 for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
     )
@@ -333,18 +339,18 @@ async def interrupt_job(
     target_id: UUID,
     job_id: UUID,
     request: Request,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Interrupt a running, queued, or pending job."""
     job_id_str = str(job_id)
 
     # Check if target exists
-    if not db.get_target(target_id):
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Get job data (dictionary)
-    job_dict = db.get_job(job_id)
+    job_dict = db_tenant.get_job(job_id)
     if not job_dict:
         raise HTTPException(status_code=404, detail='Job not found')
 
@@ -378,7 +384,7 @@ async def interrupt_job(
                 f'Tried to interrupt job {job_id_str}, but it was not found in running tasks.'
             )
             # Consider updating status to ERROR here if it should be considered an error state
-            db.update_job_status(job_id, JobStatus.ERROR)
+            db_tenant.update_job_status(job_id, JobStatus.ERROR)
             add_job_log(
                 job_id_str,
                 'system',
@@ -401,7 +407,7 @@ async def interrupt_job(
                 ]
                 if len(tenant_job_queues[tenant_schema]) < initial_queue_size:
                     interrupted = True
-                    db.update_job_status(job_id, JobStatus.ERROR)
+                    db_tenant.update_job_status(job_id, JobStatus.ERROR)
                     add_job_log(
                         job_id_str,
                         'system',
@@ -416,8 +422,8 @@ async def interrupt_job(
                         f'Tried to interrupt queued job {job_id_str}, but it was not found in the queue for tenant {tenant_schema}.'
                     )
                     # If not in queue, it might have finished or errored already. Ensure status reflects this.
-                    if db.get_job(job_id)['status'] == JobStatus.QUEUED:
-                        db.update_job_status(job_id, JobStatus.ERROR)
+                    if db_tenant.get_job(job_id)['status'] == JobStatus.QUEUED:
+                        db_tenant.update_job_status(job_id, JobStatus.ERROR)
                         add_job_log(
                             job_id_str,
                             'system',
@@ -428,7 +434,7 @@ async def interrupt_job(
     # If pending or any other interruptible state, just mark as error
     elif current_status not in [JobStatus.SUCCESS, JobStatus.ERROR]:
         interrupted = True
-        db.update_job_status(job_id, JobStatus.ERROR)
+        db_tenant.update_job_status(job_id, JobStatus.ERROR)
         add_job_log(
             job_id_str,
             'system',
@@ -460,18 +466,18 @@ async def cancel_job(
     target_id: UUID,
     job_id: UUID,
     request: Request,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Cancel a job and mark its status as 'canceled'."""
     job_id_str = str(job_id)
 
     # Check if target exists
-    if not db.get_target(target_id):
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Get job data (dictionary)
-    job_dict = db.get_job(job_id)
+    job_dict = db_tenant.get_job(job_id)
     if not job_dict:
         raise HTTPException(status_code=404, detail='Job not found')
 
@@ -502,7 +508,7 @@ async def cancel_job(
                 ]
                 if len(tenant_job_queues[tenant_schema]) < initial_queue_size:
                     canceled = True
-                    db.update_job_status(job_id, JobStatus.CANCELED)
+                    db_tenant.update_job_status(job_id, JobStatus.CANCELED)
                     add_job_log(
                         job_id_str,
                         'system',
@@ -517,8 +523,8 @@ async def cancel_job(
                         f'Tried to cancel queued job {job_id_str}, but it was not found in the queue for tenant {tenant_schema}.'
                     )
                     # If not in queue, it might have finished or errored already. Ensure status reflects this.
-                    if db.get_job(job_id)['status'] == JobStatus.QUEUED:
-                        db.update_job_status(job_id, JobStatus.CANCELED)
+                    if db_tenant.get_job(job_id)['status'] == JobStatus.QUEUED:
+                        db_tenant.update_job_status(job_id, JobStatus.CANCELED)
                         add_job_log(
                             job_id_str,
                             'system',
@@ -530,7 +536,7 @@ async def cancel_job(
     # If pending, just mark as canceled
     elif current_status == JobStatus.PENDING:
         canceled = True
-        db.update_job_status(job_id, JobStatus.CANCELED)
+        db_tenant.update_job_status(job_id, JobStatus.CANCELED)
         add_job_log(
             job_id_str,
             'system',
@@ -573,20 +579,20 @@ async def get_job_logs(
     target_id: UUID,
     job_id: UUID,
     request: Request,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
 ):
     """Get logs for a specific job."""
     # Check if target exists
-    if not db.get_target(target_id):
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Check if job exists and belongs to target
-    job = db.get_target_job(target_id, job_id)
+    job = db_tenant.get_target_job(target_id, job_id)
     if not job:
         raise HTTPException(status_code=404, detail='Job not found for this target')
 
     # Get logs, excluding http_exchange logs as they are accessed via separate endpoint
-    logs_data = db.list_job_logs(job_id, exclude_http_exchanges=True)
+    logs_data = db_tenant.list_job_logs(job_id, exclude_http_exchanges=True)
     # Convert list of dicts to list of JobLogEntry models
     return [JobLogEntry(**log) for log in logs_data]
 
@@ -597,7 +603,7 @@ async def get_job_logs(
     include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
 )
 async def get_job_http_exchanges(
-    target_id: UUID, job_id: UUID, db: Session = Depends(get_tenant_db)
+    target_id: UUID, job_id: UUID, db_tenant: Session = Depends(get_tenant_db)
 ):
     """
     Get HTTP exchange logs for a specific job.
@@ -607,17 +613,17 @@ async def get_job_http_exchanges(
         job_id: ID of the job
     """
     # Check if target exists
-    if not db.get_target(target_id):
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Check if job exists and belongs to target
-    job = db.get_target_job(target_id, job_id)
+    job = db_tenant.get_target_job(target_id, job_id)
     if not job:
         raise HTTPException(status_code=404, detail='Job not found for this target')
 
     # Get the exchanges with trimmed content by default for efficiency,
     # or with full content if specifically requested
-    exchange_logs_data = db.list_job_http_exchanges(job_id, use_trimmed=True)
+    exchange_logs_data = db_tenant.list_job_http_exchanges(job_id, use_trimmed=True)
 
     # Convert list of dicts to list of HttpExchangeLog models
     # Ensure the content is parsed correctly if stored as JSON string
@@ -646,7 +652,7 @@ async def resolve_job(
     job_id: UUID,
     result: Annotated[Dict[str, Any], Body(...)],
     request: Request,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Resolve a job that's in error or paused state.
@@ -657,11 +663,11 @@ async def resolve_job(
     job_id_str = str(job_id)
 
     # Check if target exists
-    if not db.get_target(target_id):
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Get job data (dictionary)
-    job_dict = db.get_job(job_id)
+    job_dict = db_tenant.get_job(job_id)
     if not job_dict:
         raise HTTPException(status_code=404, detail='Job not found')
 
@@ -680,7 +686,7 @@ async def resolve_job(
         )
 
     # Update the job with success status and the provided result
-    updated_job = db.update_job(
+    updated_job = db_tenant.update_job(
         job_id,
         {
             'status': JobStatus.SUCCESS,
@@ -696,7 +702,7 @@ async def resolve_job(
     add_job_log(job_id_str, 'system', 'Job manually resolved', tenant['schema'])
 
     # Check if there are any other jobs in error/paused state for this target
-    other_paused_jobs = db.list_jobs_by_status_and_target(
+    other_paused_jobs = db_tenant.list_jobs_by_status_and_target(
         target_id, [JobStatus.PAUSED.value, JobStatus.ERROR.value]
     )
 
@@ -719,7 +725,7 @@ async def resolve_job(
 
 @job_router.post('/jobs/queue/resync', include_in_schema=False)
 async def resync_queue(
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Manually resynchronize the job queue with the database for the current tenant.
@@ -738,7 +744,7 @@ async def resync_queue(
         old_queue_size = len(tenant_job_queues.get(tenant['schema'], []))
 
     # Count jobs with QUEUED status in the database before resync
-    all_jobs = db.list_jobs(limit=1000)
+    all_jobs = db_tenant.list_jobs(limit=1000)
     db_queued_count_before = sum(
         1 for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
     )
@@ -762,7 +768,7 @@ async def resync_queue(
         )
 
     # Count jobs with QUEUED status in the database after resync
-    all_jobs = db.list_jobs(limit=1000)
+    all_jobs = db_tenant.list_jobs(limit=1000)
     db_queued_count_after = sum(
         1 for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
     )
@@ -787,7 +793,7 @@ async def resume_job(
     target_id: UUID,
     job_id: UUID,
     request: Request,
-    db: Session = Depends(get_tenant_db),
+    db_tenant: Session = Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Resumes a paused or error job by setting its status to queued."""
@@ -795,7 +801,7 @@ async def resume_job(
     logger.info(f'Received request to resume job {job_id_str}')
 
     # Fetch the job details from DB
-    job_data = db.get_job(job_id)
+    job_data = db_tenant.get_job(job_id)
     if not job_data:
         logger.warning(f'Resume failed: Job {job_id_str} not found.')
         raise HTTPException(status_code=404, detail=f'Job {job_id} not found.')

@@ -62,7 +62,7 @@ async def sampling_loop(
     *,
     # Add job_id and db service parameters
     job_id: UUID,
-    db: DatabaseService,  # Pass DB service instance
+    db_tenant: DatabaseService,  # Pass DB service instance
     model: str,
     provider: APIProvider,
     system_prompt_suffix: str,
@@ -129,12 +129,12 @@ async def sampling_loop(
     extractions = []
     is_completed = False
 
-    current_sequence = db.get_next_message_sequence(job_id)
+    current_sequence = db_tenant.get_next_message_sequence(job_id)
     initial_messages_to_add = messages  # Use the passed messages argument
 
     for init_message in initial_messages_to_add:
         serialized_content = _beta_message_param_to_job_message_content(init_message)
-        db.add_job_message(
+        db_tenant.add_job_message(
             job_id=job_id,
             sequence=current_sequence,
             role=init_message.get('role'),
@@ -147,7 +147,7 @@ async def sampling_loop(
     while True:
         # --- Fetch current history from DB --- START
         try:
-            db_messages = db.get_job_messages(job_id)
+            db_messages = db_tenant.get_job_messages(job_id)
             current_messages_for_api = [
                 _job_message_to_beta_message_param(msg) for msg in db_messages
             ]
@@ -293,7 +293,7 @@ async def sampling_loop(
             serialized_message = _beta_message_param_to_job_message_content(
                 resulting_message
             )
-            db.add_job_message(
+            db_tenant.add_job_message(
                 job_id=job_id,
                 sequence=next_sequence,
                 role=resulting_message[
@@ -340,7 +340,7 @@ async def sampling_loop(
                             )
                             logger.warning(f'Job {job_id}: {health_check_reason}')
                         else:
-                            session_details = db.get_session(UUID(session_id))
+                            session_details = db_tenant.get_session(UUID(session_id))
                             if session_details and session_details.get('container_ip'):
                                 container_ip = session_details['container_ip']
                                 health_status = await check_target_container_health(
@@ -381,7 +381,7 @@ async def sampling_loop(
                     try:
                         # Validate session_id is a valid UUID
                         if session_id and isinstance(session_id, str):
-                            session_obj = db.get_session(UUID(session_id))
+                            session_obj = db_tenant.get_session(UUID(session_id))
                         else:
                             logger.warning(f'Invalid session_id format: {session_id}')
                     except ValueError:
@@ -407,7 +407,7 @@ async def sampling_loop(
                     serialized_message = _beta_message_param_to_job_message_content(
                         resulting_message
                     )
-                    db.add_job_message(
+                    db_tenant.add_job_message(
                         job_id=job_id,
                         sequence=next_sequence,
                         role=resulting_message[

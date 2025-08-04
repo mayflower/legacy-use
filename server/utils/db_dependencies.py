@@ -106,6 +106,21 @@ def get_tenant_db(
         yield db_service
 
 
+def get_shared_db() -> Generator[DatabaseService, None, None]:
+    """
+    Get a shared database service for operations that need access to shared data.
+
+    This function provides access to the shared database instance for operations
+    that need to work across all tenants (like tenant management).
+
+    Yields:
+        DatabaseService: Shared database service
+    """
+    from server.database import db_shared
+
+    yield db_shared
+
+
 def get_tenant_db_websocket(
     websocket: WebSocket,
 ) -> Generator[TenantAwareDatabaseService, None, None]:

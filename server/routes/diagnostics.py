@@ -32,7 +32,7 @@ diagnostics_router = APIRouter(tags=['Diagnostics'])
 
 @diagnostics_router.get('/diagnostics/queue')
 async def diagnose_job_queue(
-    db=Depends(get_tenant_db),
+    db_tenant=Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Get diagnostic information about the job queue and running jobs for the current tenant.
@@ -100,7 +100,7 @@ async def diagnose_job_queue(
 
     # Get running jobs information
     for job_id, task in running_job_tasks.items():
-        job_dict = db.get_job(UUID(job_id))
+        job_dict = db_tenant.get_job(UUID(job_id))
         if job_dict:
             diagnostics['running_jobs'][job_id] = {
                 'api_name': job_dict['api_name'],
@@ -132,7 +132,7 @@ async def diagnose_job_queue(
                     )
 
     # Get session information
-    all_sessions = db.list_sessions(include_archived=False)
+    all_sessions = db_tenant.list_sessions(include_archived=False)
     # Count sessions by state
     for session in all_sessions:
         state = session.get('state', 'unknown')
@@ -170,7 +170,7 @@ async def diagnose_job_queue(
 
 @diagnostics_router.post('/diagnostics/queue/start')
 async def start_job_processor(
-    db=Depends(get_tenant_db),
+    db_tenant=Depends(get_tenant_db),
     tenant: dict = Depends(get_tenant),
 ):
     """Manually start the job queue processor for the current tenant.
@@ -230,19 +230,19 @@ async def start_job_processor(
 
 
 @diagnostics_router.get('/diagnostics/targets/{target_id}/sessions')
-async def check_target_sessions(target_id: UUID, db=Depends(get_tenant_db)):
+async def check_target_sessions(target_id: UUID, db_tenant=Depends(get_tenant_db)):
     """Check if a target has available sessions.
 
     This can help diagnose why jobs for a specific target might be stuck in the QUEUED state.
     For jobs to run, there needs to be at least one session in the "ready" state.
     """
     # Check if target exists
-    target = db.get_target(target_id)
+    target = db_tenant.get_target(target_id)
     if not target:
         raise HTTPException(status_code=404, detail='Target not found')
 
     # Get all sessions for this target
-    target_sessions = db.list_target_sessions(target_id, include_archived=False)
+    target_sessions = db_tenant.list_target_sessions(target_id, include_archived=False)
 
     # Prepare response
     result = {

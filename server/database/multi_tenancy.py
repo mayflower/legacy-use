@@ -60,9 +60,9 @@ def tenant_create(name: str, schema: str, host: str) -> None:
     # Load Alembic config
     alembic_config = Config(settings.ALEMBIC_CONFIG_PATH)
 
-    with with_db(schema) as db:
+    with with_db(schema) as db_tenant:
         # Check if migrations are up to date
-        context = MigrationContext.configure(db.connection())
+        context = MigrationContext.configure(db_tenant.connection())
         script_dir = script.ScriptDirectory.from_config(alembic_config)
         if context.get_current_revision() != script_dir.get_current_head():
             raise RuntimeError(
@@ -75,27 +75,27 @@ def tenant_create(name: str, schema: str, host: str) -> None:
             host=host,
             schema=schema,
         )
-        db.add(tenant)
+        db_tenant.add(tenant)
 
         # Create schema and tables
-        db.execute(sa.schema.CreateSchema(schema))
-        get_tenant_specific_metadata().create_all(bind=db.connection())
+        db_tenant.execute(sa.schema.CreateSchema(schema))
+        get_tenant_specific_metadata().create_all(bind=db_tenant.connection())
 
-        db.commit()
+        db_tenant.commit()
 
 
 def tenant_delete(schema: str) -> None:
     """Delete a tenant and its schema."""
-    with with_db(schema) as db:
+    with with_db(schema) as db_tenant:
         # Drop the schema (this will drop all tables in the schema)
-        db.execute(sa.schema.DropSchema(schema, cascade=True))
+        db_tenant.execute(sa.schema.DropSchema(schema, cascade=True))
 
         # Remove tenant record
-        tenant = db.query(Tenant).filter(Tenant.schema == schema).first()
+        tenant = db_tenant.query(Tenant).filter(Tenant.schema == schema).first()
         if tenant:
-            db.delete(tenant)
+            db_tenant.delete(tenant)
 
-        db.commit()
+        db_tenant.commit()
 
 
 def get_tenant_by_host(host: str) -> Optional[Tenant]:

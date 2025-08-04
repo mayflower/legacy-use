@@ -44,7 +44,9 @@ class APIGatewayCore:
     async def load_api_definitions(self) -> dict[str, APIDefinitionRuntime]:
         """Load API definitions from the database."""
         # Get all API definitions, including archived ones
-        api_definitions = await self.db.get_api_definitions(include_archived=True)
+        api_definitions = await self.db_tenant.get_api_definitions(
+            include_archived=True
+        )
 
         # Load each definition and its active version
         definitions = {}
@@ -54,7 +56,7 @@ class APIGatewayCore:
                 continue
 
             # Get the active version
-            version = await self.db.get_active_api_definition_version(api_def.id)
+            version = await self.db_tenant.get_active_api_definition_version(api_def.id)
             if not version:
                 continue  # Skip if no active version
 
@@ -91,7 +93,7 @@ class APIGatewayCore:
         api_definitions = await self.load_api_definitions()
         # Make sure job_id is still the correct ID string
 
-        job_data = self.db.get_job(
+        job_data = self.db_tenant.get_job(
             job_id
         )  # Renamed from job, assuming this might return a dict
 
@@ -116,7 +118,7 @@ class APIGatewayCore:
         api_def = api_definitions[job_api_name]
 
         # Check if messages already exist for this job
-        message_count = self.db.count_job_messages(job_id)
+        message_count = self.db_tenant.count_job_messages(job_id)
         messages = []
 
         if message_count == 0:
@@ -144,7 +146,9 @@ class APIGatewayCore:
             # Record the API version used for this job if available
             version_id = api_def.version_id if hasattr(api_def, 'version_id') else None
             if version_id:
-                self.db.update_job(job_id, {'api_definition_version_id': version_id})
+                self.db_tenant.update_job(
+                    job_id, {'api_definition_version_id': version_id}
+                )
 
             # Create the initial message list for sampling_loop
             messages = [BetaMessageParam(role='user', content=prompt_text)]
@@ -164,7 +168,7 @@ class APIGatewayCore:
             # Execute the API call - sampling_loop will handle saving the messages if it receives any
             result, exchanges = await sampling_loop(
                 job_id=job_id,
-                db=self.db,
+                db_tenant=self.db,
                 model=self.model,
                 provider=self.provider,
                 system_prompt_suffix='',  # No additional suffix needed
@@ -230,7 +234,7 @@ class APIGatewayCore:
 
             # Perform the DB update
             try:
-                self.db.update_job(job_id, update_data)
+                self.db_tenant.update_job(job_id, update_data)
             except Exception as db_err:
                 logger.error(
                     f'Failed to update job {job_id} final status to {final_status.value}: {db_err}'
@@ -258,7 +262,7 @@ class APIGatewayCore:
             logger.error(f'Job {job_id}: {error_message}', exc_info=True)
             # Update job status to ERROR on exception
             try:
-                self.db.update_job(
+                self.db_tenant.update_job(
                     job_id,
                     {
                         'status': JobStatus.ERROR.value,

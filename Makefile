@@ -9,9 +9,6 @@ frontend:
 server-tests:
 	uv run pytest
 
-setup:
-	touch .env.local
-
 # Docker Compose Commands
 docker-dev: 
 	@echo "🚀 Starting legacy-use in DEVELOPMENT mode with hot-reloading..."

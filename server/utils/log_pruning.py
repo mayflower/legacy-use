@@ -26,10 +26,12 @@ def prune_old_logs_for_tenant(tenant_schema: str, days: int = 7) -> int:
     Returns:
         Number of deleted log records
     """
-    with with_db(tenant_schema) as db:
+    with with_db(tenant_schema) as db_tenant:
         cutoff_date = datetime.now() - timedelta(days=days)
-        deleted_count = db.query(JobLog).filter(JobLog.timestamp < cutoff_date).delete()
-        db.commit()
+        deleted_count = (
+            db_tenant.query(JobLog).filter(JobLog.timestamp < cutoff_date).delete()
+        )
+        db_tenant.commit()
         return deleted_count
 
 

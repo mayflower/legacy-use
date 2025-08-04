@@ -62,7 +62,7 @@ settings_router = APIRouter(prefix='/settings', tags=['Settings'])
 
 
 @settings_router.get('/providers', response_model=ProvidersResponse)
-async def get_providers(request: Request, db=Depends(get_tenant_db)):
+async def get_providers(request: Request, db_tenant=Depends(get_tenant_db)):
     """Get available VLM providers and their configurations."""
 
     # Authenticate tenant (this will raise an exception if tenant is not found or inactive)
@@ -153,7 +153,9 @@ async def get_providers(request: Request, db=Depends(get_tenant_db)):
 
 @settings_router.post('/providers', response_model=Dict[str, str])
 async def update_provider_settings(
-    request: UpdateProviderRequest, http_request: Request, db=Depends(get_tenant_db)
+    request: UpdateProviderRequest,
+    http_request: Request,
+    db_tenant=Depends(get_tenant_db),
 ):
     """Update provider configuration and set as active provider."""
 
