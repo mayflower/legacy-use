@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {
-  analyzeVideoAiAnalyzePost,
+  analyzeVideoTeachingModeAnalyzeVideoPost,
   createJobTargetsTargetIdJobsPost,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
   type ImportApiDefinitionRequest,
@@ -488,7 +488,7 @@ export const stopRecording = async (sessionId: string) => {
 
 // AI Analysis
 export const analyzeVideo = async (videoFile: Blob) => {
-  return analyzeVideoAiAnalyzePost({ video: videoFile });
+  return analyzeVideoTeachingModeAnalyzeVideoPost({ video: videoFile });
 };
 
 export const getRecordingStatus = async (sessionId: string) => {

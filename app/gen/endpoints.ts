@@ -41,7 +41,7 @@ export interface ActionStep {
   tool: ActionStepTool;
 }
 
-export interface BodyAnalyzeVideoAiAnalyzePost {
+export interface BodyAnalyzeVideoTeachingModeAnalyzeVideoPost {
   video: Blob;
 }
 
@@ -684,14 +684,14 @@ and returns a structured API definition that can be used to automate the workflo
 shown in the video.
  * @summary Analyze Video
  */
-export const analyzeVideoAiAnalyzePost = (
-  bodyAnalyzeVideoAiAnalyzePost: BodyAnalyzeVideoAiAnalyzePost,
+export const analyzeVideoTeachingModeAnalyzeVideoPost = (
+  bodyAnalyzeVideoTeachingModeAnalyzeVideoPost: BodyAnalyzeVideoTeachingModeAnalyzeVideoPost,
 ) => {
   const formData = new FormData();
-  formData.append(`video`, bodyAnalyzeVideoAiAnalyzePost.video);
+  formData.append(`video`, bodyAnalyzeVideoTeachingModeAnalyzeVideoPost.video);
 
   return customInstance<VideoAnalysisResponse>({
-    url: `/ai/analyze`,
+    url: `/teaching-mode/analyze-video`,
     method: 'POST',
     headers: { 'Content-Type': 'multipart/form-data' },
     data: formData,
@@ -1136,8 +1136,8 @@ export type UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePostResult = Non
 export type GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGetResult = NonNullable<
   Awaited<ReturnType<typeof getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet>>
 >;
-export type AnalyzeVideoAiAnalyzePostResult = NonNullable<
-  Awaited<ReturnType<typeof analyzeVideoAiAnalyzePost>>
+export type AnalyzeVideoTeachingModeAnalyzeVideoPostResult = NonNullable<
+  Awaited<ReturnType<typeof analyzeVideoTeachingModeAnalyzeVideoPost>>
 >;
 export type ListTargetsTargetsGetResult = NonNullable<
   Awaited<ReturnType<typeof listTargetsTargetsGet>>

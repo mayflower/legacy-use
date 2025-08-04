@@ -17,7 +17,7 @@ from server.settings import settings
 logger = logging.getLogger(__name__)
 
 # Create router
-ai_router = APIRouter(prefix='/ai', tags=['AI Analysis'])
+teaching_mode_router = APIRouter(prefix='/teaching-mode', tags=['Teaching Mode'])
 
 
 class ActionStep(BaseModel):
@@ -166,7 +166,7 @@ Focus on creating a robust, reusable automation that could handle variations in 
     return prompt
 
 
-@ai_router.post('/analyze', response_model=VideoAnalysisResponse)
+@teaching_mode_router.post('/analyze-video', response_model=VideoAnalysisResponse)
 async def analyze_video(video: UploadFile = File(...)) -> VideoAnalysisResponse:
     """
     Analyze a video recording and generate an API definition for automation.

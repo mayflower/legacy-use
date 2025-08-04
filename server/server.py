@@ -18,7 +18,7 @@ from server.computer_use import APIProvider
 from server.database import db
 from server.routes import (
     api_router,
-    ai_router,
+    teaching_mode_router,
     job_router,
     target_router,
 )
@@ -208,8 +208,8 @@ app.openapi_security = [{'ApiKeyAuth': []}]
 # Include API router
 app.include_router(api_router)
 
-# Include AI router
-app.include_router(ai_router)
+# Include teaching mode router
+app.include_router(teaching_mode_router)
 
 # Include core routers
 app.include_router(target_router)
