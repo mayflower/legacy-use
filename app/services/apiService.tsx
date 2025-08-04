@@ -255,9 +255,9 @@ export const getAllJobs = async (
 export const getJob = async (targetId: string, jobId: string): Promise<Job> => {
   const job = await getJobTargetsTargetIdJobsJobIdGet(targetId, jobId);
   // add Z suffix to the date so JS can parse it as UTC
-  job.created_at = job.created_at + 'Z';
+  job.created_at = `${job.created_at}Z`;
   if (job.completed_at) {
-    job.completed_at = job.completed_at + 'Z';
+    job.completed_at = `${job.completed_at}Z`;
   }
   return job;
 };
