@@ -6,11 +6,11 @@ import { SessionContext } from '../App';
 import type { AnalyzeVideoAiAnalyzePostResult, RecordingResultResponse } from '../gen/endpoints';
 import { analyzeVideo } from '../services/apiService';
 import { base64ToVideoFile } from '../utils/video';
-import InteractiveBuilder from './InteractiveBuilder';
 import RecordingButton from './RecordingButton';
 import RecordingResultViewer from './RecordingResultViewer';
+import TeachingModeBuilder from './TeachingModeBuilder';
 
-export default function InteractiveSession() {
+export default function TeachingMode() {
   const { currentSession } = useContext(SessionContext);
 
   // Recording state
@@ -68,7 +68,7 @@ export default function InteractiveSession() {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Interactive Session
+        Teaching Mode
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
@@ -147,7 +147,7 @@ export default function InteractiveSession() {
       )}
 
       {analyzeResult && (
-        <InteractiveBuilder currentSession={currentSession} analyzeResult={analyzeResult} />
+        <TeachingModeBuilder currentSession={currentSession} analyzeResult={analyzeResult} />
       )}
     </Box>
   );

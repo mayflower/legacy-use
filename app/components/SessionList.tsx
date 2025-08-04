@@ -266,13 +266,13 @@ const SessionList = () => {
                       <TableCell>{formatDate(session.created_at)}</TableCell>
                       <TableCell align="right">
                         {session.state === 'ready' && !session.is_archived && (
-                          <Tooltip title="Interactive Mode" sx={{ mr: 1 }}>
+                          <Tooltip title="Teaching Mode" sx={{ mr: 1 }}>
                             <IconButton
                               size="small"
                               color="primary"
                               onClick={e => {
                                 e.stopPropagation();
-                                navigate(`/sessions/${session.id}/interactive`);
+                                navigate(`/sessions/${session.id}/teaching`);
                               }}
                             >
                               <SmartToyIcon />

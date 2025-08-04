@@ -10,10 +10,10 @@ import type {
   Session,
 } from '../gen/endpoints';
 import { createJob, importApiDefinition } from '../services/apiService';
-import ActionStepCard from './InteractiveBuilderActionStepCard';
-import ParameterCard from './InteractiveBuilderParameterCard';
+import ActionStepCard from './TeachingModeActionCard';
+import ParameterCard from './TeachingModeParameterCard';
 
-export default function InteractiveBuilder({
+export default function TeachingModeBuilder({
   currentSession,
   analyzeResult,
 }: {
@@ -25,7 +25,7 @@ export default function InteractiveBuilder({
   const [actions, setActions] = useState<ActionStep[]>(analyzeResult?.actions ?? []);
   const [parameters, setParameters] = useState<Parameter[]>(analyzeResult?.parameters ?? []);
 
-  const handleInteractiveExecute = async () => {
+  const handleTeachingExecute = async () => {
     setExecuteProgress(true);
 
     const timestamp = new Date().toISOString().split('.')[0];
@@ -36,8 +36,8 @@ export default function InteractiveBuilder({
 
     const apiDefinition = await importApiDefinition({
       api_definition: {
-        name: `interactive-${timestamp}`,
-        description: `Interactive API definition from ${timestamp}`,
+        name: `teaching-${timestamp}`,
+        description: `Teaching API definition from ${timestamp}`,
         prompt: prompt,
         prompt_cleanup: analyzeResult.prompt_cleanup,
         response_example: analyzeResult.response_example,
@@ -86,7 +86,7 @@ export default function InteractiveBuilder({
           variant="contained"
           color="success"
           startIcon={<PlayArrow />}
-          onClick={handleInteractiveExecute}
+          onClick={handleTeachingExecute}
           disabled={executeProgress}
         >
           {executeProgress ? 'Executing...' : 'Execute'}
