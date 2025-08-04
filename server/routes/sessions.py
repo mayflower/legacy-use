@@ -8,6 +8,7 @@ import re
 from typing import Any, Dict, List
 from uuid import UUID
 
+import httpx
 import requests
 import websockets
 from fastapi import APIRouter, HTTPException, Request, Depends
@@ -16,7 +17,14 @@ from starlette.background import BackgroundTask
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from server.config.default_ports import DEFAULT_PORTS
-from server.models.base import Session, SessionCreate, SessionUpdate
+from server.models.base import (
+    RecordingRequest,
+    RecordingResultResponse,
+    RecordingStatusResponse,
+    Session,
+    SessionCreate,
+    SessionUpdate,
+)
 from server.utils.db_dependencies import get_tenant_db, get_tenant_db_websocket
 from server.utils.docker_manager import (
     get_container_status,
@@ -579,3 +587,111 @@ async def update_session_state(
 
     # Return updated session
     return db_tenant.get_session(session_id)
+
+
+# Recording Control Endpoints
+@session_router.post(
+    '/{session_id}/recording/start',
+    response_model=RecordingStatusResponse,
+)
+async def start_session_recording(
+    session_id: UUID,
+    request: RecordingRequest = RecordingRequest(),
+    db_tenant=Depends(get_tenant_db),
+) -> RecordingStatusResponse:
+    """Start screen recording on a session"""
+    session = db_tenant.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail='Session not found')
+
+    if not session.get('container_ip'):
+        raise HTTPException(status_code=400, detail='Session container not running')
+
+    try:
+        async with httpx.AsyncClient() as client:
+            target_url = f'http://{session["container_ip"]}:8088/recording/start'
+            request_data = request.model_dump()
+            response = await client.post(target_url, json=request_data, timeout=30.0)
+
+            if response.status_code == 200:
+                return RecordingStatusResponse(**response.json())
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f'Recording start failed: {response.text}',
+                )
+
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=503, detail=f'Failed to connect to session container: {str(e)}'
+        )
+
+
+@session_router.post(
+    '/{session_id}/recording/stop',
+    response_model=RecordingResultResponse,
+)
+async def stop_session_recording(
+    session_id: UUID, db_tenant=Depends(get_tenant_db)
+) -> RecordingResultResponse:
+    """Stop screen recording on a session and get the video"""
+    session = db_tenant.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail='Session not found')
+
+    if not session.get('container_ip'):
+        raise HTTPException(status_code=400, detail='Session container not running')
+
+    try:
+        async with httpx.AsyncClient() as client:
+            target_url = f'http://{session["container_ip"]}:8088/recording/stop'
+            response = await client.post(
+                target_url, timeout=60.0
+            )  # Longer timeout for video processing
+
+            if response.status_code == 200:
+                return RecordingResultResponse(**response.json())
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f'Recording stop failed: {response.text}',
+                )
+
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=503, detail=f'Failed to connect to session container: {str(e)}'
+        )
+
+
+@session_router.get(
+    '/{session_id}/recording/status',
+    response_model=RecordingStatusResponse,
+)
+async def get_session_recording_status(
+    session_id: UUID, db_tenant=Depends(get_tenant_db)
+) -> RecordingStatusResponse:
+    """Get recording status from a session"""
+    session = db_tenant.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail='Session not found')
+
+    if not session.get('container_ip'):
+        raise HTTPException(status_code=400, detail='Session container not running')
+
+    try:
+        async with httpx.AsyncClient() as client:
+            target_url = f'http://{session["container_ip"]}:8088/recording/status'
+            response = await client.get(target_url, timeout=10.0)
+
+            if response.status_code == 200:
+                return RecordingStatusResponse(**response.json())
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f'Recording status failed: {response.text}',
+                )
+
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=503, detail=f'Failed to connect to session container: {str(e)}'
+        )

@@ -259,8 +259,17 @@ async def get_api_definition_version(
     return {'version': version_dict}
 
 
+class ImportApiDefinitionBody(BaseModel):
+    name: str
+    description: str
+    parameters: List[Parameter]
+    prompt: str
+    prompt_cleanup: str
+    response_example: Dict[str, Any]
+
+
 class ImportApiDefinitionRequest(BaseModel):
-    api_definition: Dict[str, Any]
+    api_definition: ImportApiDefinitionBody
 
 
 @api_router.post(
@@ -273,23 +282,10 @@ async def import_api_definition(
     try:
         api_def = body.api_definition
 
-        # Validate required fields
-        required_fields = [
-            'name',
-            'description',
-            'parameters',
-            'prompt',
-            'response_example',
-        ]
-        for field in required_fields:
-            if field not in api_def:
-                raise HTTPException(
-                    status_code=400, detail=f'Missing required field: {field}'
-                )
-
         # Check if API with this name already exists
-        existing_api = await db_tenant.get_api_definition_by_name(api_def['name'])
+        existing_api = await db_tenant.get_api_definition_by_name(api_def.name)
         api_id = ''
+        version_number = ''
 
         if existing_api:
             # Create a new version for the existing API
@@ -300,32 +296,32 @@ async def import_api_definition(
                 version_number=str(
                     version_number
                 ),  # Convert to string to ensure consistency
-                parameters=api_def['parameters'],
-                prompt=api_def['prompt'],
-                prompt_cleanup=api_def.get('prompt_cleanup', ''),
-                response_example=api_def['response_example'],
+                parameters=api_def.parameters,
+                prompt=api_def.prompt,
+                prompt_cleanup=api_def.prompt_cleanup,
+                response_example=api_def.response_example,
                 is_active=True,  # Make this the active version
             )
-            message = f"Updated existing API '{api_def['name']}' with new version {version_number}"
+            message = f"Updated existing API '{api_def.name}' with new version {version_number}"
         else:
             # Create a new API definition
             new_api_dict = await db_tenant.create_api_definition(
-                name=api_def['name'], description=api_def['description']
+                name=api_def.name, description=api_def.description
             )
 
-            version_number = '1'
             api_id = new_api_dict['id']
+            version_number = '1'  # Use string to ensure consistency
             # Create the first version
             await db_tenant.create_api_definition_version(
                 api_definition_id=new_api_dict['id'],
                 version_number=version_number,  # Use string to ensure consistency
-                parameters=api_def['parameters'],
-                prompt=api_def['prompt'],
-                prompt_cleanup=api_def.get('prompt_cleanup', ''),
-                response_example=api_def['response_example'],
+                parameters=[param.model_dump() for param in api_def.parameters],
+                prompt=api_def.prompt,
+                prompt_cleanup=api_def.prompt_cleanup,
+                response_example=api_def.response_example,
                 is_active=True,
             )
-            message = f"Created new API '{api_def['name']}'"
+            message = f"Created new API '{api_def.name}'"
 
         # Get tenant schema for APIGatewayCore
         from server.utils.tenant_utils import get_tenant
@@ -337,7 +333,7 @@ async def import_api_definition(
         await core.load_api_definitions()
 
         capture_api_created(request, api_def, api_id, str(version_number))
-        return {'status': 'success', 'message': message}
+        return {'status': 'success', 'message': message, 'name': api_def.name}
     except Exception as e:
         logger.error(f'Error importing API definition: {str(e)}')
         logger.error(traceback.format_exc())
@@ -359,20 +355,6 @@ async def update_api_definition(
     try:
         api_def = body.api_definition
 
-        # Validate required fields
-        required_fields = [
-            'name',
-            'description',
-            'parameters',
-            'prompt',
-            'response_example',
-        ]
-        for field in required_fields:
-            if field not in api_def:
-                raise HTTPException(
-                    status_code=400, detail=f'Missing required field: {field}'
-                )
-
         # Check if API with this name exists
         existing_api = await db_tenant.get_api_definition_by_name(api_name)
 
@@ -382,22 +364,22 @@ async def update_api_definition(
             )
 
         # Update the API definition name and description if changed
-        if api_def['name'] != api_name:
+        if api_def.name != api_name:
             # Check if the new name already exists
-            new_name_api = await db_tenant.get_api_definition_by_name(api_def['name'])
+            new_name_api = await db_tenant.get_api_definition_by_name(api_def.name)
             if new_name_api and new_name_api.id != existing_api.id:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"API with name '{api_def['name']}' already exists",
+                    detail=f"API with name '{api_def.name}' already exists",
                 )
 
             # Update the name
-            await db_tenant.update_api_definition(existing_api.id, name=api_def['name'])
+            await db_tenant.update_api_definition(existing_api.id, name=api_def.name)
 
         # Update the description if changed
-        if api_def['description'] != existing_api.description:
+        if api_def.description != existing_api.description:
             await db_tenant.update_api_definition(
-                existing_api.id, description=api_def['description']
+                existing_api.id, description=api_def.description
             )
 
         # Create a new version with the updated fields
@@ -407,10 +389,10 @@ async def update_api_definition(
             version_number=str(
                 version_number
             ),  # Convert to string to ensure consistency
-            parameters=api_def['parameters'],
-            prompt=api_def['prompt'],
-            prompt_cleanup=api_def.get('prompt_cleanup', ''),
-            response_example=api_def['response_example'],
+            parameters=[param.model_dump() for param in api_def.parameters],
+            prompt=api_def.prompt,
+            prompt_cleanup=api_def.prompt_cleanup,
+            response_example=api_def.response_example,
             is_active=True,  # Make this the active version
         )
 
@@ -427,7 +409,7 @@ async def update_api_definition(
 
         return {
             'status': 'success',
-            'message': f"Updated API '{api_def['name']}' with new version {version_number}",
+            'message': f"Updated API '{api_def.name}' with new version {version_number}",
         }
     except HTTPException:
         raise
