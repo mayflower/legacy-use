@@ -6,6 +6,8 @@ Create Date: 2025-08-01 18:39:42.239725
 
 """
 
+import secrets
+import string
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,6 +15,12 @@ import sqlalchemy as sa
 
 
 from server.migrations.tenant import for_each_tenant_schema
+
+
+def generate_secure_api_key(length: int = 32) -> str:
+    """Generate a secure API key."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
 # revision identifiers, used by Alembic.
@@ -38,6 +46,36 @@ def upgrade(schema: str) -> None:
     op.create_index(
         op.f('ix_settings_key'), 'settings', ['key'], unique=False, schema=schema
     )
+
+    # Generate and insert secure API key for default tenant only
+    if schema == 'tenant_default':
+        api_key = generate_secure_api_key()
+        op.execute(f"""
+            INSERT INTO tenant_default.settings (id, key, value, created_at, updated_at)
+            VALUES (
+                gen_random_uuid(),
+                'API_KEY',
+                '{api_key}',
+                NOW(),
+                NOW()
+            )
+        """)
+
+        # Print setup credentials
+        print('\n' + '=' * 60)
+        print('🚀 LEGACY-USE SETUP COMPLETE')
+        print('=' * 60)
+        print('📡 Server URL: http://tenant-default.lvh.me:5173/')
+        print(f'🔑 API Key: {api_key}')
+        print('\n💡 To access your instance:')
+        print('   1. Open the URL in your browser')
+        print('   2. Enter the API key when prompted')
+        print('   3. Configure your AI provider in Settings')
+        print(
+            '\n⚠️  Keep this API key secure - it provides full access to your instance!'
+        )
+        print('=' * 60 + '\n')
+
     # ### end Alembic commands ###
 
 
