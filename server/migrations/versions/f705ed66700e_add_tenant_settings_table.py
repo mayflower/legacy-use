@@ -65,7 +65,7 @@ def upgrade(schema: str) -> None:
         print('\n' + '=' * 60)
         print('🚀 LEGACY-USE SETUP COMPLETE')
         print('=' * 60)
-        print('📡 Server URL: http://tenant-default.lvh.me:5173/')
+        print('📡 Server URL: http://tenant-default.local.legacy-use.com:5173/')
         print(f'🔑 API Key: {api_key}')
         print('\n💡 To access your instance:')
         print('   1. Open the URL in your browser')

@@ -21,7 +21,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['.lvh.me'],
+    allowedHosts: ['.local.legacy-use.com'],
     watch: {
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
     },

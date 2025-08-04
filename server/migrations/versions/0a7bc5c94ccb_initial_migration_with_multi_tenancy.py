@@ -54,7 +54,7 @@ def upgrade() -> None:
             gen_random_uuid(),
             'Default Tenant',
             'tenant_default',
-            'tenant-default.lvh.me',
+            'tenant-default.local.legacy-use.com',
             NOW(),
             NOW(),
             TRUE

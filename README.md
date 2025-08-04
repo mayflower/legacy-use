@@ -85,7 +85,7 @@ You'll see output like this:
 ============================================================
 🚀 LEGACY-USE SETUP COMPLETE
 ============================================================
-📡 Server URL: http://tenant-default.lvh.me:5173/
+📡 Server URL: http://tenant-default.local.legacy-use.com:5173/
 🔑 API Key: AbC123XyZ789...
 
 💡 To access your instance:
