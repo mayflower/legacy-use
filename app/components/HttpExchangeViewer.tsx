@@ -8,9 +8,6 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-// Add browser globals
-const { URL } = globalThis;
-
 // Custom component for displaying HTTP exchanges
 const HttpExchangeViewer = ({ exchanges }) => {
   if (!exchanges || exchanges.length === 0) {
