@@ -141,7 +141,7 @@ const LogViewer = ({ logs }) => {
 
   // --- Navigation Logic ---
   const navigateToScreenshot = useCallback(
-    direction => {
+    (direction: 'prev' | 'next') => {
       if (!expandedImage || screenshots.length <= 1) return; // No navigation if 0 or 1 screenshot
 
       const currentScreenshotArrayIndex = screenshots.findIndex(
@@ -149,7 +149,7 @@ const LogViewer = ({ logs }) => {
       );
       if (currentScreenshotArrayIndex === -1) return; // Safety check
 
-      let nextScreenshotArrayIndex;
+      let nextScreenshotArrayIndex: number;
       if (direction === 'prev') {
         nextScreenshotArrayIndex =
           (currentScreenshotArrayIndex - 1 + screenshots.length) % screenshots.length;
