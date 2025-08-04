@@ -26,6 +26,7 @@ from server.models.base import (
     SessionUpdate,
 )
 from server.utils.db_dependencies import get_tenant_db, get_tenant_db_websocket
+from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.docker_manager import (
     get_container_status,
     launch_container,
@@ -70,6 +71,7 @@ async def create_session(
     request: Request,
     get_or_create: bool = False,
     db_tenant=Depends(get_tenant_db),
+    tenant=Depends(get_tenant_from_request),
 ):
     """
     Create a new session for a target.
@@ -157,7 +159,10 @@ async def create_session(
 
     # Launch Docker container for the session
     container_id, container_ip = launch_container(
-        target['type'], str(db_session['id']), container_params=container_params
+        target['type'],
+        str(db_session['id']),
+        container_params=container_params,
+        tenant_schema=tenant['schema'],
     )
 
     if container_id and container_ip:
