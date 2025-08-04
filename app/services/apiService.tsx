@@ -1,16 +1,58 @@
 import axios from 'axios';
 import {
+  type APIDefinition,
   analyzeVideoTeachingModeAnalyzeVideoPost,
+  archiveApiDefinitionApiDefinitionsApiNameDelete,
+  cancelJobTargetsTargetIdJobsJobIdCancelPost,
   createJobTargetsTargetIdJobsPost,
+  createSessionSessionsPost,
+  createTargetTargetsPost,
+  deleteSessionSessionsSessionIdDelete,
+  deleteTargetTargetsTargetIdDelete,
+  exportApiDefinitionApiDefinitionsApiNameExportGet,
+  getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet,
+  getApiDefinitionsApiDefinitionsGet,
+  getApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet,
+  getApiDefinitionVersionsApiDefinitionsApiNameVersionsGet,
+  getJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGet,
+  getJobLogsTargetsTargetIdJobsJobIdLogsGet,
+  getJobTargetsTargetIdJobsJobIdGet,
+  getProvidersSettingsProvidersGet,
+  getQueueStatusJobsQueueStatusGet,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
+  getSessionSessionsSessionIdGet,
+  getTargetTargetsTargetIdGet,
+  type HttpExchangeLog,
+  hardDeleteSessionSessionsSessionIdHardDelete,
+  hardDeleteTargetTargetsTargetIdHardDelete,
   type ImportApiDefinitionRequest,
   importApiDefinitionApiDefinitionsImportPost,
+  interruptJobTargetsTargetIdJobsJobIdInterruptPost,
+  type Job,
   type JobCreate,
+  type JobLogEntry,
+  listAllJobsJobsGet,
   listSessionsSessionsGet,
+  listTargetJobsTargetsTargetIdJobsGet,
+  listTargetsTargetsGet,
+  type PaginatedJobsResponse,
+  type ProvidersResponse,
   type RecordingRequest,
+  type ResolveJobTargetsTargetIdJobsJobIdResolvePostBody,
+  resolveJobTargetsTargetIdJobsJobIdResolvePost,
+  resumeJobTargetsTargetIdJobsJobIdResumePost,
   type Session,
+  type SessionCreate,
   startSessionRecordingSessionsSessionIdRecordingStartPost,
   stopSessionRecordingSessionsSessionIdRecordingStopPost,
+  type Target,
+  type TargetCreate,
+  type TargetUpdate,
+  type UpdateProviderRequest,
+  unarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost,
+  updateApiDefinitionApiDefinitionsApiNamePut,
+  updateProviderSettingsSettingsProvidersPost,
+  updateTargetTargetsTargetIdPut,
 } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 
@@ -58,7 +100,7 @@ apiClient.interceptors.request.use(
 );
 
 // Function to test if an API key is valid
-export const testApiKey = async (apiKey: string) => {
+export const testApiKey = async (apiKey: string): Promise<APIDefinition[]> => {
   // Create a temporary axios instance with the API key
   const tempClient = axios.create({
     baseURL: API_URL,
@@ -73,18 +115,20 @@ export const testApiKey = async (apiKey: string) => {
 };
 
 // Function to get provider configuration
-export const getProviders = async () => {
-  const response = await apiClient.get('/settings/providers');
-  return response.data;
+export const getProviders = async (): Promise<ProvidersResponse> => {
+  return getProvidersSettingsProvidersGet();
 };
 
 // Function to update provider settings
-export const updateProviderSettings = async (provider, credentials) => {
-  const response = await apiClient.post('/settings/providers', {
+export const updateProviderSettings = async (
+  provider: string,
+  credentials: Record<string, string>,
+) => {
+  const updateRequest: UpdateProviderRequest = {
     provider,
     credentials,
-  });
-  return response.data;
+  };
+  return updateProviderSettingsSettingsProvidersPost(updateRequest);
 };
 
 // Function to check if any API provider is configured (after ensuring API key is provided)
@@ -107,31 +151,27 @@ export const checkApiProviderConfiguration = async () => {
 };
 
 // API Definitions
-export const getApiDefinitions = async (include_archived = false) => {
-  const response = await apiClient.get('/api/definitions', {
-    params: { include_archived },
-  });
-  return response.data;
+export const getApiDefinitions = async (include_archived = false): Promise<APIDefinition[]> => {
+  return getApiDefinitionsApiDefinitionsGet({ include_archived });
 };
 
-export const exportApiDefinition = async apiName => {
-  const response = await apiClient.get(`/api/definitions/${apiName}/export`);
-  return response.data;
+export const exportApiDefinition = async (apiName: string) => {
+  return exportApiDefinitionApiDefinitionsApiNameExportGet(apiName);
 };
 
 export const importApiDefinition = async (apiDefinition: ImportApiDefinitionRequest) => {
   return importApiDefinitionApiDefinitionsImportPost(apiDefinition);
 };
 
-export const getApiDefinitionDetails = async apiName => {
+export const getApiDefinitionDetails = async (apiName: string) => {
   // First, get the metadata to check if the API is archived
-  const metadataResponse = await apiClient.get(`/api/definitions/${apiName}/metadata`);
-  const isArchived = metadataResponse.data.is_archived;
+  const metadataResponse = await getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet(apiName);
+  const isArchived = metadataResponse.is_archived;
 
   // For both archived and non-archived APIs, use the export endpoint
   // The backend should handle returning the correct data
-  const response = await apiClient.get(`/api/definitions/${apiName}/export`);
-  const apiDefinition = response.data.api_definition;
+  const response = await exportApiDefinitionApiDefinitionsApiNameExportGet(apiName);
+  const apiDefinition = response.api_definition;
 
   // Return the API definition with the archived status
   return {
@@ -140,31 +180,32 @@ export const getApiDefinitionDetails = async apiName => {
   };
 };
 
-export const getApiDefinitionVersions = async apiName => {
-  const response = await apiClient.get(`/api/definitions/${apiName}/versions`);
-  return response.data.versions;
+export const getApiDefinitionVersions = async (apiName: string) => {
+  const response = await getApiDefinitionVersionsApiDefinitionsApiNameVersionsGet(apiName);
+  return response.versions;
 };
 
-export const getApiDefinitionVersion = async (apiName, versionId) => {
-  const response = await apiClient.get(`/api/definitions/${apiName}/versions/${versionId}`);
-  return response.data.version;
+export const getApiDefinitionVersion = async (apiName: string, versionId: string) => {
+  const response = await getApiDefinitionVersionApiDefinitionsApiNameVersionsVersionIdGet(
+    apiName,
+    versionId,
+  );
+  return response.version;
 };
 
-export const updateApiDefinition = async (apiName, apiDefinition) => {
-  const response = await apiClient.put(`/api/definitions/${apiName}`, {
-    api_definition: apiDefinition,
-  });
-  return response.data;
+export const updateApiDefinition = async (
+  apiName: string,
+  apiDefinition: ImportApiDefinitionRequest,
+) => {
+  return updateApiDefinitionApiDefinitionsApiNamePut(apiName, apiDefinition);
 };
 
-export const archiveApiDefinition = async apiName => {
-  const response = await apiClient.delete(`/api/definitions/${apiName}`);
-  return response.data;
+export const archiveApiDefinition = async (apiName: string) => {
+  return archiveApiDefinitionApiDefinitionsApiNameDelete(apiName);
 };
 
-export const unarchiveApiDefinition = async apiName => {
-  const response = await apiClient.post(`/api/definitions/${apiName}/unarchive`);
-  return response.data;
+export const unarchiveApiDefinition = async (apiName: string) => {
+  return unarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost(apiName);
 };
 
 // Sessions
@@ -172,75 +213,72 @@ export const getSessions = async (include_archived = false): Promise<Session[]> 
   return listSessionsSessionsGet({ include_archived });
 };
 
-export const getSession = async sessionId => {
-  const response = await apiClient.get(`/sessions/${sessionId}`);
-  return response.data;
+export const getSession = async (sessionId: string) => {
+  return getSessionSessionsSessionIdGet(sessionId);
 };
 
-export const createSession = async sessionData => {
-  const response = await apiClient.post('/sessions/', sessionData);
-  return response.data;
+export const createSession = async (sessionData: SessionCreate): Promise<Session> => {
+  return createSessionSessionsPost(sessionData);
 };
 
-export const deleteSession = async (sessionId, hardDelete = false) => {
-  const endpoint = hardDelete ? `/sessions/${sessionId}/hard` : `/sessions/${sessionId}`;
-  const response = await apiClient.delete(endpoint);
-  return response.data;
+export const deleteSession = async (sessionId: string, hardDelete = false) => {
+  if (hardDelete) {
+    return hardDeleteSessionSessionsSessionIdHardDelete(sessionId);
+  } else {
+    return deleteSessionSessionsSessionIdDelete(sessionId);
+  }
 };
 
 // Jobs
-export const getJobs = async targetId => {
-  const response = await apiClient.get(`/targets/${targetId}/jobs/`);
-  return response.data;
+export const getJobs = async (targetId: string): Promise<Job[]> => {
+  return listTargetJobsTargetsTargetIdJobsGet(targetId);
 };
 
 export const getJobQueueStatus = async () => {
-  const response = await apiClient.get('/jobs/queue/status');
-  return response.data;
+  return getQueueStatusJobsQueueStatusGet();
 };
 
-export const getAllJobs = async (limit = 10, offset = 0, filters = {}) => {
+export const getAllJobs = async (
+  limit = 10,
+  offset = 0,
+  filters = {},
+): Promise<PaginatedJobsResponse> => {
   const params = {
     limit,
     offset,
     ...filters, // Include any additional filters: status, target_id, api_name
   };
 
-  const response = await apiClient.get('/jobs/', { params });
-
-  // Return the full response - it contains a jobs array and total_count
-  return response.data;
+  return listAllJobsJobsGet(params);
 };
 
-export const getJob = async (targetId, jobId) => {
-  const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}`);
+export const getJob = async (targetId: string, jobId: string): Promise<Job> => {
+  const job = await getJobTargetsTargetIdJobsJobIdGet(targetId, jobId);
   // add Z suffix to the date so JS can parse it as UTC
-  response.data.created_at = response.data.created_at + 'Z';
-  if (response.data.completed_at) {
-    response.data.completed_at = response.data.completed_at + 'Z';
+  job.created_at = job.created_at + 'Z';
+  if (job.completed_at) {
+    job.completed_at = job.completed_at + 'Z';
   }
-  return response.data;
+  return job;
 };
 
 export const createJob = async (targetId: string, jobData: JobCreate) => {
   return createJobTargetsTargetIdJobsPost(targetId, jobData);
 };
 
-export const interruptJob = async (targetId, jobId) => {
-  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/interrupt/`);
-  return response.data;
+export const interruptJob = async (targetId: string, jobId: string) => {
+  return interruptJobTargetsTargetIdJobsJobIdInterruptPost(targetId, jobId);
 };
 
-export const cancelJob = async (targetId, jobId) => {
-  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/cancel/`);
-  return response.data;
+export const cancelJob = async (targetId: string, jobId: string) => {
+  return cancelJobTargetsTargetIdJobsJobIdCancelPost(targetId, jobId);
 };
 
-export const getJobLogs = async (targetId, jobId) => {
-  const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/logs/`);
-
-  // The response is now a direct array of log objects
-  const logs = response.data || [];
+export const getJobLogs = async (
+  targetId: string,
+  jobId: string,
+): Promise<(JobLogEntry & { type: string })[]> => {
+  const logs = await getJobLogsTargetsTargetIdJobsJobIdLogsGet(targetId, jobId);
 
   // Convert log_type to type for compatibility with LogViewer
   return logs.map(log => ({
@@ -249,61 +287,56 @@ export const getJobLogs = async (targetId, jobId) => {
   }));
 };
 
-export const getJobHttpExchanges = async (targetId, jobId) => {
-  const response = await apiClient.get(`/targets/${targetId}/jobs/${jobId}/http_exchanges/`);
-
-  // Handle the new response format where the endpoint directly returns an array
-  // instead of a nested structure with http_exchanges key
-  const httpExchanges = Array.isArray(response.data)
-    ? response.data
-    : response.data.http_exchanges || [];
-
-  return httpExchanges;
+export const getJobHttpExchanges = async (
+  targetId: string,
+  jobId: string,
+): Promise<HttpExchangeLog[]> => {
+  return getJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGet(targetId, jobId);
 };
 
 // Targets
-export const getTargets = async (include_archived = false) => {
-  const response = await apiClient.get('/targets/', { params: { include_archived } });
-  return response.data;
+export const getTargets = async (include_archived = false): Promise<Target[]> => {
+  return listTargetsTargetsGet({ include_archived });
 };
 
-export const createTarget = async targetData => {
-  const response = await apiClient.post('/targets/', targetData);
-  return response.data;
+export const createTarget = async (targetData: TargetCreate): Promise<Target> => {
+  return createTargetTargetsPost(targetData);
 };
 
-export const getTarget = async targetId => {
-  const response = await apiClient.get(`/targets/${targetId}`);
-  return response.data;
+export const getTarget = async (targetId: string): Promise<Target> => {
+  return getTargetTargetsTargetIdGet(targetId);
 };
 
-export const updateTarget = async (targetId, targetData) => {
-  const response = await apiClient.put(`/targets/${targetId}`, targetData);
-  return response.data;
+export const updateTarget = async (targetId: string, targetData: TargetUpdate): Promise<Target> => {
+  return updateTargetTargetsTargetIdPut(targetId, targetData);
 };
 
-export const deleteTarget = async (targetId, hardDelete = false) => {
-  const endpoint = hardDelete ? `/targets/${targetId}/hard` : `/targets/${targetId}`;
-  const response = await apiClient.delete(endpoint);
-  return response.data;
+export const deleteTarget = async (targetId: string, hardDelete = false) => {
+  if (hardDelete) {
+    return hardDeleteTargetTargetsTargetIdHardDelete(targetId);
+  } else {
+    return deleteTargetTargetsTargetIdDelete(targetId);
+  }
 };
 
 // Resolve a job (set to success with custom result)
-export const resolveJob = async (targetId, jobId, result) => {
-  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resolve/`, result);
-  return response.data;
+export const resolveJob = async (
+  targetId: string,
+  jobId: string,
+  result: ResolveJobTargetsTargetIdJobsJobIdResolvePostBody,
+) => {
+  return resolveJobTargetsTargetIdJobsJobIdResolvePost(targetId, jobId, result);
 };
 
 // Health check
-export const checkTargetHealth = async containerIp => {
+export const checkTargetHealth = async (containerIp: string) => {
   const response = await axios.get(`http://${containerIp}:8088/health`, { timeout: 2000 });
   return response.data;
 };
 
 // Resume Job Function (New)
-export const resumeJob = async (targetId, jobId) => {
-  const response = await apiClient.post(`/targets/${targetId}/jobs/${jobId}/resume/`);
-  return response.data;
+export const resumeJob = async (targetId: string, jobId: string): Promise<Job> => {
+  return resumeJobTargetsTargetIdJobsJobIdResumePost(targetId, jobId);
 };
 
 // Recording functions
