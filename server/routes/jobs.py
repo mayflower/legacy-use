@@ -170,10 +170,35 @@ async def create_job(
     # Set target_id
     job_data['target_id'] = target_id
 
+    # If no session_id is provided, try to find or create a session for the target
+    if not job_data.get('session_id'):
+        try:
+            # First, check if there's an active session for this target
+            active_session_info = db.has_active_session_for_target(target_id)
+            if active_session_info['has_active_session']:
+                existing_session = active_session_info['session']
+                job_data['session_id'] = existing_session['id']
+                logger.info(f'Using existing session {existing_session["id"]} for job')
+            else:
+                # No active session, create one
+                from server.utils.session_management import launch_session_for_target
+
+                session_info = await launch_session_for_target(str(target_id))
+                if session_info:
+                    job_data['session_id'] = session_info['id']
+                    logger.info(f'Created new session {session_info["id"]} for job')
+                else:
+                    logger.warning(
+                        f'Failed to create session for target {target_id}, job will run without session'
+                    )
+        except Exception as e:
+            logger.error(f'Error setting up session for job: {str(e)}')
+            # Continue without session_id - job will run without session context
+
     # Try to get the API definition version ID
     try:
         # Load API definitions fresh from the database
-        core = APIGatewayCore(db_service=db)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
         api_definitions = await core.load_api_definitions()
 
         # Check if the API definition exists
@@ -622,6 +647,7 @@ async def resolve_job(
     result: Annotated[Dict[str, Any], Body(...)],
     request: Request,
     db: Session = Depends(get_tenant_db),
+    tenant: dict = Depends(get_tenant),
 ):
     """Resolve a job that's in error or paused state.
 
@@ -667,7 +693,7 @@ async def resolve_job(
     )
 
     # Add log for resolving the job
-    add_job_log(job_id_str, 'system', 'Job manually resolved')
+    add_job_log(job_id_str, 'system', 'Job manually resolved', tenant['schema'])
 
     # Check if there are any other jobs in error/paused state for this target
     other_paused_jobs = db.list_jobs_by_status_and_target(
@@ -680,6 +706,7 @@ async def resolve_job(
             job_id_str,
             'system',
             f'No more paused/error jobs for target {target_id}, queue can resume',
+            tenant['schema'],
         )
 
         # Note: process_next_job is deprecated, so we don't call it here

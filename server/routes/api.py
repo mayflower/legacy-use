@@ -66,10 +66,17 @@ async def get_api_response_example(api_def, db):
 @api_router.get(
     '/definitions/{api_name}', response_model=APIDefinition, tags=['API Definitions']
 )
-async def get_api_definition(api_name: str, db=Depends(get_tenant_db)):
+async def get_api_definition(
+    api_name: str, request: Request, db=Depends(get_tenant_db)
+):
     """Get a specific API definition by name."""
+    # Get tenant schema for APIGatewayCore
+    from server.utils.tenant_utils import get_tenant
+
+    tenant = get_tenant(request)
+
     # Initialize the core API Gateway with tenant-aware database
-    core = APIGatewayCore(db_service=db)
+    core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
 
     # Load API definitions fresh from the database
     api_definitions = await core.load_api_definitions()
@@ -93,7 +100,9 @@ async def get_api_definition(api_name: str, db=Depends(get_tenant_db)):
     response_model=Dict[str, Dict[str, Any]],
     tags=['API Definitions'],
 )
-async def export_api_definition(api_name: str, db=Depends(get_tenant_db)):
+async def export_api_definition(
+    api_name: str, request: Request, db=Depends(get_tenant_db)
+):
     """Get a specific API definition in its raw format for export/backup purposes."""
 
     # First, check if the API exists and if it's archived
@@ -126,7 +135,12 @@ async def export_api_definition(api_name: str, db=Depends(get_tenant_db)):
         }
 
     # For non-archived APIs, load fresh from the database
-    core = APIGatewayCore(db_service=db)
+    # Get tenant schema for APIGatewayCore
+    from server.utils.tenant_utils import get_tenant
+
+    tenant = get_tenant(request)
+
+    core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
     api_definitions = await core.load_api_definitions()
 
     if api_name not in api_definitions:
@@ -311,8 +325,13 @@ async def import_api_definition(
             )
             message = f"Created new API '{api_def['name']}'"
 
+        # Get tenant schema for APIGatewayCore
+        from server.utils.tenant_utils import get_tenant
+
+        tenant = get_tenant(request)
+
         # Reload API definitions in core
-        core = APIGatewayCore(db_service=db)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
         await core.load_api_definitions()
 
         capture_api_created(request, api_def, api_id, str(version_number))
@@ -393,8 +412,13 @@ async def update_api_definition(
             is_active=True,  # Make this the active version
         )
 
+        # Get tenant schema for APIGatewayCore
+        from server.utils.tenant_utils import get_tenant
+
+        tenant = get_tenant(request)
+
         # Reload API definitions in core
-        core = APIGatewayCore(db_service=db)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
         await core.load_api_definitions()
 
         capture_api_updated(request, api_def, existing_api.id, str(version_number))
@@ -431,8 +455,13 @@ async def archive_api_definition(
         # Archive the API definition
         await db.archive_api_definition(api_definition.id)
 
+        # Get tenant schema for APIGatewayCore
+        from server.utils.tenant_utils import get_tenant
+
+        tenant = get_tenant(request)
+
         # Reload API definitions in core
-        core = APIGatewayCore(db_service=db)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
         await core.load_api_definitions()
 
         capture_api_deleted(request, api_definition.id, api_name)
@@ -456,7 +485,9 @@ async def archive_api_definition(
     response_model=Dict[str, str],
     tags=['API Definitions'],
 )
-async def unarchive_api_definition(api_name: str, db=Depends(get_tenant_db)):
+async def unarchive_api_definition(
+    api_name: str, request: Request, db=Depends(get_tenant_db)
+):
     """Unarchive an API definition."""
     try:
         # Get the API definition by name
@@ -469,8 +500,13 @@ async def unarchive_api_definition(api_name: str, db=Depends(get_tenant_db)):
         # Unarchive the API definition
         await db.update_api_definition(api_definition.id, is_archived=False)
 
+        # Get tenant schema for APIGatewayCore
+        from server.utils.tenant_utils import get_tenant
+
+        tenant = get_tenant(request)
+
         # Reload API definitions in core
-        core = APIGatewayCore(db_service=db)
+        core = APIGatewayCore(tenant_schema=tenant['schema'], db_service=db)
         await core.load_api_definitions()
 
         return {

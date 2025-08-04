@@ -317,12 +317,14 @@ async def _check_preconditions_and_set_running(
             )
             return False, False
 
-        # Try to acquire target lock
-        if not target_lock.acquire_nowait():
+        # Try to acquire target lock non-blocking
+        if target_lock.locked():
             logger.info(
                 f'Could not acquire target lock for {target_id}, skipping job {job_id_str} for tenant {tenant_schema}'
             )
             return False, False
+
+        await target_lock.acquire()
 
         try:
             # Update job status to RUNNING
@@ -535,8 +537,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
     """Execute a job's API call in the background."""
     # Import core only when needed
     from server.core import APIGatewayCore
-
-    core = APIGatewayCore()
+    from server.database.multi_tenancy import with_db
 
     job_id_str = str(job.id)
 
@@ -573,18 +574,23 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
         output_callback = _create_output_callback(job_id_str, tenant_schema)
 
         try:
-            # Wrap the execute_api call in its own try-except block to better handle cancellation
-            api_response = await core.execute_api(
-                job_id=job_id_str,
-                api_response_callback=api_response_callback,
-                tool_callback=tool_callback,
-                output_callback=output_callback,
-                session_id=str(job.session_id),
-            )
+            # Create tenant-aware database service for the core
+            with with_db(tenant_schema) as db_session:
+                db_service = TenantAwareDatabaseService(db_session)
+                core = APIGatewayCore(
+                    tenant_schema=tenant_schema, db_service=db_service
+                )
+
+                # Wrap the execute_api call in its own try-except block to better handle cancellation
+                api_response = await core.execute_api(
+                    job_id=job_id_str,
+                    api_response_callback=api_response_callback,
+                    tool_callback=tool_callback,
+                    output_callback=output_callback,
+                    session_id=str(job.session_id),
+                )
 
             # Update job with result and API exchanges using tenant-aware database service
-            from server.database.multi_tenancy import with_db
-
             with with_db(tenant_schema) as db_session:
                 db_service = TenantAwareDatabaseService(db_session)
                 updated_job = db_service.update_job(

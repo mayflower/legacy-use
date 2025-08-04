@@ -333,17 +333,27 @@ async def sampling_loop(
                 )
                 if session_id:
                     try:
-                        session_details = db.get_session(UUID(session_id))
-                        if session_details and session_details.get('container_ip'):
-                            container_ip = session_details['container_ip']
-                            health_status = await check_target_container_health(
-                                container_ip
+                        # Validate session_id is a valid UUID
+                        if not session_id or not isinstance(session_id, str):
+                            health_check_reason = (
+                                f'Invalid session_id format: {session_id}'
                             )
-                            health_check_ok = health_status['healthy']
-                            health_check_reason = health_status['reason']
-                        else:
-                            health_check_reason = f'Could not retrieve container_ip for session {session_id}.'
                             logger.warning(f'Job {job_id}: {health_check_reason}')
+                        else:
+                            session_details = db.get_session(UUID(session_id))
+                            if session_details and session_details.get('container_ip'):
+                                container_ip = session_details['container_ip']
+                                health_status = await check_target_container_health(
+                                    container_ip
+                                )
+                                health_check_ok = health_status['healthy']
+                                health_check_reason = health_status['reason']
+                            else:
+                                health_check_reason = f'Could not retrieve container_ip for session {session_id}.'
+                                logger.warning(f'Job {job_id}: {health_check_reason}')
+                    except ValueError:
+                        health_check_reason = f'Invalid session_id format: {session_id}'
+                        logger.error(f'Job {job_id}: {health_check_reason}')
                     except Exception as e:
                         health_check_reason = f'Error retrieving session details for health check: {str(e)}'
                         logger.error(f'Job {job_id}: {health_check_reason}')
@@ -369,7 +379,13 @@ async def sampling_loop(
                 session_obj = None
                 if session_id:
                     try:
-                        session_obj = db.get_session(UUID(session_id))
+                        # Validate session_id is a valid UUID
+                        if session_id and isinstance(session_id, str):
+                            session_obj = db.get_session(UUID(session_id))
+                        else:
+                            logger.warning(f'Invalid session_id format: {session_id}')
+                    except ValueError:
+                        logger.warning(f'Invalid session_id format: {session_id}')
                     except Exception as e:
                         logger.warning(f'Could not retrieve session {session_id}: {e}')
 

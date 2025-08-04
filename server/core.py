@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 
 class APIGatewayCore:
     def __init__(self, tenant_schema: str, db_service=None):
+        # Store tenant schema for use in methods
+        self.tenant_schema = tenant_schema
+
         # Use tenant settings
         self.provider = get_tenant_setting(tenant_schema, 'API_PROVIDER')
         self.api_key = get_tenant_setting(tenant_schema, 'ANTHROPIC_API_KEY')
@@ -120,7 +123,10 @@ class APIGatewayCore:
             from server.routes.jobs import add_job_log
 
             add_job_log(
-                job_id, 'system', f'Executing API with parameters: {job_parameters}'
+                job_id,
+                'system',
+                f'Executing API with parameters: {job_parameters}',
+                self.tenant_schema,
             )
 
             # This is a new job or has no history, build the initial prompt
@@ -132,6 +138,7 @@ class APIGatewayCore:
                 job_id,
                 'system',
                 {'message_type': 'initial_prompt', 'prompt': prompt_text},
+                self.tenant_schema,
             )
 
             # Record the API version used for this job if available
@@ -169,6 +176,7 @@ class APIGatewayCore:
                 only_n_most_recent_images=3,
                 session_id=session_id,
                 tool_version=self.tool_version,
+                tenant_schema=self.tenant_schema,
             )
 
             # --- Interpret result and Update DB Status --- START
