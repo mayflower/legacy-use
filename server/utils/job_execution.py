@@ -151,7 +151,16 @@ async def process_job_queue_for_tenant(tenant_schema: str):
                 if not tenant_job_queues[tenant_schema]:
                     break
 
-                job = tenant_job_queues[tenant_schema].popleft()
+                # Ensure the queue is a deque before calling popleft
+                queue = tenant_job_queues[tenant_schema]
+                if not isinstance(queue, deque):
+                    logger.warning(
+                        f'Queue for tenant {tenant_schema} is not a deque, converting...'
+                    )
+                    tenant_job_queues[tenant_schema] = deque(queue)
+                    queue = tenant_job_queues[tenant_schema]
+
+                job = queue.popleft()
 
             # Process the job using tenant-aware database service
             await process_job_with_tenant(job, tenant_schema)
@@ -919,15 +928,24 @@ async def enqueue_job(job_obj: Job, tenant_schema: str):
             tenant_queue_locks[tenant_schema] = asyncio.Lock()
 
     async with tenant_queue_locks[tenant_schema]:
+        # Ensure the queue is a deque before operating on it
+        queue = tenant_job_queues[tenant_schema]
+        if not isinstance(queue, deque):
+            logger.warning(
+                f'Queue for tenant {tenant_schema} is not a deque, converting...'
+            )
+            tenant_job_queues[tenant_schema] = deque(queue)
+            queue = tenant_job_queues[tenant_schema]
+
         # Safety check: Avoid adding the same job twice
-        if any(j.id == job_obj.id for j in tenant_job_queues[tenant_schema]):
+        if any(j.id == job_obj.id for j in queue):
             logger.warning(
                 f'Job {job_obj.id} is already in the queue for tenant {tenant_schema}. Skipping addition.'
             )
             return  # Job already enqueued, nothing more to do
 
         # Add job to the tenant-specific queue
-        tenant_job_queues[tenant_schema].append(job_obj)
+        queue.append(job_obj)
         # Add a standard log entry
         log_message = 'Job added to queue'  # Use the consistent message
         add_job_log(str(job_obj.id), 'system', log_message, tenant_schema)

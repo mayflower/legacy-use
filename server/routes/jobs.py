@@ -402,9 +402,11 @@ async def interrupt_job(
                 tenant_queue = tenant_job_queues[tenant_schema]
                 initial_queue_size = len(tenant_queue)
                 # Remove the job from the tenant-specific queue
-                tenant_job_queues[tenant_schema] = [
-                    j for j in tenant_queue if j.id != job_id
-                ]
+                from collections import deque
+
+                tenant_job_queues[tenant_schema] = deque(
+                    [j for j in tenant_queue if j.id != job_id]
+                )
                 if len(tenant_job_queues[tenant_schema]) < initial_queue_size:
                     interrupted = True
                     db_tenant.update_job_status(job_id, JobStatus.ERROR)
@@ -503,9 +505,11 @@ async def cancel_job(
                 tenant_queue = tenant_job_queues[tenant_schema]
                 initial_queue_size = len(tenant_queue)
                 # Remove the job from the tenant-specific queue
-                tenant_job_queues[tenant_schema] = [
-                    j for j in tenant_queue if j.id != job_id
-                ]
+                from collections import deque
+
+                tenant_job_queues[tenant_schema] = deque(
+                    [j for j in tenant_queue if j.id != job_id]
+                )
                 if len(tenant_job_queues[tenant_schema]) < initial_queue_size:
                     canceled = True
                     db_tenant.update_job_status(job_id, JobStatus.CANCELED)
