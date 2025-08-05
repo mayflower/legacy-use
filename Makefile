@@ -1,4 +1,14 @@
-.PHONY: server frontend server-tests docker-start docker-linux-vm dev-docker prod stop logs
+.PHONY: server frontend server-tests docker-start docker-linux-vm dev-docker prod stop logs ensure-env
+
+ensure-env:
+	@if [ ! -f .env ]; then \
+		echo "📝 Creating .env file..."; \
+		touch .env; \
+		echo "# Legacy Use Environment Variables" >> .env; \
+		echo "# Add your environment variables here" >> .env; \
+	else \
+		echo "✅ .env file already exists"; \
+	fi
 
 server:
 	uv run uvicorn server.server:app --host 0.0.0.0 --port 8088 --reload --reload-dir server --reload-include .env
@@ -10,11 +20,11 @@ server-tests:
 	uv run pytest
 
 # Docker Compose Commands
-docker-dev:
+docker-dev: ensure-env
 	@echo "🚀 Starting legacy-use in DEVELOPMENT mode with hot-reloading..."
 	docker-compose -f docker-compose.yml -f docker-compose.dev-override.yml up
 
-docker-prod:
+docker-prod: ensure-env
 	@echo "🚀 Starting legacy-use in PRODUCTION mode..."
 	@if curl -s --connect-timeout 1 http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1; then \
 		echo "🌐 Detected AWS environment"; \
