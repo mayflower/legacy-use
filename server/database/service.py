@@ -106,6 +106,19 @@ class DatabaseService:
         finally:
             session.close()
 
+    def unarchive_target(self, target_id):
+        session = self.Session()
+        try:
+            target = session.query(Target).filter(Target.id == target_id).first()
+            if target:
+                target.is_archived = False
+                target.updated_at = datetime.now()
+                session.commit()
+                return True
+            return False
+        finally:
+            session.close()
+
     def is_target_queue_paused(self, target_id):
         """Check if a target's queue should be paused by looking for jobs in ERROR or PAUSED state.
         Returns a dictionary with blocking status and information.

@@ -126,3 +126,18 @@ async def hard_delete_target(
     db_tenant.hard_delete_target(target_id)
     capture_target_deleted(request, target_id, True)
     return {'message': 'Target permanently deleted'}
+
+
+@target_router.post('/{target_id}/unarchive')
+async def unarchive_target(
+    target_id: UUID, request: Request, db_tenant=Depends(get_tenant_db)
+):
+    """Unarchive a target."""
+    if not db_tenant.get_target(target_id):
+        raise HTTPException(status_code=404, detail='Target not found')
+
+    success = db_tenant.unarchive_target(target_id)
+    if not success:
+        raise HTTPException(status_code=404, detail='Target not found')
+
+    return {'message': 'Target unarchived successfully'}

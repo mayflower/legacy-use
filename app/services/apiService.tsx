@@ -50,6 +50,7 @@ import {
   type TargetUpdate,
   type UpdateProviderRequest,
   unarchiveApiDefinitionApiDefinitionsApiNameUnarchivePost,
+  unarchiveTargetTargetsTargetIdUnarchivePost,
   updateApiDefinitionApiDefinitionsApiNamePut,
   updateProviderSettingsSettingsProvidersPost,
   updateTargetTargetsTargetIdPut,
@@ -315,6 +316,10 @@ export const deleteTarget = async (targetId: string, hardDelete = false) => {
   } else {
     return deleteTargetTargetsTargetIdDelete(targetId);
   }
+};
+
+export const unarchiveTarget = async (targetId: string) => {
+  return unarchiveTargetTargetsTargetIdUnarchivePost(targetId);
 };
 
 // Resolve a job (set to success with custom result)

@@ -755,6 +755,14 @@ export const hardDeleteTargetTargetsTargetIdHardDelete = (targetId: string) => {
 };
 
 /**
+ * Unarchive a target.
+ * @summary Unarchive Target
+ */
+export const unarchiveTargetTargetsTargetIdUnarchivePost = (targetId: string) => {
+  return customInstance<unknown>({ url: `/targets/${targetId}/unarchive`, method: 'POST' });
+};
+
+/**
  * List all active sessions.
  * @summary List Sessions
  */
@@ -1169,6 +1177,9 @@ export type DeleteTargetTargetsTargetIdDeleteResult = NonNullable<
 >;
 export type HardDeleteTargetTargetsTargetIdHardDeleteResult = NonNullable<
   Awaited<ReturnType<typeof hardDeleteTargetTargetsTargetIdHardDelete>>
+>;
+export type UnarchiveTargetTargetsTargetIdUnarchivePostResult = NonNullable<
+  Awaited<ReturnType<typeof unarchiveTargetTargetsTargetIdUnarchivePost>>
 >;
 export type ListSessionsSessionsGetResult = NonNullable<
   Awaited<ReturnType<typeof listSessionsSessionsGet>>
