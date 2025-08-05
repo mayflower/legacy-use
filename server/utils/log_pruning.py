@@ -56,20 +56,20 @@ async def prune_old_logs_all_tenants(days: Optional[int] = None) -> dict:
 
     for tenant in tenants:
         try:
-            deleted_count = prune_old_logs_for_tenant(tenant.schema, days)
-            results[tenant.schema] = deleted_count
+            deleted_count = prune_old_logs_for_tenant(tenant['schema'], days)
+            results[tenant['schema']] = deleted_count
             total_deleted += deleted_count
 
             if deleted_count > 0:
                 logger.info(
-                    f'Pruned {deleted_count} logs for tenant {tenant.name} '
-                    f'({tenant.schema}) older than {days} days'
+                    f'Pruned {deleted_count} logs for tenant {tenant["name"]} '
+                    f'({tenant["schema"]}) older than {days} days'
                 )
         except Exception as e:
             logger.error(
-                f'Error pruning logs for tenant {tenant.name} ({tenant.schema}): {str(e)}'
+                f'Error pruning logs for tenant {tenant["name"]} ({tenant["schema"]}): {str(e)}'
             )
-            results[tenant.schema] = 0
+            results[tenant['schema']] = 0
 
     logger.info(f'Total logs pruned across all tenants: {total_deleted}')
     return results
