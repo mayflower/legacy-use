@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type {
   ActionStep,
-  AnalyzeVideoAiAnalyzePostResult,
+  AnalyzeVideoTeachingModeAnalyzeVideoPostResult,
   JobCreateParameters,
   Parameter,
   Session,
@@ -18,7 +18,7 @@ export default function TeachingModeBuilder({
   analyzeResult,
 }: {
   currentSession: Session;
-  analyzeResult: AnalyzeVideoAiAnalyzePostResult;
+  analyzeResult: AnalyzeVideoTeachingModeAnalyzeVideoPostResult;
 }) {
   const navigate = useNavigate();
   const [executeProgress, setExecuteProgress] = useState(false);
