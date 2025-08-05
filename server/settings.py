@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,6 +17,74 @@ def get_setting_env_file():
         return [ROOT_DIR / '.env.test', ROOT_DIR / '.env.template']
 
     return [ENV_FILE_PATH, ENV_LOCAL_FILE_PATH]
+
+
+class AWSSettingsSource:
+    """Custom settings source that can fetch secrets from AWS Secrets Manager."""
+
+    def __init__(self, secret_name: Optional[str] = None):
+        self.secret_name = secret_name or os.getenv('AWS_SECRETS_MANAGER_SECRET_NAME')
+        self._secrets_cache: Optional[Dict[str, str]] = None
+
+    def _get_secrets_from_aws(self) -> Optional[Dict[str, str]]:
+        """Fetch secrets from AWS Secrets Manager if available."""
+        if not self.secret_name:
+            return None
+
+        try:
+            import boto3
+            import json
+            from botocore.exceptions import ClientError, NoCredentialsError
+
+            # Check if AWS credentials are available
+            session = boto3.Session()
+            if not session.get_credentials():
+                return None
+
+            secretsmanager = session.client('secretsmanager')
+
+            try:
+                response = secretsmanager.get_secret_value(SecretId=self.secret_name)
+                secret_string = response['SecretString']
+                return json.loads(secret_string)
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'ResourceNotFoundException':
+                    print(f"AWS Secrets Manager: Secret '{self.secret_name}' not found")
+                else:
+                    print(f'AWS Secrets Manager error: {e}')
+                return None
+            except NoCredentialsError:
+                print('AWS Secrets Manager: No credentials available')
+                return None
+
+        except ImportError:
+            print('AWS Secrets Manager: boto3 not available')
+            return None
+        except Exception as e:
+            print(f'AWS Secrets Manager error: {e}')
+            return None
+
+    def __call__(self, settings: BaseSettings) -> Dict[str, Any]:
+        """Return settings from AWS Secrets Manager."""
+        if self._secrets_cache is None:
+            self._secrets_cache = self._get_secrets_from_aws() or {}
+
+        return self._secrets_cache
+
+
+def get_settings_sources():
+    """Get all settings sources in order of precedence."""
+    sources = []
+
+    # Add AWS Secrets Manager source if configured
+    aws_source = AWSSettingsSource()
+    if aws_source.secret_name:
+        sources.append(aws_source)
+
+    # Add environment variables (highest precedence)
+    sources.append(os.environ)
+
+    return sources
 
 
 class Settings(BaseSettings):
@@ -53,6 +121,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=get_setting_env_file(),
         extra='allow',
+        sources=get_settings_sources(),
     )
 
     def __setattr__(self, name: str, value: Any) -> None:
