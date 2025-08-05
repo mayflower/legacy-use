@@ -268,7 +268,7 @@ app.openapi_security = [{'ApiKeyAuth': []}]
 app.include_router(api_router, prefix=api_prefix)
 
 # Include teaching mode router
-app.include_router(teaching_mode_router)
+app.include_router(teaching_mode_router, prefix=api_prefix)
 
 # Include core routers
 app.include_router(target_router, prefix=api_prefix)
