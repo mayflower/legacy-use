@@ -53,6 +53,7 @@ import {
   updateApiDefinitionApiDefinitionsApiNamePut,
   updateProviderSettingsSettingsProvidersPost,
   updateTargetTargetsTargetIdPut,
+  getSessionContainerLogsSessionsSessionIdContainerLogsGet,
 } from '../gen/endpoints';
 import { forwardDistinctId } from './telemetryService';
 import { API_BASE_URL } from '../utils/apiConstants';
@@ -352,4 +353,9 @@ export const analyzeVideo = async (videoFile: Blob) => {
 
 export const getRecordingStatus = async (sessionId: string) => {
   return getSessionRecordingStatusSessionsSessionIdRecordingStatusGet(sessionId);
+};
+
+// Container logs
+export const getSessionContainerLogs = async (sessionId: string, lines = 1000) => {
+  return getSessionContainerLogsSessionsSessionIdContainerLogsGet(sessionId, { lines });
 };

@@ -700,3 +700,52 @@ async def get_session_recording_status(
         raise HTTPException(
             status_code=503, detail=f'Failed to connect to session container: {str(e)}'
         )
+
+
+@session_router.get('/{session_id}/container_logs')
+async def get_session_container_logs(
+    session_id: UUID, lines: int = 1000, db_tenant=Depends(get_tenant_db)
+):
+    """Get Docker logs for a session's container."""
+    session = db_tenant.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail='Session not found')
+
+    if not session.get('container_id'):
+        raise HTTPException(status_code=400, detail='Session has no container')
+
+    try:
+        import subprocess
+
+        # Get Docker logs using subprocess
+        result = subprocess.run(
+            ['docker', 'logs', '--tail', str(lines), session['container_id']],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        logs = result.stdout
+        if not logs:
+            logs = 'No logs available for this container.'
+
+        return {
+            'session_id': str(session_id),
+            'container_id': session['container_id'],
+            'logs': logs,
+            'lines_retrieved': len(logs.splitlines()),
+            'max_lines_requested': lines,
+        }
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Error getting Docker logs for session {session_id}: {e.stderr}')
+        raise HTTPException(
+            status_code=500, detail=f'Failed to retrieve Docker logs: {e.stderr}'
+        )
+    except Exception as e:
+        logger.error(
+            f'Unexpected error getting Docker logs for session {session_id}: {str(e)}'
+        )
+        raise HTTPException(
+            status_code=500, detail=f'Unexpected error retrieving Docker logs: {str(e)}'
+        )
