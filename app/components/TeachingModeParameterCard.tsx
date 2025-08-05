@@ -65,19 +65,15 @@ export default function ParameterCard({ parameter, onUpdate }: ParameterCardProp
             />
             <TextField
               label="Default Value"
-              value={JSON.stringify(editedParameter.default)}
+              value={editedParameter.default == null ? '' : String(editedParameter.default)}
               onChange={e => {
-                try {
-                  const parsedValue = JSON.parse(e.target.value);
-                  setEditedParameter({ ...editedParameter, default: parsedValue });
-                } catch {
-                  // Keep the raw string if it's not valid JSON yet
-                  setEditedParameter({ ...editedParameter, default: e.target.value });
-                }
+                const value = e.target.value;
+                setEditedParameter({ ...editedParameter, default: value });
               }}
               onKeyDown={handleKeyPress}
               fullWidth
               size="small"
+              helperText="Enter the default value (will be treated as string)"
             />
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button size="small" variant="contained" onClick={handleSave}>
@@ -94,7 +90,7 @@ export default function ParameterCard({ parameter, onUpdate }: ParameterCardProp
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant="subtitle1">{parameter.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {JSON.stringify(parameter.default)}
+                  {parameter.default == null ? 'null' : String(parameter.default)}
                 </Typography>
               </Box>
               <Typography fontSize={12} fontFamily="monospace" color="text.secondary">
