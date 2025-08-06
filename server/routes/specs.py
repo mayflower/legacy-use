@@ -21,34 +21,25 @@ async def get_api_specs():
 
     Returns all active API definitions from the database as OpenAPI compatible specifications.
     """
-    try:
-        # Get all non-archived API definitions with versions eagerly loaded
-        api_definitions = await db.get_api_definitions_with_versions(
-            include_archived=False
+    # Get all non-archived API definitions with versions eagerly loaded
+    api_definitions = await db.get_api_definitions_with_versions(include_archived=False)
+
+    # Convert each API definition to OpenAPI format
+    for api_def in api_definitions:
+        # Get the active version for this API definition
+        active_version = None
+        for version in api_def.versions:
+            if version.is_active:
+                active_version = version
+                break
+
+        if not active_version:
+            continue  # Skip if no active version
+
+        # Create path for this API
+        path_key = f'/api/{api_def.name}'
+        openapi_spec['paths'][path_key] = convert_api_definition_to_openapi_path(
+            api_def, active_version
         )
 
-        # Convert each API definition to OpenAPI format
-        for api_def in api_definitions:
-            # Get the active version for this API definition
-            active_version = None
-            for version in api_def.versions:
-                if version.is_active:
-                    active_version = version
-                    break
-
-            if not active_version:
-                continue  # Skip if no active version
-
-            # Create path for this API
-            path_key = f'/api/{api_def.name}'
-            openapi_spec['paths'][path_key] = convert_api_definition_to_openapi_path(
-                api_def, active_version
-            )
-
-        return JSONResponse(content=openapi_spec)
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={'error': f'Failed to generate API specifications: {str(e)}'},
-        )
+    return JSONResponse(content=openapi_spec)
