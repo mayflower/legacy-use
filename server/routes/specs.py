@@ -2,6 +2,8 @@
 API specifications routes.
 """
 
+from scalar_fastapi import get_scalar_api_reference
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -12,6 +14,14 @@ from server.utils.specs import (
 )
 
 specs_router = APIRouter(prefix='/specs')
+
+
+@specs_router.get('/')
+async def scalar_html():
+    return get_scalar_api_reference(
+        openapi_url=f'{specs_router.prefix}/openapi.json',
+        title='API Gateway Specifications',
+    )
 
 
 @specs_router.get('/openapi.json')
