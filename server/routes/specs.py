@@ -15,7 +15,7 @@ specs_router = APIRouter(prefix='/specs')
 
 
 @specs_router.get('/openapi.json')
-async def get_api_specs():
+async def get_openapi_specs():
     """
     Get API specifications in OpenAPI format.
 
