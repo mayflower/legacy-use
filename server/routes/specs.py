@@ -11,6 +11,29 @@ from server.database import db
 
 specs_router = APIRouter()
 
+# Initialize OpenAPI spec structure
+openapi_spec = {
+    'openapi': '3.0.3',
+    'info': {
+        'title': 'API Gateway Specifications',
+        'description': 'Auto-generated API specifications from database definitions',
+        'version': '1.0.0',
+    },
+    'servers': [{'url': '/api/v1', 'description': 'API Gateway server'}],
+    'paths': {},
+    'components': {
+        'schemas': {},
+        'securitySchemes': {
+            'ApiKeyAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'X-API-Key',
+            }
+        },
+    },
+    'security': [{'ApiKeyAuth': []}],
+}
+
 
 def convert_parameter_to_openapi_property(param: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -159,29 +182,6 @@ async def get_api_specs():
     try:
         # Get all non-archived API definitions
         api_definitions = await db.get_api_definitions(include_archived=False)
-
-        # Initialize OpenAPI spec structure
-        openapi_spec = {
-            'openapi': '3.0.3',
-            'info': {
-                'title': 'API Gateway Specifications',
-                'description': 'Auto-generated API specifications from database definitions',
-                'version': '1.0.0',
-            },
-            'servers': [{'url': '/api/v1', 'description': 'API Gateway server'}],
-            'paths': {},
-            'components': {
-                'schemas': {},
-                'securitySchemes': {
-                    'ApiKeyAuth': {
-                        'type': 'apiKey',
-                        'in': 'header',
-                        'name': 'X-API-Key',
-                    }
-                },
-            },
-            'security': [{'ApiKeyAuth': []}],
-        }
 
         # Convert each API definition to OpenAPI format
         for api_def in api_definitions:
