@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from server.database import db
 
-specs_router = APIRouter()
+specs_router = APIRouter(prefix='/specs')
 
 # Initialize OpenAPI spec structure
 openapi_spec = {
@@ -172,7 +172,7 @@ def convert_api_definition_to_openapi_path(
     return path_def
 
 
-@specs_router.get('/api-specs.json')
+@specs_router.get('/openapi.json')
 async def get_api_specs():
     """
     Get API specifications in OpenAPI format.
