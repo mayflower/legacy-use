@@ -19,6 +19,7 @@ from server.routes import (
     teaching_mode_router,
     job_router,
     target_router,
+    specs_router,
 )
 from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
@@ -145,6 +146,7 @@ async def auth_middleware(request: Request, call_next):
         whitelist_patterns.append(rf'^{api_prefix}/redoc(/.*)?$')
         whitelist_patterns.append(rf'^{api_prefix}/docs(/.*)?$')
         whitelist_patterns.append(rf'^{api_prefix}/openapi.json$')
+        whitelist_patterns.append(r'^/api-specs.json$')
 
     # Check if request path matches any whitelist pattern
     for pattern in whitelist_patterns:
@@ -286,6 +288,9 @@ app.include_router(
 
 # Include settings router
 app.include_router(settings_router, prefix=api_prefix)
+
+# Include specs router
+app.include_router(specs_router, prefix=api_prefix)
 
 
 # Root endpoint
