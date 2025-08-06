@@ -418,7 +418,7 @@ const ApiList = () => {
           }
 
           // Import the API definition
-          const result = await importApiDefinition(content.api_definition);
+          const result = await importApiDefinition({ api_definition: content.api_definition });
 
           // Show success message
           setSnackbarMessage(result.message);
