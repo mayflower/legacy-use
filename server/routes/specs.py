@@ -38,8 +38,7 @@ async def get_api_specs():
 
         # Create path for this API
         path_key = f'/api/{api_def.name}'
-        openapi_spec['paths'][path_key] = convert_api_definition_to_openapi_path(
-            api_def, active_version
-        )
+        path_value = convert_api_definition_to_openapi_path(api_def, active_version)
+        openapi_spec['paths'][path_key] = path_value
 
     return JSONResponse(content=openapi_spec)
