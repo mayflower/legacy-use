@@ -180,8 +180,10 @@ async def get_api_specs():
     Returns all active API definitions from the database as OpenAPI compatible specifications.
     """
     try:
-        # Get all non-archived API definitions
-        api_definitions = await db.get_api_definitions(include_archived=False)
+        # Get all non-archived API definitions with versions eagerly loaded
+        api_definitions = await db.get_api_definitions_with_versions(
+            include_archived=False
+        )
 
         # Convert each API definition to OpenAPI format
         for api_def in api_definitions:
