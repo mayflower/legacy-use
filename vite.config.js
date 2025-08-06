@@ -27,7 +27,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://backend:8088',
+        target: `http://${process.env.VITE_PROXY_TARGET || 'localhost'}:8088`,
         ws: true,        
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
