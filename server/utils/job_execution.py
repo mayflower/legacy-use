@@ -23,6 +23,7 @@ import httpx
 
 # Remove direct import of APIGatewayCore
 from server.models.base import Job, JobStatus
+from server.settings import settings
 from server.utils.db_dependencies import TenantAwareDatabaseService
 from server.utils.telemetry import capture_job_resolved
 
@@ -34,8 +35,6 @@ logger = logging.getLogger(__name__)
 # Remove global database service - will use TenantAwareDatabaseService per tenant
 # db = DatabaseService()
 
-# Constants
-TOKEN_LIMIT = 200000  # Maximum number of tokens (input + output) allowed per job
 
 # Dictionary to store running job tasks
 running_job_tasks = {}
@@ -477,9 +476,9 @@ def _create_api_response_callback(
                             )
 
                             # Check if we've exceeded the token limit
-                            if current_total > TOKEN_LIMIT:
+                            if current_total > settings.TOKEN_LIMIT:
                                 # Add warning about token limit
-                                limit_message = f'Token usage limit of {TOKEN_LIMIT} exceeded. Current usage: {current_total}. Job will be interrupted.'
+                                limit_message = f'Token usage limit of {settings.TOKEN_LIMIT} exceeded. Current usage: {current_total}. Job will be interrupted.'
                                 exchange['token_limit_exceeded'] = True
                                 logger.warning(f'Job {job_id_str}: {limit_message}')
                                 add_job_log(
@@ -682,8 +681,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
             running_token_total = running_token_total_ref[0]
 
             # Check if cancellation was due to token limit
-            if running_token_total > TOKEN_LIMIT:
-                error_message = f'Job was automatically terminated: exceeded token limit of {TOKEN_LIMIT} tokens (used {running_token_total} tokens)'
+            if running_token_total > settings.TOKEN_LIMIT:
+                error_message = f'Job was automatically terminated: exceeded token limit of {settings.TOKEN_LIMIT} tokens (used {running_token_total} tokens)'
                 add_job_log(job_id_str, 'system', error_message, tenant_schema)
             else:
                 add_job_log(
@@ -698,7 +697,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                     {
                         'status': JobStatus.ERROR,
                         'error': 'Job was automatically terminated: exceeded token limit'
-                        if running_token_total > TOKEN_LIMIT
+                        if running_token_total > settings.TOKEN_LIMIT
                         else 'Job was interrupted by user',
                         'completed_at': datetime.now(),
                         'updated_at': datetime.now(),
@@ -737,11 +736,11 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
         running_token_total = running_token_total_ref[0]
 
         # Check if this was due to token limit
-        if running_token_total > TOKEN_LIMIT:
+        if running_token_total > settings.TOKEN_LIMIT:
             add_job_log(
                 job_id_str,
                 'system',
-                f'Job execution was cancelled due to token limit ({running_token_total}/{TOKEN_LIMIT})',
+                f'Job execution was cancelled due to token limit ({running_token_total}/{settings.TOKEN_LIMIT})',
                 tenant_schema,
             )
         else:
