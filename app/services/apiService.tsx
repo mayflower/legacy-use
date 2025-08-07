@@ -25,6 +25,7 @@ import {
   type HttpExchangeLog,
   hardDeleteSessionSessionsSessionIdHardDelete,
   hardDeleteTargetTargetsTargetIdHardDelete,
+  type ImportApiDefinitionBody,
   type ImportApiDefinitionRequest,
   importApiDefinitionApiDefinitionsImportPost,
   interruptJobTargetsTargetIdJobsJobIdInterruptPost,
@@ -158,8 +159,8 @@ export const exportApiDefinition = async (apiName: string) => {
   return exportApiDefinitionApiDefinitionsApiNameExportGet(apiName);
 };
 
-export const importApiDefinition = async (apiDefinition: ImportApiDefinitionRequest) => {
-  return importApiDefinitionApiDefinitionsImportPost(apiDefinition);
+export const importApiDefinition = async (apiDefinition: ImportApiDefinitionBody) => {
+  return importApiDefinitionApiDefinitionsImportPost({ api_definition: apiDefinition });
 };
 
 export const getApiDefinitionDetails = async (apiName: string) => {
@@ -194,9 +195,9 @@ export const getApiDefinitionVersion = async (apiName: string, versionId: string
 
 export const updateApiDefinition = async (
   apiName: string,
-  apiDefinition: ImportApiDefinitionRequest,
+  apiDefinition: ImportApiDefinitionBody,
 ) => {
-  return updateApiDefinitionApiDefinitionsApiNamePut(apiName, apiDefinition);
+  return updateApiDefinitionApiDefinitionsApiNamePut(apiName, { api_definition: apiDefinition });
 };
 
 export const archiveApiDefinition = async (apiName: string) => {
