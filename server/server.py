@@ -114,6 +114,8 @@ app = FastAPI(
     description='API Gateway for AI-powered endpoints',
     version='1.0.0',
     redoc_url=f'{api_prefix}/redoc' if settings.SHOW_DOCS else None,
+    docs_url=f'{api_prefix}/docs' if settings.SHOW_DOCS else None,
+    openapi_url=f'{api_prefix}/openapi.json' if settings.SHOW_DOCS else None,
     # Disable automatic redirect from /path to /path/
     redirect_slashes=False,
 )
@@ -140,16 +142,9 @@ async def auth_middleware(request: Request, call_next):
     ]
 
     if settings.SHOW_DOCS:
-        whitelist_patterns.append(
-            r'^/redoc(/.*)?$'
-        )  # Matches /redoc and /redoc/anything
-        whitelist_patterns.append(
-            rf'^{api_prefix}/redoc(/.*)?$'
-        )  # Matches /api/redoc and /api/redoc/anything
-        whitelist_patterns.append(r'^/openapi.json$')  # Needed for docs
-        whitelist_patterns.append(
-            rf'^{api_prefix}/openapi.json$'
-        )  # Needed for docs with prefix
+        whitelist_patterns.append(rf'^{api_prefix}/redoc(/.*)?$')
+        whitelist_patterns.append(rf'^{api_prefix}/docs(/.*)?$')
+        whitelist_patterns.append(rf'^{api_prefix}/openapi.json$')
 
     # Check if request path matches any whitelist pattern
     for pattern in whitelist_patterns:
