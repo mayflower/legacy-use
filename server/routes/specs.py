@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from scalar_fastapi import get_scalar_api_reference
 
-from server.database import db
+from server.database import db_shared
 from server.utils.api_prefix import api_prefix
 from server.utils.specs import (
     convert_api_definition_to_openapi_path,
@@ -34,7 +34,9 @@ async def get_openapi_specs():
     Returns all active API definitions from the database as OpenAPI compatible specifications.
     """
     # Get all non-archived API definitions with versions eagerly loaded
-    api_definitions = await db.get_api_definitions_with_versions(include_archived=False)
+    api_definitions = await db_shared.get_api_definitions_with_versions(
+        include_archived=False
+    )
 
     # Convert each API definition to OpenAPI format
     for api_def in api_definitions:
