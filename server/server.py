@@ -140,8 +140,8 @@ async def auth_middleware(request: Request, call_next):
     if settings.SHOW_DOCS:
         whitelist_patterns.append(rf'^{api_prefix}/redoc(/.*)?$')
         whitelist_patterns.append(rf'^{api_prefix}/docs(/.*)?$')
-        whitelist_patterns.append(rf'^{api_prefix}/openapi.json$')
         whitelist_patterns.append(rf'^{api_prefix}/specs(/.*)?$')
+        whitelist_patterns.append(rf'^{api_prefix}/openapi.json$')
 
     # Check if request path matches any whitelist pattern
     for pattern in whitelist_patterns:
