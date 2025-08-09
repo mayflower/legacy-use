@@ -2,12 +2,12 @@
 API specifications routes.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from scalar_fastapi import get_scalar_api_reference
 
-from server.database import db_shared
 from server.utils.api_prefix import api_prefix
+from server.utils.db_dependencies import get_tenant_db
 from server.utils.specs import (
     convert_api_definition_to_openapi_path,
     openapi_spec,
@@ -27,14 +27,14 @@ async def scalar_html():
 
 
 @specs_router.get('/openapi.json')
-async def get_openapi_specs():
+async def get_openapi_specs(db_tenant=Depends(get_tenant_db)):
     """
     Get API specifications in OpenAPI format.
 
     Returns all active API definitions from the database as OpenAPI compatible specifications.
     """
     # Get all non-archived API definitions with versions eagerly loaded
-    api_definitions = await db_shared.get_api_definitions_with_versions(
+    api_definitions = await db_tenant.get_api_definitions_with_versions(
         include_archived=False
     )
 
