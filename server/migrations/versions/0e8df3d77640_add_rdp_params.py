@@ -1,20 +1,22 @@
 """add rdp params
 
-Revision ID: 04ea171080e4
+Revision ID: 0e8df3d77640
 Revises: 0a7bc5c94ccb
-Create Date: 2025-08-10 21:25:23.263239
+Create Date: 2025-08-10 21:28:34.927439
 
 """
 
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
+
 
 from server.migrations.tenant import for_each_tenant_schema
 
+
 # revision identifiers, used by Alembic.
-revision: str = '04ea171080e4'
+revision: str = '0e8df3d77640'
 down_revision: Union[str, None] = '0a7bc5c94ccb'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
