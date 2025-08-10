@@ -309,3 +309,11 @@ class JobUpdate(BaseModel):
     status: Optional[JobStatus] = None
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+
+
+class SessionContainerLogs(BaseModel):
+    session_id: str
+    container_id: str
+    logs: str
+    lines_retrieved: int
+    max_lines_requested: int
