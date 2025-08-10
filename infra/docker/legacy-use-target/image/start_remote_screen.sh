@@ -11,12 +11,12 @@ if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
     setxkbmap de # TODO: fix this, once we move to other countries
     while true; do
         # Always include host/username/password and allow params to override/add
-        DEFAULT_RDP_PARAMS="/u:${REMOTE_USERNAME} /p:\"${REMOTE_PASSWORD}\" /v:${HOST_IP}:${HOST_PORT} /f +auto-reconnect +clipboard /cert-ignore"
+        DEFAULT_RDP_PARAMS='/u:"${REMOTE_USERNAME}" /p:"${REMOTE_PASSWORD}" /v:"${HOST_IP}:${HOST_PORT}"'
         # If user provided params, append them (they can override duplicates)
         if [ -n "${RDP_PARAMS}" ]; then
             CMD_ARGS="${DEFAULT_RDP_PARAMS} ${RDP_PARAMS}"
         else
-            CMD_ARGS="${DEFAULT_RDP_PARAMS}"
+            CMD_ARGS="${DEFAULT_RDP_PARAMS} /f +auto-reconnect +clipboard /cert-ignore"
         fi
         # shellcheck disable=SC2086
         $PROXY_CMD xfreerdp3 ${CMD_ARGS}
