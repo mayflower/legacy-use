@@ -1,20 +1,20 @@
-import type React from 'react';
-import { useState, useEffect } from 'react';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Box,
-  Typography,
-  CircularProgress,
   Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Tooltip,
+  Typography,
 } from '@mui/material';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { getSessionContainerLogs } from '../services/apiService';
 
 interface ContainerLogsModalProps {
