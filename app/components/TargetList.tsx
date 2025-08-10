@@ -699,7 +699,7 @@ const TargetList = () => {
                   value={editFormData.rdp_params || ''}
                   onChange={handleEditChange}
                   disabled={editInProgress}
-                  placeholder="Defaults: /f +auto-reconnect +clipboard /cert-ignore. You can add or override here. Username (/u), Password (/p) and Host (/v) are always included."
+                  placeholder="Defaults: /f +auto-reconnect +clipboard /cert:ignore. You can add or override here. Username (/u), Password (/p) and Host (/v) are always included."
                   margin="normal"
                 />
               </Grid>

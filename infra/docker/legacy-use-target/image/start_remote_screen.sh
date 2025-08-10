@@ -16,7 +16,7 @@ if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
         if [ -n "${RDP_PARAMS}" ]; then
             CMD_ARGS="${DEFAULT_RDP_PARAMS} ${RDP_PARAMS}"
         else
-            CMD_ARGS="${DEFAULT_RDP_PARAMS} /f +auto-reconnect +clipboard /cert-ignore"
+            CMD_ARGS="${DEFAULT_RDP_PARAMS} /f +auto-reconnect +clipboard /cert:ignore"
         fi
         # shellcheck disable=SC2086
         $PROXY_CMD xfreerdp3 ${CMD_ARGS}

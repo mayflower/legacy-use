@@ -374,7 +374,7 @@ const CreateTarget = () => {
                   value={targetData.rdp_params}
                   onChange={handleChange}
                   disabled={loading}
-                  placeholder="Defaults: /f +auto-reconnect +clipboard /cert-ignore. You can add or override here. Username (/u), Password (/p) and Host (/v) are always included."
+                  placeholder="Defaults: /f +auto-reconnect +clipboard /cert:ignore. You can add or override here. Username (/u), Password (/p) and Host (/v) are always included."
                 />
               </Grid>
             )}
