@@ -5,6 +5,7 @@ Session management routes.
 import asyncio
 import logging
 import re
+from subprocess import CalledProcessError
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -739,7 +740,7 @@ async def get_session_container_logs(
             lines_retrieved=len(logs.splitlines()),
             max_lines_requested=lines,
         )
-    except subprocess.CalledProcessError as e:
+    except CalledProcessError as e:
         logger.error(f'Error getting Docker logs for session {session_id}: {e.stderr}')
         raise HTTPException(
             status_code=500, detail=f'Failed to retrieve Docker logs: {e.stderr}'
