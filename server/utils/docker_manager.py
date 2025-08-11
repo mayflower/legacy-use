@@ -76,6 +76,33 @@ def get_container_ip(container_id: str) -> Optional[str]:
     return ip_address
 
 
+def get_docker_network_mode() -> Optional[str]:
+    try:
+        # Get current container's network info
+        result = subprocess.run(
+            [
+                'docker',
+                'inspect',
+                'legacy-use-backend',
+                '--format',
+                '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}{{end}}',
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        current_networks = result.stdout.strip().split()
+
+        # If we're on a custom network (not just 'bridge'), join the target container to it
+        for network in current_networks:
+            if network != 'bridge':
+                logger.info(f'Connecting target container to network: {network}')
+                return network
+    except Exception as e:
+        logger.warning(f'Could not determine network configuration, using default: {e}')
+
+
 def launch_container(
     target_type: str,
     session_id: Optional[str] = None,
@@ -100,75 +127,36 @@ def launch_container(
     identifier = session_id.replace('-', '')[:12] if session_id else timestamp
     container_name = f'legacy-use-session-{tenant_schema}-{identifier}'
 
+    if container_params is None:
+        container_params = {}
+
+    # Check if we're running inside a docker-compose setup
+    # by checking if we're connected to a custom network
+    # and if so, extend the docker_cmd with the network name
+    network_mode = get_docker_network_mode()
+
     try:
-        if container_params is None:
-            container_params = {}
-
-        # Prepare docker run command
-        docker_cmd = [
-            'docker',
-            'run',
-            '-d',  # Run in detached mode
-            '--name',
-            container_name,  # Name container based on session ID
-        ]
-
-        # Check if we're running inside a docker-compose setup
-        # by checking if we're connected to a custom network
-        # and if so, extend the docker_cmd with the network name
-        import subprocess
-
-        try:
-            # Get current container's network info
-            result = subprocess.run(
-                [
-                    'docker',
-                    'inspect',
-                    'legacy-use-backend',
-                    '--format',
-                    '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}{{end}}',
-                ],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-
-            current_networks = result.stdout.strip().split()
-
-            # If we're on a custom network (not just 'bridge'), join the target container to it
-            for network in current_networks:
-                if network != 'bridge':
-                    docker_cmd.extend(['--network', network])
-                    logger.info(f'Connecting target container to network: {network}')
-                    break
-        except Exception as e:
-            logger.warning(
-                f'Could not determine network configuration, using default: {e}'
-            )
-
+        devices = []
+        cap_add = []
         # add options for openvpn
         if container_params.get('REMOTE_VPN_TYPE', '').lower() == 'openvpn':
-            docker_cmd.extend(
-                [
-                    '--cap-add=NET_ADMIN',  # Required for VPN/TUN interface management
-                    '--cap-add=NET_RAW',  # Required for network interface configuration
-                    '--device=/dev/net/tun:/dev/net/tun',  # Required for VPN tunneling
-                ]
-            )
+            cap_add.append('NET_ADMIN')  # Required for VPN/TUN interface management
+            cap_add.append('NET_RAW')  # Required for network interface configuration
+            devices.append('/dev/net/tun:/dev/net/tun')  # Required for VPN tunneling
 
-        # Add environment variables from container_params
-        for key, value in container_params.items():
-            if value:  # Only add if the value is not None or empty
-                docker_cmd.extend(['-e', f'{key}={value}'])
+        logger.info(f'Launching docker container {container_name}')
 
-        # Add image name
-        docker_cmd.append('legacy-use-target:local')
-        logger.info(f'Launching docker container with command: {" ".join(docker_cmd)}')
+        container = docker.containers.run(
+            'legacy-use-target:local',
+            name=container_name,
+            detach=True,
+            network=network_mode,
+            environment=container_params,
+            devices=devices,
+            cap_add=cap_add,
+        )
+        container_id = container.id
 
-        # Launch container
-        result = subprocess.run(docker_cmd, capture_output=True, text=True, check=True)
-
-        container_id = result.stdout.strip()
         logger.info(f'Launched container {container_id} for target type {target_type}')
 
         # Get container IP address
