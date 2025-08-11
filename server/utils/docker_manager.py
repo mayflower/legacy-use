@@ -70,11 +70,10 @@ def get_container_ip(container_id: str) -> Optional[str]:
     """
     container = docker.containers.get(container_id)
     networks = container.attrs['NetworkSettings']['Networks']
-    for network_name, network_info in networks.items():
-        if network_name != 'bridge':
-            ip_address = network_info['IPAddress']
-            logger.info(f'Container {container_id} has IP address {ip_address}')
-            return ip_address
+    for network in networks.values():
+        ip_address = network['IPAddress']
+        logger.info(f'Container {container_id} has IP address {ip_address}')
+        return ip_address
     logger.error(f'Could not get IP address for container {container_id}')
     return None
 
