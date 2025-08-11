@@ -19,6 +19,8 @@ RUN apt-get update && \
     # Input monitoring tools
     xinput \
     x11-utils \
+    # DNS tools
+    dnsutils \
     # Network tools
     net-tools \
     netcat-openbsd \
