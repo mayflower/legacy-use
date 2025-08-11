@@ -24,8 +24,8 @@ if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
 
         $PROXY_CMD xfreerdp3 "${ARGS[@]}"
 
-        echo "RDP connection failed, retrying in 1 sec..."
-        sleep 1
+        echo "RDP connection failed, retrying in 3 sec..."
+        sleep 3
     done
 elif [ "$REMOTE_CLIENT_TYPE" = 'vnc' ]; then
     echo "Starting VNC connection..."
