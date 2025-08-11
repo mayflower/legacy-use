@@ -80,7 +80,7 @@ def launch_container(
     target_type: str,
     session_id: Optional[str] = None,
     container_params: Optional[Dict[str, str]] = None,
-    tenant_schema: Optional[str] = None,
+    tenant_schema: str = 'default',
 ) -> Tuple[Optional[str], Optional[str]]:
     """
     Launch a Docker container for the specified target type.
@@ -95,26 +95,12 @@ def launch_container(
     Returns:
         Tuple of (container_id, container_ip) or (None, None) if failed
     """
-    try:
-        # Construct container name
-        if session_id:
-            # Docker container names must be valid DNS names, so we'll use a shorter version of the UUID
-            # and ensure it follows Docker's naming rules
-            short_id = session_id.replace('-', '')[:12]  # First 12 chars without dashes
-            if tenant_schema:
-                # Include tenant schema in container name for better identification
-                container_name = f'legacy-use-{tenant_schema}-session-{short_id}'
-            else:
-                container_name = f'legacy-use-session-{short_id}'
-        else:
-            # Use a timestamp-based name if no session ID
-            if tenant_schema:
-                container_name = (
-                    f'legacy-use-{tenant_schema}-session-{int(time.time())}'
-                )
-            else:
-                container_name = f'session-{int(time.time())}'
+    # Construct container name
+    timestamp = int(time.time())
+    identifier = session_id.replace('-', '')[:12] if session_id else timestamp
+    container_name = f'legacy-use-session-{tenant_schema}-{identifier}'
 
+    try:
         if container_params is None:
             container_params = {}
 
