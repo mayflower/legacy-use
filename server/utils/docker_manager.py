@@ -105,7 +105,7 @@ def launch_container(
         session_id: Optional session ID to use in container name
         container_params: Optional dictionary of parameters to pass as environment variables
                           to the container (e.g., HOST_IP, VNC_PASSWORD, TAILSCALE_AUTH_KEY, WIDTH, HEIGHT).
-        tenant_schema: Optional tenant schema name to include in container name
+        tenant_schema: Optional tenant schema name to include in container name, fallback to 'default'
 
     Returns:
         Tuple of (container_id, container_ip) or (None, None) if failed
