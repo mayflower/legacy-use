@@ -202,10 +202,9 @@ async def get_container_status(container_id: str, session_state: str) -> Dict:
     if session_state in ['destroying', 'destroyed']:
         return {'id': container_id, 'state': {'Status': 'unavailable'}}
 
-    log_msg = f'Getting status for container {container_id}'
-    if session_state:
-        log_msg += f' (session state: {session_state})'
-    logger.info(log_msg)
+    logger.info(
+        f'Getting status for container {container_id} (session state: {session_state})'
+    )
 
     try:
         container = docker.containers.get(container_id)
