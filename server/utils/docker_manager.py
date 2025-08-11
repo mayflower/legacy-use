@@ -143,20 +143,23 @@ def launch_container(
             devices=devices,
             cap_add=cap_add,
         )
-        container_id = container.id
 
-        logger.info(f'Launched container {container_id} for target type {target_type}')
-
-        # Get container IP address
-        container_ip = get_container_ip(container_id)
-        if not container_ip:
-            logger.error(f'Could not get IP address for container {container_id}')
-            stop_container(container_id)
+        if not container or not container.id:
+            logger.error(f'Failed to launch container {container_name}')
             return None, None
 
-        logger.info(f'Container {container_id} running with IP {container_ip}')
+        logger.info(f'Launched container {container.id} for target type {target_type}')
 
-        return container_id, container_ip
+        # Get container IP address
+        container_ip = get_container_ip(container.id)
+        if not container_ip:
+            logger.error(f'Could not get IP address for container {container.id}')
+            stop_container(container.id)
+            return None, None
+
+        logger.info(f'Container {container.id} running with IP {container_ip}')
+
+        return container.id, container_ip
     except CalledProcessError as e:
         logger.error(f'Error launching container: {e.stderr}')
         return None, None
