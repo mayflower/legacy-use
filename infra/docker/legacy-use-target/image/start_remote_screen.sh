@@ -7,22 +7,28 @@ if [ "$REMOTE_VPN_TYPE" != 'direct' ]; then
 fi
 
 if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
-    echo "Starting RDP connection..."
-    setxkbmap de # TODO: fix this, once we move to other countries
-    while true; do
-        # Always include host/username/password and allow params to override/add
-        DEFAULT_RDP_PARAMS="/u:\"${REMOTE_USERNAME}\" /p:\"${REMOTE_PASSWORD}\" /v:\"${HOST_IP}:${HOST_PORT}\""
-        # If user provided params, append them (they can override duplicates)
-        if [ -n "${RDP_PARAMS}" ]; then
-            CMD_ARGS="${DEFAULT_RDP_PARAMS} ${RDP_PARAMS}"
-        else
-            CMD_ARGS="${DEFAULT_RDP_PARAMS} /f +auto-reconnect +clipboard /cert:ignore"
-        fi
-        # shellcheck disable=SC2086
-        $PROXY_CMD xfreerdp3 ${CMD_ARGS}
-        echo "RDP connection failed, retrying in 1 sec..."
-        sleep 1  # wait before retrying in case of a crash or error
-    done
+  echo "Starting RDP connection..."
+  setxkbmap de || true  # ignore if X not present
+
+  while true; do
+
+    # Build argv as array; no quotes after the colon
+    ARGS=(/u:${REMOTE_USERNAME} /p:${REMOTE_PASSWORD} /v:${HOST_IP}:${HOST_PORT})
+
+    if [ -n "${RDP_PARAMS}" ]; then
+      # shellcheck disable=SC2206  # intentional word-splitting of user-supplied flags
+      EXTRA=(${RDP_PARAMS})
+      ARGS+=("${EXTRA[@]}")
+    else
+      ARGS+=(/f +auto-reconnect +clipboard /cert:ignore)
+    fi
+
+    $PROXY_CMD xfreerdp3 "${ARGS[@]}"
+
+    echo "RDP connection failed, retrying in 1 sec..."
+    sleep 1
+  done
+fi
 elif [ "$REMOTE_CLIENT_TYPE" = 'vnc' ]; then
     echo "Starting VNC connection..."
     mkdir ~/.vnc
