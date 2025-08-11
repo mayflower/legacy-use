@@ -11,5 +11,3 @@ sleep 5 # allow vpn to start
 ./start_remote_screen.sh &
 
 ./start_computer_api.sh
-
-
