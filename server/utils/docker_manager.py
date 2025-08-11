@@ -198,17 +198,16 @@ async def get_container_status(container_id: str, state: str) -> Dict:
         Dictionary with container status information. If there is an error,
         the dictionary will contain an 'error' field with the error message.
     """
+    log_msg = f'Getting status for container {container_id}'
+    if state:
+        log_msg += f' (session state: {state})'
+    # Use debug level for ready containers, info level for initializing
+    if state in ['destroying', 'destroyed']:
+        return {'id': container_id, 'state': {'Status': 'unavailable'}}
+    else:
+        logger.info(log_msg)
+
     try:
-        log_msg = f'Getting status for container {container_id}'
-        if state:
-            log_msg += f' (session state: {state})'
-
-        # Use debug level for ready containers, info level for initializing
-        if state in ['destroying', 'destroyed']:
-            return {'id': container_id, 'state': {'Status': 'unavailable'}}
-        else:
-            logger.info(log_msg)
-
         container = docker.containers.get(container_id)
         if not container:
             logger.error(f'Container {container_id} not found')
