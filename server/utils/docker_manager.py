@@ -13,9 +13,6 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Port to use for the computer API inside the container
-CONTAINER_PORT = 8088
-
 
 async def check_target_container_health(container_ip: str) -> dict:
     """
