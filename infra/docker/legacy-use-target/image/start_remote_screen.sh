@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Starting remote screen..."
+
 # Determine the proxy command based on REMOTE_VPN_TYPE
 PROXY_CMD=""
 if [ "$REMOTE_VPN_TYPE" != 'direct' ]; then
