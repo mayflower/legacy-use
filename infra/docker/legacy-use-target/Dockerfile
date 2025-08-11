@@ -30,6 +30,11 @@ RUN apt-get update && \
     # Remote clients
     freerdp3-x11 \
     tigervnc-viewer \
+    # Smart card and security libraries
+    libpcsclite1 \
+    pcscd \
+    # Kerberos support
+    krb5-user \
     # Python
     python3 \
     python3-pip \
