@@ -6,8 +6,8 @@ export DISPLAY=:${DISPLAY_NUM}
 ./x11vnc_startup.sh
 ./novnc_startup.sh
 
-./start_vpn.sh &
-sleep 5 # allow vpn to start
+./start_vpn.sh
+
 ./start_remote_screen.sh &
 
 ./start_computer_api.sh
