@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from .server import app
 
-client = TestClient(app)
+client = TestClient(app, base_url='http://tenant-default.local.legacy-use.com')
 
 
 def test_main_no_api_key():
