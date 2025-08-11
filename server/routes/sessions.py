@@ -5,6 +5,7 @@ Session management routes.
 import asyncio
 import logging
 import re
+from subprocess import CalledProcessError
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -22,6 +23,7 @@ from server.models.base import (
     RecordingResultResponse,
     RecordingStatusResponse,
     Session,
+    SessionContainerLogs,
     SessionCreate,
     SessionUpdate,
 )
@@ -704,10 +706,10 @@ async def get_session_recording_status(
         )
 
 
-@session_router.get('/{session_id}/container_logs')
+@session_router.get('/{session_id}/container_logs', response_model=SessionContainerLogs)
 async def get_session_container_logs(
     session_id: UUID, lines: int = 1000, db_tenant=Depends(get_tenant_db)
-):
+) -> SessionContainerLogs:
     """Get Docker logs for a session's container."""
     session = db_tenant.get_session(session_id)
     if not session:
@@ -731,14 +733,18 @@ async def get_session_container_logs(
         if not logs:
             logs = 'No logs available for this container.'
 
-        return {
-            'session_id': str(session_id),
-            'container_id': session['container_id'],
-            'logs': logs,
-            'lines_retrieved': len(logs.splitlines()),
-            'max_lines_requested': lines,
-        }
-
+        return SessionContainerLogs(
+            session_id=str(session_id),
+            container_id=session['container_id'],
+            logs=logs,
+            lines_retrieved=len(logs.splitlines()),
+            max_lines_requested=lines,
+        )
+    except CalledProcessError as e:
+        logger.error(f'Error getting Docker logs for session {session_id}: {e.stderr}')
+        raise HTTPException(
+            status_code=500, detail=f'Failed to retrieve Docker logs: {e.stderr}'
+        )
     except Exception as e:
         # Handle CalledProcessError and other exceptions uniformly
         try:
