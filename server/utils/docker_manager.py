@@ -178,6 +178,7 @@ def stop_container(container_id: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
+    logger.info(f'Stopping and removing container {container_id}')
     docker.containers.get(container_id).stop()
     docker.containers.get(container_id).remove()
     logger.info(f'Stopped and removed container {container_id}')
