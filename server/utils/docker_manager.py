@@ -183,7 +183,7 @@ def stop_container(container_id: str) -> bool:
     return True
 
 
-async def get_container_status(container_id: str, state: str) -> Dict:
+async def get_container_status(container_id: str, session_state: str) -> Dict:
     """
     Get status information about a container.
 
@@ -199,12 +199,12 @@ async def get_container_status(container_id: str, state: str) -> Dict:
         the dictionary will contain an 'error' field with the error message.
     """
 
-    if state in ['destroying', 'destroyed']:
+    if session_state in ['destroying', 'destroyed']:
         return {'id': container_id, 'state': {'Status': 'unavailable'}}
 
     log_msg = f'Getting status for container {container_id}'
-    if state:
-        log_msg += f' (session state: {state})'
+    if session_state:
+        log_msg += f' (session state: {session_state})'
     logger.info(log_msg)
 
     try:
