@@ -8,7 +8,7 @@ fi
 
 if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
     echo "Starting RDP connection..."
-    setxkbmap de || true  # ignore if X not present
+    setxkbmap de || true  # TODO: fix this, once we move to other countries
 
     while true; do
         # Build argv as array; no quotes after the colon
