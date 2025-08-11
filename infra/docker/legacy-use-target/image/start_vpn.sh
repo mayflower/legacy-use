@@ -79,11 +79,14 @@ elif [ "$REMOTE_VPN_TYPE" = 'openvpn' ]; then
     echo "Starting OpenVPN with logging to $OPENVPN_LOG..."
     sudo openvpn --config "$CONFIG_FILE" \
         --auth-user-pass "$AUTH_FILE" \
-        --verb 3 \
+        --verb 4 \
         --log "$OPENVPN_LOG" \
         --data-ciphers "AES-256-GCM:AES-128-GCM:AES-128-CBC:CHACHA20-POLY1305" \
         --cipher AES-128-CBC \
         --dev tun0 \
+        --script-security 2 \
+        --up "./openvpn-up.sh" \
+        --down "./openvpn-down.sh" \
         --daemon
 
     # Wait for OpenVPN connection
