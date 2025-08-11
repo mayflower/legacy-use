@@ -206,22 +206,19 @@ async def get_container_status(container_id: str, session_state: str) -> Dict:
         f'Getting status for container {container_id} (session state: {session_state})'
     )
 
+    container = docker.containers.get(container_id)
+    if not container:
+        logger.error(f'Container {container_id} not found')
+        return {'id': container_id, 'state': {'Status': 'not_found'}}
+
+    status_data = {
+        'id': container_id,
+        'image': container.attrs.get('Config', {}).get('Image', 'unknown'),
+        'state': container.attrs.get('State', {}),
+        'network_settings': container.attrs.get('NetworkSettings', {}),
+    }
+
     try:
-        container = docker.containers.get(container_id)
-        if not container:
-            logger.error(f'Container {container_id} not found')
-            return {'id': container_id, 'state': {'Status': 'not_found'}}
-
-        container_info = container.attrs
-
-        # Get basic container status
-        status_data = {
-            'id': container_id,
-            'image': container_info.get('Config', {}).get('Image', 'unknown'),
-            'state': container_info.get('State', {}),
-            'network_settings': container_info.get('NetworkSettings', {}),
-        }
-
         # Get container IP
         container_ip = get_container_ip(container_id)
 
