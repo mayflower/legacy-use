@@ -77,28 +77,16 @@ def get_container_ip(container_id: str) -> Optional[str]:
 
 
 def get_docker_network_mode() -> Optional[str]:
+    """Check if we are running in docker and get network info."""
     try:
-        # Get current container's network info
-        result = subprocess.run(
-            [
-                'docker',
-                'inspect',
-                'legacy-use-backend',
-                '--format',
-                '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}{{end}}',
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-        current_networks = result.stdout.strip().split()
+        container = docker.containers.get('legacy-use-backend')
+        networks = container.attrs['NetworkSettings']['Networks']
 
         # If we're on a custom network (not just 'bridge'), join the target container to it
-        for network in current_networks:
-            if network != 'bridge':
-                logger.info(f'Connecting target container to network: {network}')
-                return network
+        for network_name in networks.keys():
+            if network_name != 'bridge':
+                logger.info(f'Connecting target container to network: {network_name}')
+                return network_name
     except Exception as e:
         logger.warning(f'Could not determine network configuration, using default: {e}')
 
