@@ -3,10 +3,9 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from sqlalchemy import Integer, cast, create_engine, func
-from sqlalchemy.orm import sessionmaker, joinedload
+from sqlalchemy import Integer, cast, func
+from sqlalchemy.orm import joinedload
 
-from server.settings import settings
 
 from .models import (
     APIDefinition,
@@ -21,19 +20,19 @@ from .models import (
 
 
 class DatabaseService:
-    def __init__(self, db_url=None):
-        if db_url is None:
-            db_url = settings.DATABASE_URL
+    def __init__(self):
+        """Create a database service using the centralized shared engine.
 
-        self.engine = create_engine(
-            db_url,
-            pool_size=settings.DATABASE_POOL_SIZE,
-            max_overflow=settings.DATABASE_MAX_OVERFLOW,
-            pool_timeout=settings.DATABASE_POOL_TIMEOUT,
-            pool_recycle=settings.DATABASE_POOL_RECYCLE,
-            pool_pre_ping=settings.DATABASE_POOL_PRE_PING,
+        Reuses the shared engine and session factory defined in
+        `server.database.engine` to avoid multiple connection pools.
+        """
+        from server.database.engine import (
+            engine as shared_engine,
+            SessionLocal as shared_session_factory,
         )
-        self.Session = sessionmaker(bind=self.engine)
+
+        self.engine = shared_engine
+        self.Session = shared_session_factory
 
     # Target methods
     def create_target(self, target_data):
