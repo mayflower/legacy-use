@@ -7,27 +7,27 @@ if [ "$REMOTE_VPN_TYPE" != 'direct' ]; then
 fi
 
 if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
-  echo "Starting RDP connection..."
-  setxkbmap de || true  # ignore if X not present
+    echo "Starting RDP connection..."
+    setxkbmap de || true  # ignore if X not present
 
-  while true; do
+    while true; do
 
-    # Build argv as array; no quotes after the colon
-    ARGS=(/u:${REMOTE_USERNAME} /p:${REMOTE_PASSWORD} /v:${HOST_IP}:${HOST_PORT})
+      # Build argv as array; no quotes after the colon
+      ARGS=(/u:${REMOTE_USERNAME} /p:${REMOTE_PASSWORD} /v:${HOST_IP}:${HOST_PORT})
 
-    if [ -n "${RDP_PARAMS}" ]; then
-      # shellcheck disable=SC2206  # intentional word-splitting of user-supplied flags
-      EXTRA=(${RDP_PARAMS})
-      ARGS+=("${EXTRA[@]}")
-    else
-      ARGS+=(/f +auto-reconnect +clipboard /cert:ignore)
-    fi
+      if [ -n "${RDP_PARAMS}" ]; then
+        # shellcheck disable=SC2206  # intentional word-splitting of user-supplied flags
+        EXTRA=(${RDP_PARAMS})
+        ARGS+=("${EXTRA[@]}")
+      else
+        ARGS+=(/f +auto-reconnect +clipboard /cert:ignore)
+      fi
 
-    $PROXY_CMD xfreerdp3 "${ARGS[@]}"
+      $PROXY_CMD xfreerdp3 "${ARGS[@]}"
 
-    echo "RDP connection failed, retrying in 1 sec..."
-    sleep 1
-  done
+      echo "RDP connection failed, retrying in 1 sec..."
+      sleep 1
+    done
 fi
 elif [ "$REMOTE_CLIENT_TYPE" = 'vnc' ]; then
     echo "Starting VNC connection..."
