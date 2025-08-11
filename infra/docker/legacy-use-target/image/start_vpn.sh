@@ -92,6 +92,7 @@ elif [ "$REMOTE_VPN_TYPE" = 'openvpn' ]; then
             echo "OpenVPN connected"
             break
         fi
+        echo "Waiting for OpenVPN connection... (attempt $i/30)"
         sleep 2
     done
 
