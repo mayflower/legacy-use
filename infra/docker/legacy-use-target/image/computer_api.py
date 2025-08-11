@@ -15,6 +15,10 @@ from computer import (
 )
 from recording import router as recording_router
 
+import logging
+
+logger = logging.getLogger('computer_api')
+
 # Create FastAPI app
 app = FastAPI(
     title='Computer Actions API',
@@ -77,10 +81,18 @@ async def tool_use(
     if request is None:
         request = ToolUseRequest()
 
+    logger.info(
+        f'Received tool_use request: action={action}, api_type={request.api_type}, '
+        f'text={request.text}, coordinate={request.coordinate}, '
+        f'scroll_direction={request.scroll_direction}, scroll_amount={request.scroll_amount}, '
+        f'duration={request.duration}, key={request.key}'
+    )
+
     # Instantiate the appropriate computer actions class based on api_type
     if request.api_type == 'computer_20241022':
         # Validate action is supported by 20241022
         if action not in get_args(Action_20241022):
+            logger.warning(f"Action '{action}' is not supported by computer_20241022")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -96,7 +108,8 @@ async def tool_use(
 
     try:
         if isinstance(computer_actions, ComputerTool20241022):
-            return await computer_actions(
+            logger.info(f'Dispatching to ComputerTool20241022 for action={action}')
+            result = await computer_actions(
                 action=cast(Action_20241022, action),
                 text=request.text,
                 coordinate=request.coordinate,
@@ -106,7 +119,8 @@ async def tool_use(
                 key=request.key,
             )
         else:
-            return await computer_actions(
+            logger.info(f'Dispatching to ComputerTool20250124 for action={action}')
+            result = await computer_actions(
                 action=action,
                 text=request.text,
                 coordinate=request.coordinate,
@@ -115,14 +129,16 @@ async def tool_use(
                 duration=request.duration,
                 key=request.key,
             )
+        logger.info(f"tool_use action '{action}' completed successfully")
+        return result
     except ToolError as exc:
-        print(f'ToolError: {exc}')
+        logger.error(f'ToolError during tool_use: {exc}')
         return JSONResponse(
             status_code=400,
             content={'output': None, 'error': exc.message, 'base64_image': None},
         )
     except Exception as exc:
-        print(f'Exception: {exc}')
+        logger.exception(f'Unhandled exception during tool_use: {exc}')
         return JSONResponse(
             status_code=500,
             content={'output': None, 'error': str(exc), 'base64_image': None},
