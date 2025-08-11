@@ -2,9 +2,7 @@
 Docker container management utilities for session management.
 """
 
-import json
 import logging
-import subprocess
 import time
 from subprocess import CalledProcessError
 from typing import Dict, Optional, Tuple
@@ -211,14 +209,12 @@ async def get_container_status(container_id: str, state: str) -> Dict:
         else:
             logger.info(log_msg)
 
-        result = subprocess.run(
-            ['docker', 'inspect', container_id],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        container = docker.containers.get(container_id)
+        if not container:
+            logger.error(f'Container {container_id} not found')
+            return {'id': container_id, 'state': {'Status': 'not_found'}}
 
-        container_info = json.loads(result.stdout)[0]
+        container_info = container.attrs
 
         # Get basic container status
         status_data = {
@@ -239,12 +235,15 @@ async def get_container_status(container_id: str, state: str) -> Dict:
         # Get load average using docker exec
         try:
             # Execute cat /proc/loadavg in the container to get load average
-            load_avg_result = subprocess.run(
-                ['docker', 'exec', container_id, 'cat', '/proc/loadavg'],
-                capture_output=True,
-                text=True,
-                check=True,
+            load_avg_result = docker.containers.get(container_id).exec_run(
+                ['cat', '/proc/loadavg'],
+                stdout=True,
+                stderr=True,
             )
+            if load_avg_result.exit_code != 0:
+                logger.warning(
+                    f'Could not get load average for container {container_id}: {load_avg_result.stderr}'
+                )
 
             # Parse the load average values (first three values are 1min, 5min, 15min)
             load_avg_values = load_avg_result.stdout.strip().split()
