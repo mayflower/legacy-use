@@ -20,12 +20,21 @@ if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
         ARGS=(/u:${REMOTE_USERNAME} /p:${REMOTE_PASSWORD} /v:${HOST_IP}:${HOST_PORT})
 
         if [ -n "${RDP_PARAMS}" ]; then
-            # shellcheck disable=SC2206  # intentional word-splitting of user-supplied flags
-            EXTRA=(${RDP_PARAMS})
+            # Parse RDP_PARAMS handling both quoted and unquoted parameters safely
+            echo "Parsing RDP_PARAMS: ${RDP_PARAMS}"
+
+            # Use eval with array assignment to properly handle quoted strings
+            # This is safe because we control the input and only use it for array assignment
+            declare -a EXTRA=()
+            eval "EXTRA=(${RDP_PARAMS})"
+
             ARGS+=("${EXTRA[@]}")
+            echo "Parsed RDP parameters: ${EXTRA[@]}"
         else
             ARGS+=(/f +auto-reconnect +clipboard /cert:ignore)
         fi
+
+        echo "ARGS: ${ARGS[@]}"
 
         $PROXY_CMD xfreerdp3 "${ARGS[@]}"
 

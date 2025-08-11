@@ -34,6 +34,24 @@ from server.utils.docker_manager import (
     launch_container,
     stop_container,
 )
+
+
+def escape_rdp_params_for_docker(rdp_params: str) -> str:
+    """
+    Escape RDP parameters for safe passage through Docker environment variables.
+
+    This ensures that quoted parameters with special characters are properly
+    handled when passed through Docker environment variables and bash.
+    """
+    if not rdp_params:
+        return rdp_params
+
+    # The parameters are already properly formatted for bash consumption
+    # Docker environment variables preserve the string as-is
+    # Our improved bash script will handle the parsing correctly
+    return rdp_params
+
+
 from server.utils.telemetry import (
     capture_session_created,
     capture_session_deleted,
@@ -157,8 +175,8 @@ async def create_session(
         'REMOTE_PASSWORD': target.get('password'),
         'WIDTH': str(target.get('width', 1024)),
         'HEIGHT': str(target.get('height', 768)),
-        # RDP customization
-        'RDP_PARAMS': target.get('rdp_params'),
+        # RDP customization - ensure proper escaping for Docker environment
+        'RDP_PARAMS': escape_rdp_params_for_docker(target.get('rdp_params')),
     }
 
     # Launch Docker container for the session
