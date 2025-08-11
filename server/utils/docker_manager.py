@@ -69,9 +69,14 @@ def get_container_ip(container_id: str) -> Optional[str]:
         IP address as string or None if not found
     """
     container = docker.containers.get(container_id)
-    ip_address = container.attrs['NetworkSettings']['Networks']['bridge']['IPAddress']
-    logger.info(f'Container {container_id} has IP address {ip_address}')
-    return ip_address
+    networks = container.attrs['NetworkSettings']['Networks']
+    for network_name, network_info in networks.items():
+        if network_name != 'bridge':
+            ip_address = network_info['IPAddress']
+            logger.info(f'Container {container_id} has IP address {ip_address}')
+            return ip_address
+    logger.error(f'Could not get IP address for container {container_id}')
+    return None
 
 
 def get_docker_network_mode() -> Optional[str]:
@@ -151,7 +156,6 @@ def launch_container(
         # Get container IP address
         container_ip = get_container_ip(container.id)
         if not container_ip:
-            logger.error(f'Could not get IP address for container {container.id}')
             stop_container(container.id)
             return None, None
 
@@ -160,9 +164,6 @@ def launch_container(
         return container.id, container_ip
     except CalledProcessError as e:
         logger.error(f'Error launching container: {e.stderr}')
-        return None, None
-    except Exception as e:
-        logger.error(f'Unexpected error launching container: {str(e)}')
         return None, None
 
 
