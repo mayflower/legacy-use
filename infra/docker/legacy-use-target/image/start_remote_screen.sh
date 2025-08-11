@@ -9,13 +9,6 @@ fi
 if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
     echo "Starting RDP connection..."
 
-    # Fix keyboard configuration to suppress xkbcomp errors
-    export XKB_DEFAULT_RULES=base
-    export XKB_DEFAULT_MODEL=pc105
-    export XKB_DEFAULT_LAYOUT=de
-    export XKB_DEFAULT_VARIANT=""
-    export XKB_DEFAULT_OPTIONS=""
-
     # Set keyboard layout with proper error handling
     setxkbmap de -option "" 2>/dev/null || {
         echo "Warning: Could not set keyboard layout to 'de', using default"
