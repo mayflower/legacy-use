@@ -6,6 +6,7 @@ import json
 import logging
 import subprocess
 import time
+from subprocess import CalledProcessError
 from typing import Dict, Optional, Tuple
 
 import httpx
@@ -217,7 +218,7 @@ def launch_container(
         logger.info(f'Container {container_id} running with IP {container_ip}')
 
         return container_id, container_ip
-    except subprocess.CalledProcessError as e:
+    except CalledProcessError as e:
         logger.error(f'Error launching container: {e.stderr}')
         return None, None
     except Exception as e:
@@ -246,7 +247,7 @@ def stop_container(container_id: str) -> bool:
 
         logger.info(f'Stopped and removed container {container_id}')
         return True
-    except subprocess.CalledProcessError as e:
+    except CalledProcessError as e:
         logger.error(f'Error stopping container {container_id}: {e.stderr}')
         return False
     except Exception as e:
@@ -333,7 +334,7 @@ async def get_container_status(container_id: str, state: str) -> Dict:
             status_data['load_average'] = {'error': str(e)}
 
         return status_data
-    except subprocess.CalledProcessError as e:
+    except CalledProcessError as e:
         logger.error(f'Error getting container status: {e.stderr}')
         return {'id': container_id, 'state': {'Status': 'not_found'}}
     except Exception as e:
