@@ -234,13 +234,13 @@ EOF
     echo ""
     echo "=== Testing connectivity ==="
     echo "Testing ping to google.com (should work via default route)"
-    ping -c 2 -W 5 google.com || echo "Google ping failed"
+    ping -c 1 -W 5 google.com || echo "Google ping failed"
 
     echo "Testing ping to $HOST_IP via default route"
-    ping -c 2 -W 5 $HOST_IP || echo "HOST_IP ping via default failed"
+    ping -c 1 -W 5 $HOST_IP || echo "HOST_IP ping via default failed"
 
     echo "Testing ping to $HOST_IP via tun0 interface"
-    ping -I tun0 -c 2 -W 5 $HOST_IP || echo "HOST_IP ping via tun0 failed"
+    ping -I tun0 -c 1 -W 5 $HOST_IP || echo "HOST_IP ping via tun0 failed"
 
     # If hostname resolution fails, try manual DNS resolution through VPN
     if [ -n "$HOST_IP" ] && ! echo "$HOST_IP" | grep -qE "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$"; then
@@ -254,7 +254,7 @@ EOF
             if [ -n "$RESOLVED_IP" ]; then
                 echo "Resolved $HOST_IP to $RESOLVED_IP via VPN DNS"
                 echo "Testing ping to resolved IP via tun0:"
-                ping -I tun0 -c 2 -W 5 "$RESOLVED_IP" || echo "Ping to resolved IP failed"
+                ping -I tun0 -c 1 -W 5 "$RESOLVED_IP" || echo "Ping to resolved IP failed"
             else
                 echo "Failed to resolve $HOST_IP via VPN DNS $VPN_DNS"
             fi
