@@ -9,10 +9,10 @@ import time
 from subprocess import CalledProcessError
 from typing import Dict, Optional, Tuple
 
-import docker
+import docker as docker_sdk
 import httpx
 
-client = docker.from_env()
+docker = docker_sdk.from_env()
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def get_container_ip(container_id: str) -> Optional[str]:
     Returns:
         IP address as string or None if not found
     """
-    container = client.containers.get(container_id)
+    container = docker.containers.get(container_id)
     ip_address = container.attrs['NetworkSettings']['Networks']['bridge']['IPAddress']
     logger.info(f'Container {container_id} has IP address {ip_address}')
     return ip_address
