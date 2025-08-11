@@ -118,8 +118,6 @@ if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
             ARGS+=(/f +auto-reconnect +clipboard /cert:ignore)
         fi
 
-        echo "ARGS: ${ARGS[@]}"
-
         # Show current DNS configuration for debugging
         if [ "$REMOTE_VPN_TYPE" = 'openvpn' ]; then
             echo "Current DNS configuration:"
