@@ -27,7 +27,6 @@ if [ "$REMOTE_CLIENT_TYPE" = 'rdp' ]; then
         echo "RDP connection failed, retrying in 1 sec..."
         sleep 1
     done
-fi
 elif [ "$REMOTE_CLIENT_TYPE" = 'vnc' ]; then
     echo "Starting VNC connection..."
     mkdir ~/.vnc
