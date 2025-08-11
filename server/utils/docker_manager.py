@@ -199,23 +199,10 @@ def stop_container(container_id: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
-    try:
-        # Stop container
-        subprocess.run(
-            ['docker', 'stop', container_id], capture_output=True, check=True
-        )
-
-        # Remove container
-        subprocess.run(['docker', 'rm', container_id], capture_output=True, check=True)
-
-        logger.info(f'Stopped and removed container {container_id}')
-        return True
-    except CalledProcessError as e:
-        logger.error(f'Error stopping container {container_id}: {e.stderr}')
-        return False
-    except Exception as e:
-        logger.error(f'Unexpected error stopping container {container_id}: {str(e)}')
-        return False
+    docker.containers.get(container_id).stop()
+    docker.containers.get(container_id).remove()
+    logger.info(f'Stopped and removed container {container_id}')
+    return True
 
 
 async def get_container_status(container_id: str, state: str) -> Dict:
