@@ -47,18 +47,6 @@ const darkTheme = createTheme({
       paper: '#1e1e1e',
     },
   },
-  shape: {
-    borderRadius: 12, // Slightly rounded corners for all components
-  },
-  components: {
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#1e1e1e',
-        },
-      },
-    },
-  },
 });
 
 // Context for sharing selected session across components
