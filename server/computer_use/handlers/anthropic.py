@@ -119,13 +119,14 @@ class AnthropicHandler(BaseProviderHandler):
                 aws_session_token=aws_session_token or None,
             )
         elif self.provider == APIProvider.LEGACYUSE_PROXY:
-            proxy_key = (
-                self.tenant_setting('LEGACYUSE_PROXY_API_KEY')
-                or getattr(settings, 'LEGACYUSE_PROXY_API_KEY', None)
-                or ''
-            )
-            return LegacyUseClient(api_key=proxy_key)
-
+         elif self.provider == APIProvider.LEGACYUSE_PROXY:
+             proxy_key = (
+                 self.tenant_setting('LEGACYUSE_PROXY_API_KEY')
+                 or getattr(settings, 'LEGACYUSE_PROXY_API_KEY', None)
+             )
+             if not proxy_key:
+                 raise ValueError('LEGACYUSE_PROXY_API_KEY is required for LegacyUseClient')
+             return LegacyUseClient(api_key=proxy_key)
         else:
             raise ValueError(f'Unsupported Anthropic provider: {self.provider}')
 
