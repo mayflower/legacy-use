@@ -1,22 +1,18 @@
 """
-Job execution logic.
-
-This module provides functions for executing jobs in the API Gateway.
+Job execution logic backed by Postgres leases.
 
 Queue Pause Logic:
 - A target's job queue is implicitly paused when any job for that target enters
-  the ERROR or PAUSED state.
-- The queue remains paused until all ERROR/PAUSED jobs are resolved.
-- No explicit pause flag is stored in the database; the pause state is inferred
-  by checking for jobs in ERROR/PAUSED state.
+  the ERROR or PAUSED state (checked in claim query).
 """
 
 import asyncio
 import logging
 import traceback
-from collections import deque
 from datetime import datetime
 from typing import Dict
+import os
+import socket
 
 
 # Remove direct import of APIGatewayCore
@@ -40,139 +36,56 @@ logger = logging.getLogger(__name__)
 # db = DatabaseService()
 
 
-# Dictionary to store running job tasks
-running_job_tasks = {}
-
-# Tenant-specific job queues and locks
-tenant_job_queues: Dict[str, deque] = {}
-tenant_queue_locks: Dict[str, asyncio.Lock] = {}
-tenant_processor_tasks: Dict[str, asyncio.Task] = {}
-tenant_resources_lock = asyncio.Lock()
-
-# Track targets that already have sessions being launched
-targets_with_pending_sessions = set()
-targets_with_pending_sessions_lock = asyncio.Lock()
-
-# Add target-specific locks for job status transitions
-target_locks = {}
-target_locks_lock = asyncio.Lock()
+running_job_tasks: Dict[str, asyncio.Task] = {}
+tenant_worker_tasks: Dict[str, asyncio.Task] = {}
+tenant_worker_lock = asyncio.Lock()
+WORKER_ID = f'{socket.gethostname()}:{os.getpid()}'
 
 
-async def initialize_job_queue():
-    """Initialize job queues for all active tenants."""
-    logger.info('Initializing job queues for all active tenants...')
-
+async def start_workers_for_all_tenants():
+    """Start a worker loop per active tenant."""
+    logger.info('Starting worker loops for all active tenants...')
     from server.utils.tenant_utils import get_active_tenants
 
-    active_tenants = get_active_tenants()
+    tenants = get_active_tenants()
+    for tenant in tenants:
+        await start_worker_for_tenant(tenant['schema'])
 
-    if not active_tenants:
-        logger.warning('No active tenants found during job queue initialization')
-        return
 
-    for tenant in active_tenants:
-        tenant_schema = tenant['schema']
-        logger.info(
-            f'Initializing job queue for tenant: {tenant["name"]} (schema: {tenant_schema})'
-        )
-
-        try:
-            await initialize_job_queue_for_tenant(tenant_schema)
-        except Exception as e:
-            logger.error(
-                f'Failed to initialize job queue for tenant {tenant["name"]}: {e}'
+async def start_worker_for_tenant(tenant_schema: str):
+    async with tenant_worker_lock:
+        task = tenant_worker_tasks.get(tenant_schema)
+        if task is None or task.done():
+            logger.info(f'Starting worker loop for tenant {tenant_schema}')
+            tenant_worker_tasks[tenant_schema] = asyncio.create_task(
+                worker_loop_for_tenant(tenant_schema)
             )
-            continue
-
-    logger.info(f'Completed job queue initialization for {len(active_tenants)} tenants')
 
 
-async def initialize_job_queue_for_tenant(tenant_schema: str):
-    """Initialize job queue for a specific tenant."""
+async def worker_loop_for_tenant(tenant_schema: str):
     from server.database.multi_tenancy import with_db
-
-    with with_db(tenant_schema) as db_session:
-        db_service = TenantAwareDatabaseService(db_session)
-
-        # Get all jobs for this tenant and filter for QUEUED status
-        all_jobs = db_service.list_jobs(limit=1000, offset=0)
-        queued_jobs = [
-            job for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
-        ]
-
-        if not queued_jobs:
-            logger.info(f'No queued jobs found for tenant schema: {tenant_schema}')
-            return
-
-        # Initialize tenant-specific queue
-        async with tenant_resources_lock:
-            tenant_job_queues[tenant_schema] = deque()
-            tenant_queue_locks[tenant_schema] = asyncio.Lock()
-
-        # Load queued jobs into tenant-specific queue
-        async with tenant_queue_locks[tenant_schema]:
-            for job_dict in queued_jobs:
-                # Double-check job status
-                latest_job = db_service.get_job(job_dict['id'])
-                if latest_job and latest_job.get('status') == JobStatus.QUEUED.value:
-                    job_obj = Job(**job_dict)
-                    logger.info(
-                        f'Loading queued job {job_obj.id} for tenant {tenant_schema}'
-                    )
-                    tenant_job_queues[tenant_schema].append(job_obj)
-
-            logger.info(
-                f'Loaded {len(tenant_job_queues[tenant_schema])} jobs for tenant {tenant_schema}'
-            )
-
-            # Start processor for this tenant if we have jobs
-            if tenant_job_queues[tenant_schema]:
-                await start_job_processor_for_tenant(tenant_schema)
-
-
-async def start_job_processor_for_tenant(tenant_schema: str):
-    """Start job processor for a specific tenant."""
-    async with tenant_resources_lock:
-        if (
-            tenant_schema not in tenant_processor_tasks
-            or tenant_processor_tasks[tenant_schema] is None
-            or tenant_processor_tasks[tenant_schema].done()
-        ):
-            logger.info(f'Starting job processor for tenant: {tenant_schema}')
-            tenant_processor_tasks[tenant_schema] = asyncio.create_task(
-                process_job_queue_for_tenant(tenant_schema)
-            )
-
-
-async def process_job_queue_for_tenant(tenant_schema: str):
-    """Process jobs for a specific tenant."""
-    logger.info(f'Starting job queue processor for tenant: {tenant_schema}')
 
     while True:
         try:
-            async with tenant_queue_locks[tenant_schema]:
-                if not tenant_job_queues[tenant_schema]:
-                    break
-
-                # Ensure the queue is a deque before calling popleft
-                queue = tenant_job_queues[tenant_schema]
-                if not isinstance(queue, deque):
-                    logger.warning(
-                        f'Queue for tenant {tenant_schema} is not a deque, converting...'
-                    )
-                    tenant_job_queues[tenant_schema] = deque(queue)
-                    queue = tenant_job_queues[tenant_schema]
-
-                job = queue.popleft()
-
-            # Process the job using tenant-aware database service
+            claimed = None
+            with with_db(tenant_schema) as db_session:
+                db = TenantAwareDatabaseService(db_session)
+                claimed = db.claim_next_job(WORKER_ID, tenant_schema=tenant_schema)
+            if not claimed:
+                await asyncio.sleep(0.5)
+                continue
+            job = Job(**claimed)
             await process_job_with_tenant(job, tenant_schema)
-
         except Exception as e:
-            logger.error(f'Error processing job for tenant {tenant_schema}: {e}')
-            await asyncio.sleep(1)
+            logger.error(f'Worker loop error (tenant={tenant_schema}): {e}')
+            await asyncio.sleep(1.0)
 
-    logger.info(f'Job queue processor finished for tenant: {tenant_schema}')
+
+async def process_job_queue_for_tenant(tenant_schema: str):
+    logger.warning(
+        'process_job_queue_for_tenant is deprecated; worker_loop_for_tenant is used instead'
+    )
+    raise NotImplementedError
 
 
 async def process_job_with_tenant(job: Job, tenant_schema: str):
@@ -198,8 +111,8 @@ async def process_job_with_tenant(job: Job, tenant_schema: str):
         del running_job_tasks[str(job.id)]
 
 
-# Export the function to be used in the main FastAPI app startup
-job_queue_initializer = initialize_job_queue
+# Exported symbol kept for compatibility with routes; will start workers
+job_queue_initializer = start_workers_for_all_tenants
 
 
 """Logging helpers moved to server.utils.job_logging."""
@@ -209,76 +122,19 @@ job_queue_initializer = initialize_job_queue
 
 
 async def get_target_lock(target_id, tenant_schema: str):
-    """Get target lock for specific tenant."""
-    async with target_locks_lock:
-        if target_id not in target_locks:
-            target_locks[target_id] = asyncio.Lock()
-        return target_locks[target_id]
+    raise NotImplementedError('Target locks are DB-backed now')
 
 
 async def clean_up_target_lock(target_id, tenant_schema: str):
-    """Clean up target lock for specific tenant."""
-    async with target_locks_lock:
-        if target_id in target_locks:
-            del target_locks[target_id]
+    return None
 
 
 # Helper function for precondition checks
 async def _check_preconditions_and_set_running(
     job: Job, job_id_str: str, tenant_schema: str
 ) -> tuple[bool, bool]:
-    """Check preconditions with tenant context."""
-    from server.database.multi_tenancy import with_db
-
-    with with_db(tenant_schema) as db_session:
-        db_service = TenantAwareDatabaseService(db_session)
-
-        # Get the latest job status from database
-        latest_job = db_service.get_job(job_id_str)
-        if not latest_job:
-            logger.error(
-                f'Job {job_id_str} not found in database for tenant {tenant_schema}'
-            )
-            return False, False
-
-        if latest_job.get('status') != JobStatus.QUEUED.value:
-            logger.info(
-                f'Job {job_id_str} status is {latest_job.get("status")}, not QUEUED for tenant {tenant_schema}'
-            )
-            return False, False
-
-        # Check if target is available
-        target_id = job.target_id
-        target_lock = await get_target_lock(target_id, tenant_schema)
-
-        if target_lock.locked():
-            logger.info(
-                f'Target {target_id} is locked, skipping job {job_id_str} for tenant {tenant_schema}'
-            )
-            return False, False
-
-        # Try to acquire target lock non-blocking
-        if target_lock.locked():
-            logger.info(
-                f'Could not acquire target lock for {target_id}, skipping job {job_id_str} for tenant {tenant_schema}'
-            )
-            return False, False
-
-        await target_lock.acquire()
-
-        try:
-            # Update job status to RUNNING
-            db_service.update_job_status(job_id_str, JobStatus.RUNNING.value)
-            logger.info(
-                f'Set job {job_id_str} to RUNNING status for tenant {tenant_schema}'
-            )
-            return True, True
-        except Exception as e:
-            logger.error(
-                f'Failed to update job {job_id_str} status: {e} for tenant {tenant_schema}'
-            )
-            target_lock.release()
-            return False, False
+    # No-op: claiming already set RUNNING and enforced constraints
+    return True, False
 
 
 # Removed local logging helpers and callbacks; imported from server.utils.job_logging
@@ -299,24 +155,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
     # Add initial job log
     add_job_log(job_id_str, 'system', 'Queue picked up job', tenant_schema)
 
-    # Flag to track if we're requeuing due to a conflict
-    requeuing_due_to_conflict = False
-
-    # Acquire lock before precondition check - lock is released by helper if check fails early
-    await get_target_lock(job.target_id, tenant_schema)  # Get lock instance
-
     try:
-        # Check preconditions and set status to RUNNING
-        (
-            can_proceed,
-            requeuing_due_to_conflict,
-        ) = await _check_preconditions_and_set_running(job, job_id_str, tenant_schema)
-
-        if not can_proceed:
-            # Preconditions failed, helper function handled logging/status updates/requeuing
-            # The helper function already cleaned up the lock if it failed early.
-            # If it's requeuing, the finally block below should skip cleanup.
-            return  # Exit the function
+        # Already RUNNING due to DB claim
 
         # Create callbacks using helper functions
         api_response_callback = _create_api_response_callback(
@@ -492,28 +332,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                 job_id_str, 'system', 'Job execution was cancelled', tenant_schema
             )
 
-        # Clean up target lock regardless of errors - Only if not requeuing
-        if not requeuing_due_to_conflict:
-            try:
-                # Acquire target_locks_lock ONCE for the cleanup operations
-                async with target_locks_lock:  # Lock A acquired
-                    if job.target_id in target_locks:
-                        # Perform the cleanup actions directly here from clean_up_target_lock
-                        # to avoid re-acquiring target_locks_lock.
-                        del target_locks[job.target_id]
-                        logger.info(
-                            f'Cleaned up lock for target {job.target_id} (inlined in finally)'
-                        )
-                    else:
-                        # This case means job.target_id was not in target_locks dictionary
-                        # when the finally block's lock cleanup section was entered.
-                        logger.info(
-                            f'Target lock for {job.target_id} not found in target_locks dictionary during finally cleanup.'
-                        )
-            except Exception as e:
-                logger.error(
-                    f'Error during inlined target lock cleanup in finally: {str(e)}'
-                )
+        # No in-memory locks to clean up
 
         # Remove the task from running_job_tasks
         if job_id_str in running_job_tasks:
@@ -536,7 +355,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
         except Exception as e:
             logger.error(f'Error setting completion future in finally: {e}')
 
-        # Note: process_next_job is deprecated, so we don't call it here
+        # No chained processing here; worker loop will pick next claim
 
     except Exception as e:
         error_message = str(e)
@@ -589,31 +408,6 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
         )
         add_job_log(job_id_str, 'error', error_traceback, tenant_schema)
     finally:
-        # Only clean up target lock if we're not requeuing due to a conflict
-        # This prevents the lock from being released prematurely
-        if not requeuing_due_to_conflict:
-            try:
-                # Acquire target_locks_lock ONCE for the cleanup operations
-                async with target_locks_lock:  # Lock A acquired
-                    if job.target_id in target_locks:
-                        # Perform the cleanup actions directly here from clean_up_target_lock
-                        # to avoid re-acquiring target_locks_lock.
-                        del target_locks[job.target_id]
-                        logger.info(
-                            f'Cleaned up lock for target {job.target_id} (inlined in finally)'
-                        )
-                    else:
-                        # This case means job.target_id was not in target_locks dictionary
-                        # when the finally block's lock cleanup section was entered.
-                        logger.info(
-                            f'Target lock for {job.target_id} not found in target_locks dictionary during finally cleanup.'
-                        )
-            except Exception as e:
-                logger.error(
-                    f'Error during inlined target lock cleanup in finally: {str(e)}'
-                )
-
-        # Remove the task from running_job_tasks
         if job_id_str in running_job_tasks:
             del running_job_tasks[job_id_str]
 
@@ -643,58 +437,8 @@ async def enqueue_job(job_obj: Job, tenant_schema: str):
     """
     from server.database.multi_tenancy import with_db
 
-    # 1. Update status in DB first
     with with_db(tenant_schema) as db_session:
         db_service = TenantAwareDatabaseService(db_session)
-        try:
-            db_service.update_job_status(job_obj.id, JobStatus.QUEUED)
-            logger.info(
-                f'Job {job_obj.id} status updated to QUEUED in database for tenant {tenant_schema}.'
-            )
-            # Update the local object's status as well
-            job_obj.status = JobStatus.QUEUED
-        except Exception as e:
-            logger.error(
-                f'Failed to update job {job_obj.id} status to QUEUED in DB for tenant {tenant_schema}: {e}',
-                exc_info=True,
-            )
-            # Raise an exception to prevent potentially queueing a job
-            # whose status couldn't be persisted.
-            raise RuntimeError(
-                f'Failed to update job {job_obj.id} status before queueing for tenant {tenant_schema}'
-            ) from e
-
-    # 2. Add to tenant-specific queue and manage processor
-    async with tenant_resources_lock:
-        if tenant_schema not in tenant_job_queues:
-            tenant_job_queues[tenant_schema] = deque()
-            tenant_queue_locks[tenant_schema] = asyncio.Lock()
-
-    async with tenant_queue_locks[tenant_schema]:
-        # Ensure the queue is a deque before operating on it
-        queue = tenant_job_queues[tenant_schema]
-        if not isinstance(queue, deque):
-            logger.warning(
-                f'Queue for tenant {tenant_schema} is not a deque, converting...'
-            )
-            tenant_job_queues[tenant_schema] = deque(queue)
-            queue = tenant_job_queues[tenant_schema]
-
-        # Safety check: Avoid adding the same job twice
-        if any(j.id == job_obj.id for j in queue):
-            logger.warning(
-                f'Job {job_obj.id} is already in the queue for tenant {tenant_schema}. Skipping addition.'
-            )
-            return  # Job already enqueued, nothing more to do
-
-        # Add job to the tenant-specific queue
-        queue.append(job_obj)
-        # Add a standard log entry
-        log_message = 'Job added to queue'  # Use the consistent message
-        add_job_log(str(job_obj.id), 'system', log_message, tenant_schema)
-        logger.info(
-            f"Job {job_obj.id} added to queue for tenant {tenant_schema}. Log message: '{log_message}'"
-        )
-
-        # Start processor if not already running
-        await start_job_processor_for_tenant(tenant_schema)
+        db_service.update_job_status(job_obj.id, JobStatus.QUEUED)
+    add_job_log(str(job_obj.id), 'system', 'Job added to queue', tenant_schema)
+    await start_worker_for_tenant(tenant_schema)

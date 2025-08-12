@@ -5,6 +5,8 @@ from uuid import UUID
 
 from sqlalchemy import Integer, cast, func
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import text
+import sqlalchemy as sa
 
 
 from .models import (
@@ -245,6 +247,86 @@ class DatabaseService:
             session.add(job)
             session.commit()
             return self._to_dict(job)
+        finally:
+            session.close()
+
+    def claim_next_job(
+        self,
+        lease_owner: str,
+        lease_seconds: int = 300,
+        tenant_schema: str | None = None,
+    ):
+        """Atomically claim the next runnable job for execution.
+
+        Picks the oldest QUEUED job such that the target has no RUNNING job and
+        no PAUSED/ERROR jobs. Uses row locks and an advisory xact lock to
+        guarantee only one claim per target across workers. Sets status to RUNNING
+        and assigns a short lease to the claiming worker.
+
+        Returns a job dict or None if nothing claimable.
+        """
+        session = self.Session()
+        try:
+            now = datetime.utcnow()
+            lease_exp = now + timedelta(seconds=lease_seconds)
+
+            trans = session.begin()
+            try:
+                JobAlias = sa.orm.aliased(Job)
+                JobBlock = sa.orm.aliased(Job)
+
+                exists_running = sa.exists(
+                    sa.select(1).where(
+                        JobAlias.target_id == Job.target_id,
+                        JobAlias.status == 'RUNNING',
+                    )
+                )
+                exists_blocking = sa.exists(
+                    sa.select(1).where(
+                        JobBlock.target_id == Job.target_id,
+                        JobBlock.status.in_(['PAUSED', 'ERROR']),
+                    )
+                )
+
+                candidate = (
+                    session.query(Job)
+                    .filter(Job.status == 'QUEUED')
+                    .filter(~exists_running)
+                    .filter(~exists_blocking)
+                    .order_by(Job.created_at)
+                    .with_for_update(skip_locked=True)
+                    .first()
+                )
+
+                if not candidate:
+                    trans.commit()
+                    return None
+
+                target_id = str(candidate.target_id)
+                # Per-tenant advisory lock on target
+                locked = session.execute(
+                    text(
+                        'SELECT pg_try_advisory_xact_lock(hashtextextended(:key, 42))'
+                    ),
+                    {'key': (tenant_schema or '') + ':' + target_id},
+                ).scalar()
+
+                if not locked:
+                    trans.rollback()
+                    return None
+
+                # Transition to RUNNING with lease
+                candidate.status = 'RUNNING'
+                candidate.updated_at = now
+                candidate.lease_owner = lease_owner
+                candidate.lease_expires_at = lease_exp
+
+                session.commit()
+                result = self._to_dict(candidate)
+                return result
+            except Exception:
+                trans.rollback()
+                raise
         finally:
             session.close()
 

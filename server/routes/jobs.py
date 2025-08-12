@@ -16,7 +16,6 @@ Example:
 
 """
 
-import asyncio
 import json
 import logging
 from datetime import datetime
@@ -37,6 +36,7 @@ from server.utils.job_execution import (
     enqueue_job,
     job_queue_initializer,
     running_job_tasks,
+    tenant_worker_tasks,
 )
 from server.utils.job_utils import compute_job_metrics
 from server.utils.telemetry import (
@@ -287,54 +287,22 @@ async def get_queue_status(
     tenant: dict = Depends(get_tenant_from_request),
 ):
     """Get the current status of the job queue for the current tenant."""
-    from server.utils.job_execution import (
-        tenant_job_queues,
-        tenant_processor_tasks,
-        tenant_resources_lock,
-    )
-
-    # Get queue size for current tenant
-    async with tenant_resources_lock:
-        queue_size = len(tenant_job_queues.get(tenant['schema'], []))
-        is_processor_running = (
-            tenant['schema'] in tenant_processor_tasks
-            and tenant_processor_tasks[tenant['schema']] is not None
-            and not tenant_processor_tasks[tenant['schema']].done()
-        )
-
-    # Get running job for current tenant
-    running_job_dict = None
-    if running_job_tasks:
-        running_job_id_str = next(iter(running_job_tasks.keys()), None)
-        if running_job_id_str:
-            try:
-                running_job_id = UUID(running_job_id_str)
-                running_job_dict = db_tenant.get_job(running_job_id)
-            except ValueError:
-                logger.error(
-                    f'Invalid UUID format for running job ID: {running_job_id_str}'
-                )
-            except Exception as e:
-                logger.error(f'Error fetching running job {running_job_id_str}: {e}')
-
-    # Count jobs with QUEUED status in the database for current tenant
-    all_jobs = db_tenant.list_jobs(limit=1000)
+    # DB is the source of truth
+    jobs_data = db_tenant.list_jobs(limit=1000)
     db_queued_count = sum(
-        1 for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
+        1 for j in jobs_data if j.get('status') == JobStatus.QUEUED.value
     )
-
-    # If database shows queued jobs but memory queue is empty or different size, resynchronize
-    if db_queued_count != queue_size:
-        logger.warning(
-            f'Queue inconsistency detected for tenant {tenant["schema"]}: {queue_size} jobs in memory vs {db_queued_count} in database'
-        )
-        # Schedule the queue reinitialization task without awaiting it
-        asyncio.create_task(job_queue_initializer())
-
+    running_jobs = [j for j in jobs_data if j.get('status') == JobStatus.RUNNING.value]
+    running_job_dict = running_jobs[0] if running_jobs else None
+    is_processor_running = (
+        tenant['schema'] in tenant_worker_tasks
+        and tenant_worker_tasks[tenant['schema']] is not None
+        and not tenant_worker_tasks[tenant['schema']].done()
+    )
     return {
-        'queue_size': queue_size,
+        'queue_size': db_queued_count,
         'queued_in_db': db_queued_count,
-        'running_job': running_job_dict,  # Return the dict
+        'running_job': running_job_dict,
         'is_processor_running': is_processor_running,
     }
 
@@ -400,46 +368,16 @@ async def interrupt_job(
                 tenant['schema'],
             )
 
-    # Remove from queue if queued
+    # Queued -> mark error
     elif current_status == JobStatus.QUEUED:
-        from server.utils.job_execution import tenant_job_queues, tenant_resources_lock
-
-        tenant_schema = tenant['schema']
-        async with tenant_resources_lock:
-            if tenant_schema in tenant_job_queues:
-                tenant_queue = tenant_job_queues[tenant_schema]
-                initial_queue_size = len(tenant_queue)
-                # Remove the job from the tenant-specific queue
-                from collections import deque
-
-                tenant_job_queues[tenant_schema] = deque(
-                    [j for j in tenant_queue if j.id != job_id]
-                )
-                if len(tenant_job_queues[tenant_schema]) < initial_queue_size:
-                    interrupted = True
-                    db_tenant.update_job_status(job_id, JobStatus.ERROR)
-                    add_job_log(
-                        job_id_str,
-                        'system',
-                        'Job removed from queue due to interrupt request.',
-                        tenant_schema,
-                    )
-                    logger.info(
-                        f'Removed queued job {job_id_str} from queue for tenant {tenant_schema}.'
-                    )
-                else:
-                    logger.warning(
-                        f'Tried to interrupt queued job {job_id_str}, but it was not found in the queue for tenant {tenant_schema}.'
-                    )
-                    # If not in queue, it might have finished or errored already. Ensure status reflects this.
-                    if db_tenant.get_job(job_id)['status'] == JobStatus.QUEUED:
-                        db_tenant.update_job_status(job_id, JobStatus.ERROR)
-                        add_job_log(
-                            job_id_str,
-                            'system',
-                            'Job interrupt requested, but job was not found in queue (updated status to error).',
-                            tenant_schema,
-                        )
+        interrupted = True
+        db_tenant.update_job_status(job_id, JobStatus.ERROR)
+        add_job_log(
+            job_id_str,
+            'system',
+            'Job removed from queue due to interrupt request.',
+            tenant['schema'],
+        )
 
     # If pending or any other interruptible state, just mark as error
     elif current_status not in [JobStatus.SUCCESS, JobStatus.ERROR]:
@@ -505,45 +443,14 @@ async def cancel_job(
 
     # Only allow cancellation on QUEUED and PENDING states
     if current_status == JobStatus.QUEUED:
-        from server.utils.job_execution import tenant_job_queues, tenant_resources_lock
-
-        tenant_schema = tenant['schema']
-        async with tenant_resources_lock:
-            if tenant_schema in tenant_job_queues:
-                tenant_queue = tenant_job_queues[tenant_schema]
-                initial_queue_size = len(tenant_queue)
-                # Remove the job from the tenant-specific queue
-                from collections import deque
-
-                tenant_job_queues[tenant_schema] = deque(
-                    [j for j in tenant_queue if j.id != job_id]
-                )
-                if len(tenant_job_queues[tenant_schema]) < initial_queue_size:
-                    canceled = True
-                    db_tenant.update_job_status(job_id, JobStatus.CANCELED)
-                    add_job_log(
-                        job_id_str,
-                        'system',
-                        'Job canceled by user request.',
-                        tenant_schema,
-                    )
-                    logger.info(
-                        f'Canceled queued job {job_id_str} for tenant {tenant_schema}.'
-                    )
-                else:
-                    logger.warning(
-                        f'Tried to cancel queued job {job_id_str}, but it was not found in the queue for tenant {tenant_schema}.'
-                    )
-                    # If not in queue, it might have finished or errored already. Ensure status reflects this.
-                    if db_tenant.get_job(job_id)['status'] == JobStatus.QUEUED:
-                        db_tenant.update_job_status(job_id, JobStatus.CANCELED)
-                        add_job_log(
-                            job_id_str,
-                            'system',
-                            'Job cancel requested, but job was not found in queue (updated status to canceled).',
-                            tenant_schema,
-                        )
-                        canceled = True
+        canceled = True
+        db_tenant.update_job_status(job_id, JobStatus.CANCELED)
+        add_job_log(
+            job_id_str,
+            'system',
+            'Job canceled by user request.',
+            tenant['schema'],
+        )
 
     # If pending, just mark as canceled
     elif current_status == JobStatus.PENDING:
@@ -767,7 +674,7 @@ async def resync_queue(
             f'Queue inconsistency detected for tenant {tenant["schema"]}: {old_queue_size} jobs in memory vs {db_queued_count_before} in database'
         )
 
-    # Reinitialize the queue
+    # Ensure workers are running
     await job_queue_initializer()
 
     # Get updated queue status after resync
