@@ -12,7 +12,7 @@ from uuid import UUID
 import httpx
 import requests
 import websockets
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from starlette.websockets import WebSocket, WebSocketDisconnect
@@ -28,7 +28,6 @@ from server.models.base import (
     SessionUpdate,
 )
 from server.utils.db_dependencies import get_tenant_db, get_tenant_db_websocket
-from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.docker_manager import (
     get_container_status,
     launch_container,
@@ -38,6 +37,7 @@ from server.utils.telemetry import (
     capture_session_created,
     capture_session_deleted,
 )
+from server.utils.tenant_utils import get_tenant_from_request
 
 logger = logging.getLogger(__name__)
 
