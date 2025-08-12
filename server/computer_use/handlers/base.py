@@ -12,10 +12,9 @@ import httpx
 from anthropic.types.beta import (
     BetaContentBlockParam,
     BetaMessageParam,
-    BetaToolResultBlockParam,
 )
 
-from server.computer_use.tools import ToolCollection, ToolResult
+from server.computer_use.tools import ToolCollection
 from server.settings_tenant import get_tenant_setting as _get_tenant_setting
 from server.computer_use.utils import (
     _inject_prompt_caching,
@@ -124,22 +123,6 @@ class ProviderHandler(Protocol):
 
         Returns:
             Tuple of (content_blocks, stop_reason)
-        """
-        ...
-
-    @abstractmethod
-    def make_tool_result(
-        self, result: ToolResult, tool_use_id: str
-    ) -> BetaToolResultBlockParam:
-        """
-        Create a tool result block in Anthropic format.
-
-        Args:
-            result: The tool execution result
-            tool_use_id: ID of the tool use
-
-        Returns:
-            Tool result in Anthropic BetaContentBlockParam format
         """
         ...
 

@@ -36,6 +36,7 @@ from server.computer_use.utils import (
     _beta_message_param_to_job_message_content,
     _job_message_to_beta_message_param,
     _load_system_prompt,
+    _make_api_tool_result,
 )
 
 # Import DatabaseService and serialization utils
@@ -352,7 +353,7 @@ async def sampling_loop(
                 # --- Save Tool Result Message to DB --- START
                 try:
                     # TODO: Remove this as this shouldn't be model dependent
-                    tool_result_block = handler.make_tool_result(
+                    tool_result_block = _make_api_tool_result(
                         result, content_block['id']
                     )
                     resulting_message = BetaMessageParam(

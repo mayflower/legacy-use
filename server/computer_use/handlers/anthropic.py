@@ -20,7 +20,6 @@ from anthropic.types.beta import (
     BetaContentBlockParam,
     BetaMessageParam,
     BetaTextBlockParam,
-    BetaToolResultBlockParam,
     BetaToolUnionParam,
     BetaMessage,
 )
@@ -29,12 +28,9 @@ from server.computer_use.client import LegacyUseClient
 from server.computer_use.config import APIProvider
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
-from server.computer_use.tools import ToolCollection, ToolResult
+from server.computer_use.tools import ToolCollection
 from server.computer_use.utils import (
-    _make_api_tool_result,
     _response_to_params,
-    summarize_beta_messages,
-    summarize_beta_blocks,
 )
 from server.settings import settings
 
@@ -182,16 +178,6 @@ class AnthropicHandler(BaseProviderHandler):
         """Make API call to Anthropic."""
         betas = self.get_betas()
 
-        # log the tools being sent to anthropic
-        logger.info(f'Calling Anthropic API with model: {model}')
-        logger.debug(
-            f'Tools being sent to Anthropic: {[t["name"] for t in tools] if tools else "None"}'
-        )
-        logger.info(f'Tools: {tools}')
-        logger.info(f'Tenant schema: {self.tenant_schema}')
-        logger.info(f'Input summary: {summarize_beta_messages(messages)}')
-        logger.debug('System being sent to Anthropic (text only)')
-
         # iterate recursively and shorten any message longer than 10000 characters to 10
         def shorten_message(message):
             if isinstance(message, list):
@@ -225,8 +211,7 @@ class AnthropicHandler(BaseProviderHandler):
             )
 
             parsed_response = cast(BetaMessage, raw_response.parse())
-            blocks = _response_to_params(parsed_response)
-            logger.info(f'Output summary: {summarize_beta_blocks(blocks)}')
+
             return (
                 parsed_response,
                 raw_response.http_response.request,
@@ -250,9 +235,3 @@ class AnthropicHandler(BaseProviderHandler):
         content_blocks = _response_to_params(response)
         stop_reason = response.stop_reason or 'end_turn'
         return content_blocks, stop_reason
-
-    def make_tool_result(
-        self, result: ToolResult, tool_use_id: str
-    ) -> BetaToolResultBlockParam:
-        """Create tool result block using existing utility."""
-        return _make_api_tool_result(result, tool_use_id)
