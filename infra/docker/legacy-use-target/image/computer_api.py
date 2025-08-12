@@ -98,7 +98,7 @@ async def tool_use(
             'coordinate': request.coordinate,
         }
     else:
-        valid_actions = get_args(Action_20250124)
+        valid_actions = [v for t in get_args(Action_20250124) for v in get_args(t)]
         computer_actions = ComputerTool20250124()
         params = {
             'action': action,
