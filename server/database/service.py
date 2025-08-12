@@ -334,8 +334,6 @@ class DatabaseService:
         finally:
             session.close()
 
-    # Removed: list_target_jobs (use list_jobs with filters instead)
-
     def list_session_jobs(self, session_id, limit: int = 10, offset: int = 0):
         session = self.Session()
         try:
