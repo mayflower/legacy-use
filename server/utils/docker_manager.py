@@ -72,8 +72,9 @@ def get_container_ip(container_id: str) -> Optional[str]:
     networks = container.attrs['NetworkSettings']['Networks']
     for network in networks.values():
         ip_address = network['IPAddress']
-        logger.info(f'Container {container_id} has IP address {ip_address}')
-        return ip_address
+        if ip_address:
+            logger.info(f'Container {container_id} has IP address {ip_address}')
+            return ip_address
     logger.error(f'Could not get IP address for container {container_id}')
     return None
 
