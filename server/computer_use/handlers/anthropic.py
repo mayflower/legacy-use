@@ -28,7 +28,7 @@ from server.computer_use.client import LegacyUseClient
 from server.computer_use.config import APIProvider
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
-from server.computer_use.tools import ToolCollection
+from server.computer_use.tools.collection import ToolCollection
 from server.computer_use.utils import (
     _response_to_params,
 )
