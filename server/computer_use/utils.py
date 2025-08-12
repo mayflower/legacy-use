@@ -95,15 +95,11 @@ def _inject_prompt_caching(
         ):
             if breakpoints_remaining:
                 breakpoints_remaining -= 1
-                from typing import cast as _cast
-
-                _cast(Dict[str, Any], content[-1])['cache_control'] = (
+                cast(Dict[str, Any], content[-1])['cache_control'] = (
                     BetaCacheControlEphemeralParam({'type': 'ephemeral'})
                 )
             else:
-                from typing import cast as _cast
-
-                _cast(Dict[str, Any], content[-1]).pop('cache_control', None)
+                cast(Dict[str, Any], content[-1]).pop('cache_control', None)
                 # we'll only every have one extra turn per loop
                 break
 
@@ -166,9 +162,8 @@ def _make_api_tool_result(
 
     if result.error:
         # For error case, return the error in the expected format
-        from typing import cast as _cast
 
-        return _cast(
+        return cast(
             BetaToolResultBlockParam,
             {
                 'type': 'tool_result',
@@ -222,9 +217,8 @@ def _make_api_tool_result(
             except json.JSONDecodeError as e:
                 logger.error(f'Invalid JSON in extraction tool output: {e}')
                 # Return error message when JSON is invalid
-                from typing import cast as _cast
 
-                return _cast(
+                return cast(
                     BetaToolResultBlockParam,
                     {
                         'type': 'tool_result',
