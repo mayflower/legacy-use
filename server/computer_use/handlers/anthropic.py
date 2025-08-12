@@ -107,15 +107,17 @@ class AnthropicHandler(BaseProviderHandler):
                 settings, 'AWS_SESSION_TOKEN', None
             )
 
+            if not aws_region:
+                raise ValueError('AWS_REGION is required for Bedrock provider')
+
             # Initialize with available credentials using explicit kwargs for clearer typing
             logger.info(f'Using AsyncAnthropicBedrock client with region: {aws_region}')
             return AsyncAnthropicBedrock(
-                aws_region=aws_region or '',
+                aws_region=aws_region,
                 aws_access_key=aws_access_key or None,
                 aws_secret_key=aws_secret_key or None,
                 aws_session_token=aws_session_token or None,
             )
-
         elif self.provider == APIProvider.LEGACYUSE_PROXY:
             proxy_key = (
                 self.tenant_setting('LEGACYUSE_PROXY_API_KEY')
