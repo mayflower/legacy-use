@@ -103,11 +103,7 @@ async def _lease_heartbeat(job: Job, tenant_schema: str):
         return
 
 
-async def process_job_queue_for_tenant(tenant_schema: str):
-    logger.warning(
-        'process_job_queue_for_tenant is deprecated; worker_loop_for_tenant is used instead'
-    )
-    raise NotImplementedError
+# Removed deprecated queue processing; worker_loop_for_tenant is authoritative.
 
 
 async def process_job_with_tenant(job: Job, tenant_schema: str):
@@ -140,23 +136,7 @@ job_queue_initializer = start_workers_for_all_tenants
 """Logging helpers moved to server.utils.job_logging."""
 
 
-"""Logging helpers moved to server.utils.job_logging."""
-
-
-async def get_target_lock(target_id, tenant_schema: str):
-    raise NotImplementedError('Target locks are DB-backed now')
-
-
-async def clean_up_target_lock(target_id, tenant_schema: str):
-    return None
-
-
-# Helper function for precondition checks
-async def _check_preconditions_and_set_running(
-    job: Job, job_id_str: str, tenant_schema: str
-) -> tuple[bool, bool]:
-    # No-op: claiming already set RUNNING and enforced constraints
-    return True, False
+# In-memory target locks deprecated in favor of DB-backed advisory locks.
 
 
 # Removed local logging helpers and callbacks; imported from server.utils.job_logging
@@ -434,18 +414,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
             del running_job_tasks[job_id_str]
 
 
-# This function is deprecated - use tenant-specific processing instead
-async def process_job_queue():
-    """Deprecated: This function is no longer used. Use tenant-specific job processing."""
-    logger.warning('process_job_queue is deprecated - use tenant-specific processing')
-    raise NotImplementedError('Use tenant-specific job processing')
-
-
-# This function is deprecated - use tenant-specific processing instead
-async def process_next_job():
-    """Deprecated: This function is no longer used. Use tenant-specific job processing."""
-    logger.warning('process_next_job is deprecated - use tenant-specific processing')
-    raise NotImplementedError('Use tenant-specific job processing')
+# Removed deprecated process_job_queue and process_next_job.
 
 
 async def enqueue_job(job_obj: Job, tenant_schema: str):
