@@ -206,10 +206,11 @@ class AnthropicHandler(BaseProviderHandler):
                 max_tokens=max_tokens,
                 messages=messages,
                 model=model,
-                system=system_text,
+                system=system_param if 'system_param' in locals() else system_text,
                 tools=tools,
                 betas=betas,
                 temperature=temperature,
+                **kwargs,
             )
 
             parsed_response = cast(BetaMessage, raw_response.parse())
