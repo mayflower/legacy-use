@@ -138,15 +138,22 @@ async def list_target_jobs(
     if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
-    jobs_data = db_tenant.list_target_jobs(target_id, limit=limit, offset=offset)
+    jobs_data = db_tenant.list_jobs(
+        limit=limit,
+        offset=offset,
+        filters={'target_id': target_id},
+        include_http_exchanges=True,
+    )
 
     # Compute metrics for each job
     enriched_jobs = []
     for job_dict in jobs_data:
-        job_model = Job(**job_dict)
-        http_exchanges = db_tenant.list_job_http_exchanges(
-            job_model.id, use_trimmed=True
-        )
+        # Avoid passing helper field to the model
+        job_dict_for_model = {
+            k: v for k, v in job_dict.items() if k != 'http_exchanges'
+        }
+        job_model = Job(**job_dict_for_model)
+        http_exchanges = job_dict.get('http_exchanges', [])
         metrics = compute_job_metrics(job_dict, http_exchanges)
         job_model_dict = job_model.model_dump()
         job_model_dict.update(metrics)

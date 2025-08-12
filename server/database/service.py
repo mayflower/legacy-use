@@ -334,29 +334,7 @@ class DatabaseService:
         finally:
             session.close()
 
-    def list_target_jobs(self, target_id, limit: int = 10, offset: int = 0):
-        session = self.Session()
-        try:
-            jobs = (
-                session.query(Job)
-                .filter(Job.target_id == target_id)
-                .order_by(Job.created_at.desc())
-                .offset(offset)
-                .limit(limit)
-                .all()
-            )
-            job_dicts = []
-            for job in jobs:
-                job_dict = self._to_dict(job)
-                # Include API definition version ID if available
-                if job.api_definition_version_id:
-                    job_dict['api_definition_version_id'] = str(
-                        job.api_definition_version_id
-                    )
-                job_dicts.append(job_dict)
-            return job_dicts
-        finally:
-            session.close()
+    # Removed: list_target_jobs (use list_jobs with filters instead)
 
     def list_session_jobs(self, session_id, limit: int = 10, offset: int = 0):
         session = self.Session()
