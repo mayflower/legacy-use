@@ -98,18 +98,25 @@ async def list_all_jobs(
     if api_name:
         filters['api_name'] = api_name
 
-    # Pass filters to database methods
-    jobs_data = db_tenant.list_jobs(limit=limit, offset=offset, filters=filters)
+    # Pass filters to database methods; include http exchanges in one go for metrics
+    jobs_data = db_tenant.list_jobs(
+        limit=limit,
+        offset=offset,
+        filters=filters,
+        include_http_exchanges=True,
+    )
     total_count = db_tenant.count_jobs(filters=filters)
 
     # Compute metrics for each job
     enriched_jobs = []
     for job_dict in jobs_data:
-        # Convert dict to Job model if needed, or assume db returns dict compatible with Job model
-        job_model = Job(**job_dict)
-        http_exchanges = db_tenant.list_job_http_exchanges(
-            job_model.id, use_trimmed=True
-        )
+        # Convert dict to Job model; ignore internal helper fields not in the schema
+        job_dict_for_model = {
+            k: v for k, v in job_dict.items() if k != 'http_exchanges'
+        }
+        job_model = Job(**job_dict_for_model)
+        # Use exchanges already fetched with the list_jobs call
+        http_exchanges = job_dict.get('http_exchanges', [])
         metrics = compute_job_metrics(job_dict, http_exchanges)
         job_model_dict = job_model.model_dump()  # Use model_dump() for Pydantic v2
         job_model_dict.update(metrics)
