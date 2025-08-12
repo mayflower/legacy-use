@@ -267,7 +267,13 @@ class DatabaseService:
         finally:
             session.close()
 
-    def list_jobs(self, limit: int = 10, offset: int = 0, filters: dict = None):
+    def list_jobs(
+        self,
+        limit: int = 10,
+        offset: int = 0,
+        filters: dict = None,
+        include_http_exchanges: bool = False,
+    ):
         session = self.Session()
         try:
             query = session.query(Job).order_by(Job.created_at.desc())
@@ -291,30 +297,39 @@ class DatabaseService:
                         job.api_definition_version_id
                     )
                 job_dicts.append(job_dict)
-            return job_dicts
-        finally:
-            session.close()
 
-    def list_target_jobs(self, target_id, limit: int = 10, offset: int = 0):
-        session = self.Session()
-        try:
-            jobs = (
-                session.query(Job)
-                .filter(Job.target_id == target_id)
-                .order_by(Job.created_at.desc())
-                .offset(offset)
-                .limit(limit)
-                .all()
-            )
-            job_dicts = []
-            for job in jobs:
-                job_dict = self._to_dict(job)
-                # Include API definition version ID if available
-                if job.api_definition_version_id:
-                    job_dict['api_definition_version_id'] = str(
-                        job.api_definition_version_id
+            # Optionally include http exchanges for all jobs in one query (always trimmed)
+            if include_http_exchanges and job_dicts:
+                job_id_list = [j['id'] for j in job_dicts]
+
+                columns = [
+                    JobLog.id,
+                    JobLog.job_id,
+                    JobLog.timestamp,
+                    JobLog.log_type,
+                    JobLog.content_trimmed,
+                ]
+                logs = (
+                    session.query(*columns)
+                    .filter(
+                        JobLog.log_type == 'http_exchange',
+                        JobLog.job_id.in_(job_id_list),
                     )
-                job_dicts.append(job_dict)
+                    .order_by(JobLog.timestamp)
+                    .all()
+                )
+
+                exchanges_by_job = {}
+                for log in logs:
+                    entry = self._to_http_exchange_trimmed_dict(log)
+                    exchanges_by_job.setdefault(log.job_id, []).append(entry)
+
+                # Attach grouped exchanges to their respective job dicts
+                for job_dict in job_dicts:
+                    job_dict['http_exchanges'] = exchanges_by_job.get(
+                        job_dict['id'], []
+                    )
+
             return job_dicts
         finally:
             session.close()
@@ -498,22 +513,8 @@ class DatabaseService:
                     .all()
                 )
 
-                # Convert to dictionaries and rename content_trimmed to content
-                log_dicts = []
-                for log in logs:
-                    # Convert to dictionary with selected columns only
-                    log_dict = {
-                        'id': log.id,
-                        'job_id': log.job_id,
-                        'timestamp': log.timestamp,
-                        'log_type': log.log_type,
-                    }
-                    # Use content_trimmed as content if available, otherwise set empty dict
-                    log_dict['content'] = (
-                        log.content_trimmed if log.content_trimmed is not None else {}
-                    )
-                    log_dicts.append(log_dict)
-                return log_dicts
+                # Convert to dictionaries using the centralized helper for trimmed shape
+                return [self._to_http_exchange_trimmed_dict(log) for log in logs]
             else:
                 # Load complete log records including the full content
                 logs = (
@@ -862,6 +863,21 @@ class DatabaseService:
             else:
                 result[c.name] = value
         return result
+
+    def _to_http_exchange_trimmed_dict(self, log_row):
+        """Return a trimmed HTTP exchange log dict with 'content' set to trimmed content.
+
+        Expects a row or ORM object that has attributes: id, job_id, timestamp, log_type, content_trimmed.
+        """
+        return {
+            'id': log_row.id,
+            'job_id': log_row.job_id,
+            'timestamp': log_row.timestamp,
+            'log_type': log_row.log_type,
+            'content': log_row.content_trimmed
+            if getattr(log_row, 'content_trimmed', None) is not None
+            else {},
+        }
 
     def get_session_job(self, session_id, job_id):
         session = self.Session()
