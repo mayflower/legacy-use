@@ -182,7 +182,12 @@ async def sampling_loop(
 
         try:
             # Make API call via handler
-            response, request, raw_response = await handler.call_api(
+            (
+                response_params,
+                stop_reason,
+                request,
+                raw_response,
+            ) = await handler.call_api(
                 client=client,
                 messages=provider_messages,
                 system=system,
@@ -235,9 +240,6 @@ async def sampling_loop(
         except asyncio.CancelledError:
             logger.info('Sampling loop cancelled after API call')
             raise
-
-        # Convert response to Anthropic format
-        response_params, stop_reason = handler.convert_from_provider_response(response)
 
         # --- Save Assistant Message to DB --- START
         try:

@@ -92,9 +92,9 @@ class ProviderHandler(Protocol):
         max_tokens: int,
         temperature: float = 0.0,
         **kwargs,
-    ) -> tuple[Any, httpx.Request, httpx.Response]:
+    ) -> tuple[list[BetaContentBlockParam], str, httpx.Request, httpx.Response]:
         """
-        Make the API call to the provider.
+        Make the API call to the provider and return standardized response.
 
         Args:
             client: The provider client instance
@@ -107,22 +107,7 @@ class ProviderHandler(Protocol):
             **kwargs: Additional provider-specific parameters
 
         Returns:
-            Tuple of (parsed_response, request, raw_response)
-        """
-        ...
-
-    @abstractmethod
-    def convert_from_provider_response(
-        self, response: Any
-    ) -> tuple[list[BetaContentBlockParam], str]:
-        """
-        Convert provider response to Anthropic-format blocks and stop reason.
-
-        Args:
-            response: The provider's parsed response
-
-        Returns:
-            Tuple of (content_blocks, stop_reason)
+            Tuple of (content_blocks, stop_reason, request, raw_response)
         """
         ...
 

@@ -164,7 +164,7 @@ class AnthropicHandler(BaseProviderHandler):
             betas.append(self.tool_beta_flag)
         return betas
 
-    async def call_api(
+    async def _call_raw_api(
         self,
         client: AnthropicClient,
         messages: list[BetaMessageParam],
@@ -175,7 +175,7 @@ class AnthropicHandler(BaseProviderHandler):
         temperature: float = 0.0,
         **kwargs,
     ) -> tuple[BetaMessage, httpx.Request, httpx.Response]:
-        """Make API call to Anthropic."""
+        """Make raw API call to Anthropic and return provider-specific response."""
         betas = self.get_betas()
 
         # iterate recursively and shorten any message longer than 10000 characters to 10
@@ -225,7 +225,42 @@ class AnthropicHandler(BaseProviderHandler):
             # Re-raise with original exception for proper error handling
             raise e
 
-    def convert_from_provider_response(
+    async def call_api(
+        self,
+        client: AnthropicClient,
+        messages: list[BetaMessageParam],
+        system: BetaTextBlockParam,
+        tools: list[BetaToolUnionParam],
+        model: str,
+        max_tokens: int,
+        temperature: float = 0.0,
+        **kwargs,
+    ) -> tuple[list[BetaContentBlockParam], str, httpx.Request, httpx.Response]:
+        """
+        Make API call to Anthropic and return standardized response format.
+
+        This is the public interface that calls the raw API and converts the response.
+        """
+        # Call the raw API
+        parsed_response, request, raw_response = await self._call_raw_api(
+            client=client,
+            messages=messages,
+            system=system,
+            tools=tools,
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            **kwargs,
+        )
+
+        # Convert response to standardized format
+        content_blocks, stop_reason = self._convert_from_provider_response(
+            parsed_response
+        )
+
+        return content_blocks, stop_reason, request, raw_response
+
+    def _convert_from_provider_response(
         self, response: BetaMessage
     ) -> tuple[list[BetaContentBlockParam], str]:
         """
