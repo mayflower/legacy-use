@@ -115,8 +115,7 @@ async def list_all_jobs(
         metrics = compute_job_metrics(job_dict, http_exchanges)
 
         # Convert dict to Job model; ignore internal helper fields not in the schema
-        job_model = Job(**{k: v for k, v in job_dict.items() if k != 'http_exchanges'})
-        job_model_dict = job_model.model_dump()  # Use model_dump() for Pydantic v2
+        job_model_dict = {k: v for k, v in job_dict.items() if k != 'http_exchanges'}
         job_model_dict.update(metrics)
         enriched_jobs.append(Job(**job_model_dict))
 
