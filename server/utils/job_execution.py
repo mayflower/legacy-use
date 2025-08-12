@@ -67,6 +67,10 @@ async def worker_loop_for_tenant(tenant_schema: str):
 
     while True:
         try:
+            # Expire stale RUNNING jobs for this tenant before claiming
+            with with_db(tenant_schema) as db_session:
+                db = TenantAwareDatabaseService(db_session)
+                db.expire_stale_running_jobs()
             claimed = None
             with with_db(tenant_schema) as db_session:
                 db = TenantAwareDatabaseService(db_session)
@@ -75,10 +79,28 @@ async def worker_loop_for_tenant(tenant_schema: str):
                 await asyncio.sleep(0.5)
                 continue
             job = Job(**claimed)
-            await process_job_with_tenant(job, tenant_schema)
+            # Maintain a lease heartbeat during execution
+            lease_task = asyncio.create_task(_lease_heartbeat(job, tenant_schema))
+            try:
+                await process_job_with_tenant(job, tenant_schema)
+            finally:
+                lease_task.cancel()
         except Exception as e:
             logger.error(f'Worker loop error (tenant={tenant_schema}): {e}')
             await asyncio.sleep(1.0)
+
+
+async def _lease_heartbeat(job: Job, tenant_schema: str):
+    from server.database.multi_tenancy import with_db
+
+    try:
+        while True:
+            await asyncio.sleep(10)
+            with with_db(tenant_schema) as db_session:
+                db = TenantAwareDatabaseService(db_session)
+                db.renew_job_lease(job.id, WORKER_ID)
+    except asyncio.CancelledError:
+        return
 
 
 async def process_job_queue_for_tenant(tenant_schema: str):

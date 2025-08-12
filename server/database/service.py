@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from sqlalchemy import Integer, cast, func
+from sqlalchemy import Integer, cast, func, or_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
 import sqlalchemy as sa
@@ -327,6 +327,63 @@ class DatabaseService:
             except Exception:
                 trans.rollback()
                 raise
+        finally:
+            session.close()
+
+    def expire_stale_running_jobs(self) -> list[dict]:
+        """Mark RUNNING jobs with expired or missing leases as ERROR.
+
+        Returns a list of affected job dicts.
+        """
+        session = self.Session()
+        try:
+            now = datetime.utcnow()
+            stale_jobs = (
+                session.query(Job)
+                .filter(
+                    Job.status == 'RUNNING',
+                    or_(Job.lease_expires_at.is_(None), Job.lease_expires_at < now),
+                )
+                .all()
+            )
+            affected = []
+            for job in stale_jobs:
+                job.status = 'ERROR'
+                job.error = 'Lease expired; worker likely terminated'
+                job.completed_at = now
+                job.updated_at = now
+                job.lease_owner = None
+                job.lease_expires_at = None
+                affected.append(self._to_dict(job))
+            if affected:
+                session.commit()
+            return affected
+        finally:
+            session.close()
+
+    def renew_job_lease(
+        self, job_id: UUID, lease_owner: str, lease_seconds: int = 300
+    ) -> bool:
+        """Extend the lease for a RUNNING job if owned by this worker."""
+        session = self.Session()
+        try:
+            now = datetime.utcnow()
+            lease_exp = now + timedelta(seconds=lease_seconds)
+            job = (
+                session.query(Job)
+                .filter(
+                    Job.id == job_id,
+                    Job.status == 'RUNNING',
+                    Job.lease_owner == lease_owner,
+                )
+                .first()
+            )
+            if not job:
+                return False
+            job.lease_expires_at = lease_exp
+            job.updated_at = now
+            session.commit()
+            return True
         finally:
             session.close()
 
