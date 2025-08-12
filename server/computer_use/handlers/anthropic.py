@@ -35,10 +35,9 @@ from server.computer_use.utils import (
 from server.settings import settings
 
 
-type AnthropicClient = (
+AnthropicClient = (
     AsyncAnthropic | AsyncAnthropicBedrock | AsyncAnthropicVertex | LegacyUseClient
 )
-
 
 class AnthropicHandler(BaseProviderHandler):
     """Handler for Anthropic API providers (direct, Bedrock, Vertex)."""
