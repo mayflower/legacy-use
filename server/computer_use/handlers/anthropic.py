@@ -5,7 +5,7 @@ This handler manages all Anthropic-specific logic including Claude models
 via direct API, Bedrock, and Vertex AI.
 """
 
-from typing import Optional, cast
+from typing import Iterable, Optional, cast
 
 import httpx
 from anthropic import (
@@ -38,6 +38,7 @@ from server.settings import settings
 AnthropicClient = (
     AsyncAnthropic | AsyncAnthropicBedrock | AsyncAnthropicVertex | LegacyUseClient
 )
+
 
 class AnthropicHandler(BaseProviderHandler):
     """Handler for Anthropic API providers (direct, Bedrock, Vertex)."""
@@ -119,18 +120,18 @@ class AnthropicHandler(BaseProviderHandler):
                 aws_session_token=aws_session_token or None,
             )
         elif self.provider == APIProvider.LEGACYUSE_PROXY:
-         elif self.provider == APIProvider.LEGACYUSE_PROXY:
-             proxy_key = (
-                 self.tenant_setting('LEGACYUSE_PROXY_API_KEY')
-                 or getattr(settings, 'LEGACYUSE_PROXY_API_KEY', None)
-             )
-             if not proxy_key:
-                 raise ValueError('LEGACYUSE_PROXY_API_KEY is required for LegacyUseClient')
-             return LegacyUseClient(api_key=proxy_key)
+            proxy_key = self.tenant_setting('LEGACYUSE_PROXY_API_KEY') or getattr(
+                settings, 'LEGACYUSE_PROXY_API_KEY', None
+            )
+            if not proxy_key:
+                raise ValueError(
+                    'LEGACYUSE_PROXY_API_KEY is required for LegacyUseClient'
+                )
+            return LegacyUseClient(api_key=proxy_key)
         else:
             raise ValueError(f'Unsupported Anthropic provider: {self.provider}')
 
-    def prepare_system(self, system_prompt: str) -> BetaTextBlockParam:
+    def prepare_system(self, system_prompt: str) -> Iterable[BetaTextBlockParam]:
         """Prepare system prompt as Anthropic BetaTextBlockParam."""
         system = BetaTextBlockParam(type='text', text=system_prompt)
 
@@ -138,7 +139,7 @@ class AnthropicHandler(BaseProviderHandler):
         if self.enable_prompt_caching:
             system['cache_control'] = {'type': 'ephemeral'}
 
-        return system
+        return [system]
 
     def convert_to_provider_messages(
         self, messages: list[BetaMessageParam]
@@ -170,7 +171,7 @@ class AnthropicHandler(BaseProviderHandler):
         self,
         client: AnthropicClient,
         messages: list[BetaMessageParam],
-        system: BetaTextBlockParam,
+        system: Iterable[BetaTextBlockParam],
         tools: list[BetaToolUnionParam],
         model: str,
         max_tokens: int,
@@ -180,33 +181,12 @@ class AnthropicHandler(BaseProviderHandler):
         """Make raw API call to Anthropic and return provider-specific response."""
         betas = self.get_betas()
 
-        # iterate recursively and shorten any message longer than 10000 characters to 10
-        def shorten_message(message):
-            if isinstance(message, list):
-                return [shorten_message(m) for m in message]
-            elif isinstance(message, dict):
-                return {
-                    shorten_message(k): shorten_message(v) for k, v in message.items()
-                }
-            elif isinstance(message, str):
-                if len(message) > 10000:
-                    return message[:7] + '...'
-                else:
-                    return message
-            return message
-
-        logger.info(f'Shortened messages: {shorten_message(messages)}')
-
         try:
-            # Some client variants expect `system` as str; extract from BetaTextBlockParam
-            system_text = (
-                system.get('text') if isinstance(system, dict) else str(system)
-            )
             raw_response = await client.beta.messages.with_raw_response.create(
                 max_tokens=max_tokens,
                 messages=messages,
                 model=model,
-                system=system_param if 'system_param' in locals() else system_text,
+                system=system,
                 tools=tools,
                 betas=betas,
                 temperature=temperature,
@@ -232,7 +212,7 @@ class AnthropicHandler(BaseProviderHandler):
         self,
         client: AnthropicClient,
         messages: list[BetaMessageParam],
-        system: BetaTextBlockParam,
+        system: Iterable[BetaTextBlockParam],
         tools: list[BetaToolUnionParam],
         model: str,
         max_tokens: int,
