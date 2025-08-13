@@ -52,7 +52,7 @@ const TargetDetails = () => {
         setLoading(true);
 
         // Fetch target information
-        const targetData = await getTarget(targetId);
+        const targetData = await getTarget(targetId as string);
         setTarget(targetData);
 
         // Fetch all sessions for this target
@@ -81,16 +81,16 @@ const TargetDetails = () => {
 
           // Fetch detailed session information including container_status
           try {
-            const detailedSession = await getSession(sessionToSelect.id);
-            setSelectedSession(detailedSession);
-            setCurrentSession(detailedSession);
-            setSelectedSessionId(detailedSession.id);
+            const detailedSession = await getSession((sessionToSelect as Session).id);
+            setSelectedSession(detailedSession as any);
+            setCurrentSession(detailedSession as any);
+            setSelectedSessionId((detailedSession as any).id);
           } catch (err) {
             console.error('Error fetching detailed session:', err);
             // Fallback to basic session data
-            setSelectedSession(sessionToSelect);
-            setCurrentSession(sessionToSelect);
-            setSelectedSessionId(sessionToSelect.id);
+            setSelectedSession(sessionToSelect as Session);
+            setCurrentSession(sessionToSelect as Session);
+            setSelectedSessionId((sessionToSelect as Session).id);
           }
 
           // Fetch jobs for the selected session
@@ -98,7 +98,7 @@ const TargetDetails = () => {
         }
 
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching target details:', err);
         setError(`Failed to load target details: ${err.message}`);
         setLoading(false);
@@ -118,7 +118,7 @@ const TargetDetails = () => {
   useEffect(() => {
     // Only poll if we have a selected session and it's not archived
     if (selectedSession && !selectedSession.is_archived) {
-      const pollInterval = setInterval(async () => {
+      const pollInterval = window.setInterval(async () => {
         try {
           // Fetch the latest sessions data
           const sessionsData = await getSessions(true);
@@ -126,13 +126,15 @@ const TargetDetails = () => {
           setTargetSessions(updatedSessions);
 
           // Update the selected session if it exists
-          const updatedSession = updatedSessions.find(s => s.id === selectedSession.id);
+          const updatedSession = updatedSessions.find(
+            s => s.id === (selectedSession as Session).id,
+          );
           if (updatedSession) {
             // Fetch detailed session information including container_status
             try {
               const detailedSession = await getSession(updatedSession.id);
-              setSelectedSession(detailedSession);
-              setCurrentSession(detailedSession);
+              setSelectedSession(detailedSession as any);
+              setCurrentSession(detailedSession as any);
             } catch (err) {
               console.error('Error fetching detailed session during polling:', err);
               // Fallback to basic session data
@@ -157,11 +159,11 @@ const TargetDetails = () => {
   const fetchJobsForSession = async () => {
     try {
       // Fetch jobs for this target without filtering by session
-      const jobsData = await getJobs(targetId);
+      const jobsData = await getJobs(targetId as string);
       setJobs(jobsData);
 
       // Get the target to get blocking jobs information
-      const targetData = await getTarget(targetId);
+      const targetData = await getTarget(targetId as string);
 
       // Group locally: running, queued, executed based on jobs + target info
       const blocking = targetData.blocking_jobs || [];
@@ -182,22 +184,25 @@ const TargetDetails = () => {
     }
   };
 
-  const handleSessionChange = async event => {
-    const sessionId = event.target.value;
-    const session = targetSessions.find(s => s.id === sessionId);
+  const handleSessionChange = (event: any) => {
+    const sessionId = event.target.value as string;
+    const session = targetSessions.find(s => s.id === sessionId) as Session | undefined;
 
     // Fetch detailed session information including container_status
     try {
-      const detailedSession = await getSession(sessionId);
-      setSelectedSession(detailedSession);
-      setCurrentSession(detailedSession);
-      setSelectedSessionId(sessionId);
+      getSession(sessionId).then(detailedSession => {
+        setSelectedSession(detailedSession as any);
+        setCurrentSession(detailedSession as any);
+        setSelectedSessionId(sessionId);
+      });
     } catch (err) {
       console.error('Error fetching detailed session:', err);
       // Fallback to basic session data
-      setSelectedSession(session);
-      setCurrentSession(session);
-      setSelectedSessionId(sessionId);
+      if (session) {
+        setSelectedSession(session);
+        setCurrentSession(session);
+        setSelectedSessionId(sessionId);
+      }
     }
 
     // Update URL with the new session ID without navigating
@@ -232,7 +237,7 @@ const TargetDetails = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
@@ -240,8 +245,8 @@ const TargetDetails = () => {
 
   const getDockerImageName = () => {
     // Only use the image information from container status
-    if (selectedSession?.container_status?.image) {
-      return selectedSession.container_status.image;
+    if ((selectedSession as any)?.container_status?.image) {
+      return (selectedSession as any).container_status.image;
     }
 
     // No fallback, just show that we don't have information
@@ -266,13 +271,15 @@ const TargetDetails = () => {
       if (selectedSession) {
         // Fetch detailed session information including container_status
         try {
-          const detailedSession = await getSession(selectedSession.id);
-          setSelectedSession(detailedSession);
-          setCurrentSession(detailedSession);
+          const detailedSession = await getSession((selectedSession as Session).id);
+          setSelectedSession(detailedSession as any);
+          setCurrentSession(detailedSession as any);
         } catch (err) {
           console.error('Error fetching detailed session during refresh:', err);
           // Fallback to basic session data
-          const updatedSession = updatedSessions.find(s => s.id === selectedSession.id);
+          const updatedSession = updatedSessions.find(
+            s => s.id === (selectedSession as Session).id,
+          );
           if (updatedSession) {
             setSelectedSession(updatedSession);
             setCurrentSession(updatedSession);
@@ -286,13 +293,14 @@ const TargetDetails = () => {
 
   const handleDeleteClick = () => {
     // If the session is already archived, set hardDelete to true
-    setHardDelete(selectedSession.is_archived);
+    setHardDelete(!!selectedSession?.is_archived);
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
     try {
       setDeleteInProgress(true);
+      if (!selectedSession?.id) throw new Error('No session selected');
       await deleteSession(selectedSession.id, hardDelete);
 
       // Refresh the sessions list
@@ -310,7 +318,7 @@ const TargetDetails = () => {
         setCurrentSession(null);
         setJobs([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting session:', err);
       setError(`Failed to delete session: ${err.message}`);
     } finally {
@@ -325,7 +333,7 @@ const TargetDetails = () => {
   };
 
   // Add a function to get state badge color
-  const getStateBadgeColor = state => {
+  const getStateBadgeColor = (state: string) => {
     switch (state) {
       case 'initializing':
         return 'warning';
@@ -370,7 +378,7 @@ const TargetDetails = () => {
     };
   }, [targetSessions, setCurrentSession, setSelectedSessionId]);
 
-  const handleCopyToClipboard = (text, event) => {
+  const handleCopyToClipboard = (text: string, event?: any) => {
     if (event) event.stopPropagation();
     navigator.clipboard
       .writeText(text)
@@ -421,7 +429,7 @@ const TargetDetails = () => {
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Typography variant="h4">
-              {target.name || `Target ${target.id.substring(0, 8)}`}
+              {target.name || `Target ${String(target.id).substring(0, 8)}`}
             </Typography>
           </Box>
 

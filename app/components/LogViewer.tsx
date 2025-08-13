@@ -26,15 +26,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Custom component for displaying logs with syntax highlighting
 const LogViewer = ({ logs }) => {
-  const logEndRef = useRef(null);
-  const scrollContainerRef = useRef(null);
-  const [expandedImage, setExpandedImage] = useState(null);
-  const [screenshots, setScreenshots] = useState([]);
-  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const logEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  type Screenshot = { logIndex: number; data: any; format: string };
+  const [expandedImage, setExpandedImage] = useState<Screenshot | null>(null);
+  const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
+  const [userHasScrolled, setUserHasScrolled] = useState<boolean>(false);
 
   // Group related logs together (can be defined outside or memoized if needed)
-  const groupRelatedLogs = useCallback(logsToGroup => {
-    const groupedLogs = [];
+  const groupRelatedLogs = useCallback((logsToGroup: any[]) => {
+    const groupedLogs: any[] = [];
     let i = 0;
 
     while (i < logsToGroup.length) {
@@ -121,7 +122,7 @@ const LogViewer = ({ logs }) => {
 
   // Extract screenshots from processed logs
   useEffect(() => {
-    const extractedScreenshots = [];
+    const extractedScreenshots: Screenshot[] = [];
     processedLogs.forEach((log, index) => {
       if (hasImage(log)) {
         const data = getImageData(log);
@@ -243,10 +244,10 @@ const LogViewer = ({ logs }) => {
   }
 
   // Helper function to recursively replace base64 image data with a placeholder
-  const hideBase64Images = obj => {
+  const hideBase64Images = (obj: any) => {
     if (!obj || typeof obj !== 'object') return obj;
 
-    const result = Array.isArray(obj) ? [...obj] : { ...obj };
+    const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
 
     for (const key in result) {
       if (
@@ -264,7 +265,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Function to properly format log entries
-  const formatLog = log => {
+  const formatLog = (log: any) => {
     if (typeof log === 'string') {
       return log;
     } else if (typeof log === 'object' && log !== null) {
@@ -332,7 +333,7 @@ const LogViewer = ({ logs }) => {
             // Try to extract and format the extraction result
             const resultContent = log.tool_result.content;
             if (Array.isArray(resultContent)) {
-              const textBlock = resultContent.find(item => item.type === 'text');
+              const textBlock = resultContent.find((item: any) => item.type === 'text');
               if (textBlock?.text) {
                 try {
                   const jsonData = JSON.parse(textBlock.text);
@@ -402,7 +403,7 @@ const LogViewer = ({ logs }) => {
           try {
             // Try to extract and format the JSON data from the result
             if (Array.isArray(log.content.content) && log.content.content.length > 0) {
-              const textContent = log.content.content.find(item => item.type === 'text');
+              const textContent = log.content.content.find((item: any) => item.type === 'text');
               if (textContent?.text) {
                 try {
                   const jsonData = JSON.parse(textContent.text);
@@ -452,7 +453,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Function to determine log icon based on type
-  const getLogIcon = log => {
+  const getLogIcon = (log: any) => {
     if (typeof log === 'object' && log !== null) {
       const type = log.type;
       const content = formatLog(log);
@@ -581,7 +582,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Function to get the base64 image from a log entry
-  const getImageData = log => {
+  const getImageData = (log: any) => {
     // Prioritize tool_result if available
     if (log?.tool_result?.content?.base64_image) {
       return log.tool_result.content.base64_image;
@@ -601,14 +602,14 @@ const LogViewer = ({ logs }) => {
 
         // Check keys ending with _image
         for (const key in log.content) {
-          if (key.endsWith('_image') && typeof log.content[key] === 'string') {
-            return log.content[key];
+          if (key.endsWith('_image') && typeof (log.content as any)[key] === 'string') {
+            return (log.content as any)[key];
           }
         }
         if (log.content.output) {
           for (const key in log.content.output) {
-            if (key.endsWith('_image') && typeof log.content.output[key] === 'string') {
-              return log.content.output[key];
+            if (key.endsWith('_image') && typeof (log.content.output as any)[key] === 'string') {
+              return (log.content.output as any)[key];
             }
           }
         }
@@ -619,7 +620,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Function to check if a log entry has an image (more robust check)
-  const hasImage = log => {
+  const hasImage = (log: any) => {
     if (!log || typeof log !== 'object') return false;
 
     // Check explicit flags first
@@ -638,7 +639,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Function to determine the image format
-  const getImageFormat = base64String => {
+  const getImageFormat = (base64String: string) => {
     if (!base64String || typeof base64String !== 'string') return 'image/png'; // Default or handle error
 
     if (base64String.startsWith('/9j/')) {
@@ -656,7 +657,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Update handleImageClick to store the logIndex of the clicked image
-  const handleImageClick = logIndex => {
+  const handleImageClick = (logIndex: number) => {
     const screenshot = screenshots.find(s => s.logIndex === logIndex);
     if (screenshot) {
       setExpandedImage({
@@ -668,7 +669,7 @@ const LogViewer = ({ logs }) => {
   };
 
   // Function to format timestamp for display
-  const formatTimestamp = timestamp => {
+  const formatTimestamp = (timestamp?: string) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
     return date.toLocaleString();

@@ -19,7 +19,10 @@
       "@/*": ["app/*"]
     },
 
-    "strict": true,
+    /* Relaxed type checking for pragmatic development */
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

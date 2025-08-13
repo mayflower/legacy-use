@@ -16,7 +16,7 @@ const DuplicateApiDialog = ({ open, onClose, onApiDuplicated, apiName }) => {
   const navigate = useNavigate();
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = e => {
     setNewName(e.target.value);
@@ -34,12 +34,16 @@ const DuplicateApiDialog = ({ open, onClose, onApiDuplicated, apiName }) => {
       setError(null);
 
       // Get the original API definition
-      const originalApiDefinition = await getApiDefinitionDetails(apiName);
+      const originalApiDefinition: any = await getApiDefinitionDetails(apiName);
 
       // Create duplicated API definition with the new name
       const duplicatedApiDefinition = {
-        ...originalApiDefinition,
         name: newName.trim(),
+        description: originalApiDefinition.description || '',
+        parameters: originalApiDefinition.parameters || [],
+        prompt: originalApiDefinition.prompt || '',
+        prompt_cleanup: originalApiDefinition.prompt_cleanup || '',
+        response_example: originalApiDefinition.response_example || {},
       };
 
       // Import the API definition (creates a new one)
@@ -55,7 +59,7 @@ const DuplicateApiDialog = ({ open, onClose, onApiDuplicated, apiName }) => {
 
       // Redirect to edit page for the new API
       navigate(`/apis/${newName.trim()}/edit`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error duplicating API:', err);
       setError(err.response?.data?.detail || 'Failed to duplicate API');
     } finally {
