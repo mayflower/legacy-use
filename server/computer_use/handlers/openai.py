@@ -39,6 +39,8 @@ from openai.types.chat import (
     ChatCompletionMessageToolCallParam,
 )
 
+import openai
+
 
 class OpenAIHandler(BaseProviderHandler):
     """
@@ -71,7 +73,6 @@ class OpenAIHandler(BaseProviderHandler):
             **kwargs,
         )
         self.model = model
-        # Keep this handler focused on Chat Completions + function calling
 
     async def initialize_client(
         self, api_key: str, **kwargs
@@ -358,6 +359,7 @@ class OpenAIHandler(BaseProviderHandler):
         **kwargs,
     ) -> tuple[ChatCompletion, httpx.Request, httpx.Response]:
         """Make raw API call to OpenAI and return provider-specific response."""
+        print(f'oai version: {openai.__version__}')
         logger.info('=== OpenAI API Call ===')
         logger.info(f'Model: {model}')
         logger.info(f'Tenant schema: {self.tenant_schema}')
@@ -396,7 +398,7 @@ class OpenAIHandler(BaseProviderHandler):
 
         logger.info(f'Tools: {tools}')
 
-        response = await client.chat.completions.with_raw_response.create(
+        response = await client.beta.chat.completions.with_raw_response.create(
             model=model,
             messages=full_messages,
             tools=tools,
