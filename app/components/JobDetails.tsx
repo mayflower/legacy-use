@@ -43,7 +43,7 @@ const JobDetails = () => {
   const [error, setError] = useState(null);
   const [logs, setLogs] = useState([]);
   const [httpExchanges, setHttpExchanges] = useState([]);
-  const [logsLoading, setLogsLoading] = useState(true);
+  const [, setLogsLoading] = useState(true);
   const [httpExchangesLoading, setHttpExchangesLoading] = useState(false);
   const [httpExchangesLoaded, setHttpExchangesLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
