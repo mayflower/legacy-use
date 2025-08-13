@@ -178,7 +178,7 @@ async def sampling_loop(
                 stop_reason,
                 request,
                 raw_response,
-            ) = await handler.call_api(
+            ) = await handler.execute(
                 client=client,
                 messages=current_messages_for_api,  # Pass raw Anthropic format
                 system=system_prompt,  # type: ignore[arg-type]  # Pass raw string
@@ -339,7 +339,7 @@ async def sampling_loop(
                 result = await tool_collection.run(
                     name=content_block['name'],
                     tool_input=cast(dict[str, Any], content_block['input']),
-                    session_id=session_id or '',  # Provide empty string if None
+                    session_id=session_id or '',
                     session=session_obj,
                 )
 
