@@ -224,7 +224,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     setError('');
 
     try {
-      let credentials = {};
+      let credentials: any = {};
 
       if (selectedProvider === 'anthropic') {
         if (!apiKeyInput.trim()) {

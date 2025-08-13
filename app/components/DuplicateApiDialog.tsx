@@ -34,12 +34,16 @@ const DuplicateApiDialog = ({ open, onClose, onApiDuplicated, apiName }) => {
       setError(null);
 
       // Get the original API definition
-      const originalApiDefinition = await getApiDefinitionDetails(apiName);
+      const originalApiDefinition: any = await getApiDefinitionDetails(apiName);
 
       // Create duplicated API definition with the new name
       const duplicatedApiDefinition = {
-        ...originalApiDefinition,
         name: newName.trim(),
+        description: originalApiDefinition.description || '',
+        parameters: originalApiDefinition.parameters || [],
+        prompt: originalApiDefinition.prompt || '',
+        prompt_cleanup: originalApiDefinition.prompt_cleanup || '',
+        response_example: originalApiDefinition.response_example || {},
       };
 
       // Import the API definition (creates a new one)

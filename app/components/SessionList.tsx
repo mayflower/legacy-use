@@ -208,7 +208,7 @@ const SessionList = () => {
               </TableHead>
               <TableBody>
                 {[...sessions]
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map(session => (
                     <TableRow

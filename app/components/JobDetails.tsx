@@ -209,7 +209,7 @@ const JobDetails = () => {
           const sessionData = await getSession(job.session_id);
           if (sessionData) {
             setSelectedSessionId(job.session_id);
-            setCurrentSession(sessionData);
+            setCurrentSession(sessionData as any);
           }
         } catch (err) {
           console.error('Error fetching session details for VNC viewer:', err);
@@ -445,7 +445,7 @@ const JobDetails = () => {
     if (!startDate) return 'N/A';
     const start = new Date(startDate);
     const end = endDate ? new Date(endDate) : new Date();
-    const diff = end - start;
+    const diff = end.getTime() - start.getTime();
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -504,7 +504,7 @@ const JobDetails = () => {
       const jobData = {
         api_name: originalJob.api_name,
         parameters: originalJob.parameters,
-        api_definition_version: originalJob.api_definition_version,
+        api_definition_version: originalJob.api_definition_version_id,
       };
 
       const newJob = await createJob(selectedTargetId, jobData);
@@ -527,7 +527,7 @@ const JobDetails = () => {
       // If no result but we have the API name, try to get the example response
       const fetchApiExample = async () => {
         try {
-          const apiDefinition = await getApiDefinitionDetails(job.api_name);
+          const apiDefinition: any = await getApiDefinitionDetails(job.api_name);
           if (apiDefinition?.response_example) {
             setResolveResult(apiDefinition.response_example);
           } else {
@@ -769,13 +769,11 @@ const JobDetails = () => {
             output: job?.total_output_tokens || 0,
           }}
           getStatusColor={getStatusColor}
-          onRefresh={handleRefresh}
           onRerun={handleRerun}
           onStop={handleInterruptJob}
           onCancel={handleCancelJob}
           onResolve={handleResolveJob}
           onResume={handleResumeJob}
-          loading={loading}
           rerunning={rerunning}
           interrupting={interrupting}
           resolving={resolving}
@@ -800,22 +798,9 @@ const JobDetails = () => {
           job={job || {}}
           regularLogs={logs}
           httpExchanges={httpExchanges}
-          logsLoading={logsLoading}
+
           httpExchangesLoading={httpExchangesLoading}
           hasHttpExchanges={true}
-          onRefresh={handleRefresh}
-          onRerun={handleRerun}
-          onStop={handleInterruptJob}
-          onCancel={handleCancelJob}
-          onResolve={handleResolveJob}
-          onResume={handleResumeJob}
-          loading={loading}
-          rerunning={rerunning}
-          interrupting={interrupting}
-          resolving={resolving}
-          canceling={canceling}
-          resuming={resuming}
-          normalizedJobStatus={normalizedJobStatus}
         />
       </Box>
 

@@ -59,8 +59,8 @@ const TargetList = () => {
   const [editTargetDialogOpen, setEditTargetDialogOpen] = useState(false);
   const [targetToEdit, setTargetToEdit] = useState(null);
   const [editInProgress, setEditInProgress] = useState(false);
-  const [editFormData, setEditFormData] = useState({});
-  const [validationErrors, setValidationErrors] = useState({});
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [validationErrors, setValidationErrors] = useState<any>({});
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -256,7 +256,7 @@ const TargetList = () => {
   };
 
   const validateEditForm = () => {
-    const errors = {};
+    const errors: any = {};
 
     if (!editFormData.name.trim()) {
       errors.name = 'Name is required';

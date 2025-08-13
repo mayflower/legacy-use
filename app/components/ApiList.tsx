@@ -293,7 +293,7 @@ const ApiList = () => {
       const reader = new FileReader();
       reader.onload = async e => {
         try {
-          const content = JSON.parse(e.target.result);
+          const content = JSON.parse(e.target.result as string);
 
           // Check if the file has the expected structure
           if (!content.api_definition) {
@@ -303,7 +303,7 @@ const ApiList = () => {
           }
 
           // Import the API definition
-          const result = await importApiDefinition({ api_definition: content.api_definition });
+                      const result = await importApiDefinition(content.api_definition);
 
           // Show success message
           setSnackbarMessage(result.message);

@@ -48,7 +48,7 @@ const CreateTarget = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState<any>({});
 
   // Check if OpenVPN is allowed based on environment variable
   const isOpenVPNAllowed = import.meta.env.VITE_ALLOW_OPENVPN === 'true';
@@ -104,7 +104,7 @@ const CreateTarget = () => {
   };
 
   const validateForm = () => {
-    const errors = {};
+    const errors: any = {};
 
     if (!targetData.name.trim()) {
       errors.name = 'Name is required';
@@ -170,7 +170,7 @@ const CreateTarget = () => {
 
       // No need to concatenate VPN fields anymore - they are sent as separate fields
 
-      await createTarget(submissionData);
+      await createTarget(submissionData as any);
 
       setSuccess(true);
       setLoading(false);

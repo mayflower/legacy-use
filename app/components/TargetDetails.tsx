@@ -83,9 +83,9 @@ const TargetDetails = () => {
           // Fetch detailed session information including container_status
           try {
             const detailedSession = await getSession(sessionToSelect.id);
-            setSelectedSession(detailedSession);
-            setCurrentSession(detailedSession);
-            setSelectedSessionId(detailedSession.id);
+            setSelectedSession(detailedSession as any);
+            setCurrentSession(detailedSession as any);
+            setSelectedSessionId((detailedSession as any).id);
           } catch (err) {
             console.error('Error fetching detailed session:', err);
             // Fallback to basic session data
@@ -132,8 +132,8 @@ const TargetDetails = () => {
             // Fetch detailed session information including container_status
             try {
               const detailedSession = await getSession(updatedSession.id);
-              setSelectedSession(detailedSession);
-              setCurrentSession(detailedSession);
+              setSelectedSession(detailedSession as any);
+              setCurrentSession(detailedSession as any);
             } catch (err) {
               console.error('Error fetching detailed session during polling:', err);
               // Fallback to basic session data
@@ -181,7 +181,7 @@ const TargetDetails = () => {
         );
 
         setQueuedJobs(queued);
-        setBlockingJobs(blocking);
+        setBlockingJobs(blocking as any);
         setExecutedJobs(executed);
       } catch (queueErr) {
         console.error('Error fetching queue status:', queueErr);
@@ -201,8 +201,8 @@ const TargetDetails = () => {
     // Fetch detailed session information including container_status
     try {
       const detailedSession = await getSession(sessionId);
-      setSelectedSession(detailedSession);
-      setCurrentSession(detailedSession);
+      setSelectedSession(detailedSession as any);
+      setCurrentSession(detailedSession as any);
       setSelectedSessionId(sessionId);
     } catch (err) {
       console.error('Error fetching detailed session:', err);
@@ -252,8 +252,8 @@ const TargetDetails = () => {
 
   const getDockerImageName = () => {
     // Only use the image information from container status
-    if (selectedSession?.container_status?.image) {
-      return selectedSession.container_status.image;
+    if ((selectedSession as any)?.container_status?.image) {
+      return (selectedSession as any).container_status.image;
     }
 
     // No fallback, just show that we don't have information
@@ -279,8 +279,8 @@ const TargetDetails = () => {
         // Fetch detailed session information including container_status
         try {
           const detailedSession = await getSession(selectedSession.id);
-          setSelectedSession(detailedSession);
-          setCurrentSession(detailedSession);
+          setSelectedSession(detailedSession as any);
+          setCurrentSession(detailedSession as any);
         } catch (err) {
           console.error('Error fetching detailed session during refresh:', err);
           // Fallback to basic session data

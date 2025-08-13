@@ -55,15 +55,23 @@ const EditApiDefinition = () => {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
 
   // Load API definition details
   useEffect(() => {
     const fetchApiDefinition = async () => {
       try {
         setLoading(true);
-        const data = await getApiDefinitionDetails(apiName);
-        setApiDefinition(data);
+        const data: any = await getApiDefinitionDetails(apiName);
+        setApiDefinition({
+          name: data.name || '',
+          description: data.description || '',
+          parameters: data.parameters || [],
+          prompt: data.prompt || '',
+          prompt_cleanup: data.prompt_cleanup || '',
+          response_example: data.response_example || {},
+          is_archived: data.is_archived || false,
+        });
         setOriginalApiDefinition(data);
         setLoading(false);
       } catch (err) {
@@ -89,14 +97,14 @@ const EditApiDefinition = () => {
           setSelectedVersionId(versionId);
           const selectedVersion = versionsData.find(v => v.id === versionId);
           if (selectedVersion) {
-            setApiDefinition(prevState => ({
+            setApiDefinition((prevState: any) => ({
               ...prevState,
-              parameters: selectedVersion.parameters,
-              prompt: selectedVersion.prompt,
-              prompt_cleanup: selectedVersion.prompt_cleanup,
-              response_example: selectedVersion.response_example,
+              parameters: selectedVersion.parameters || [],
+              prompt: selectedVersion.prompt || '',
+              prompt_cleanup: selectedVersion.prompt_cleanup || '',
+              response_example: selectedVersion.response_example || {},
             }));
-            setOriginalApiDefinition(prevState => ({
+            setOriginalApiDefinition((prevState: any) => ({
               ...prevState,
               parameters: selectedVersion.parameters,
               prompt: selectedVersion.prompt,
