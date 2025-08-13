@@ -96,10 +96,13 @@ async def _lease_heartbeat(job: Job, tenant_schema: str):
 
     try:
         while True:
-            await asyncio.sleep(10)
+            await asyncio.sleep(2)
             with with_db(tenant_schema) as db_session:
                 db = TenantAwareDatabaseService(db_session)
+                # Renew lease and check for cancel signal
                 db.renew_job_lease(job.id, WORKER_ID)
+                if db.is_job_cancel_requested(job.id):
+                    raise asyncio.CancelledError()
     except asyncio.CancelledError:
         return
 
@@ -144,7 +147,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                     api_response_callback=api_response_callback,
                     tool_callback=tool_callback,
                     output_callback=output_callback,
-                    session_id=str(job.session_id),
+                    session_id=(str(job.session_id) if job.session_id else None),
                 )
 
             # Update job with result and API exchanges using tenant-aware database service
@@ -421,7 +424,9 @@ async def create_and_enqueue_job(
                         launch_session_for_target,
                     )
 
-                    session_info = await launch_session_for_target(str(target_id))
+                    session_info = await launch_session_for_target(
+                        str(target_id), tenant_schema
+                    )
                     if session_info:
                         job_data['session_id'] = session_info['id']
         except Exception:

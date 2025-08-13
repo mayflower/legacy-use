@@ -35,7 +35,6 @@ from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
     create_and_enqueue_job,
-    running_job_tasks,
     start_worker_for_tenant,
 )
 from server.utils.job_utils import compute_job_metrics
@@ -274,29 +273,12 @@ async def interrupt_job(
 
     # Interrupt running job
     if current_status == JobStatus.RUNNING:
-        if job_id_str in running_job_tasks:
-            task = running_job_tasks[job_id_str]
-            if not task.done():
-                task.cancel()
-                interrupted = True
-                logger.info(f'Attempting to interrupt running job {job_id_str}')
-                # The task cancellation will handle status update to ERROR
-            else:
-                logger.warning(
-                    f'Tried to interrupt job {job_id_str}, but task was already done.'
-                )
-        else:
-            logger.warning(
-                f'Tried to interrupt job {job_id_str}, but it was not found in running tasks.'
-            )
-            # Consider updating status to ERROR here if it should be considered an error state
-            db_tenant.update_job_status(job_id, JobStatus.ERROR)
-            add_job_log(
-                job_id_str,
-                'system',
-                'Job interrupt requested, but job was not actively running.',
-                tenant['schema'],
-            )
+        # Cross-process cancel via DB flag only
+        db_tenant.request_job_cancel(job_id)
+        interrupted = True
+        add_job_log(
+            job_id_str, 'system', 'Job cancel requested by user', tenant['schema']
+        )
 
     # Queued -> mark error
     elif current_status == JobStatus.QUEUED:

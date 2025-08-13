@@ -602,6 +602,30 @@ class DatabaseService:
     def update_job_status(self, job_id, status):
         return self.update_job(job_id, {'status': status})
 
+    def request_job_cancel(self, job_id: UUID) -> bool:
+        """Set cancel_requested=true for a job regardless of which worker owns it."""
+        session = self.Session()
+        try:
+            job = session.query(Job).filter(Job.id == job_id).first()
+            if not job:
+                return False
+            job.cancel_requested = True
+            job.updated_at = datetime.utcnow()
+            session.commit()
+            return True
+        finally:
+            session.close()
+
+    def is_job_cancel_requested(self, job_id: UUID) -> bool:
+        session = self.Session()
+        try:
+            value = (
+                session.query(Job.cancel_requested).filter(Job.id == job_id).scalar()
+            )
+            return bool(value)
+        finally:
+            session.close()
+
     # Job Log methods
     def create_job_log(self, log_data):
         session = self.Session()

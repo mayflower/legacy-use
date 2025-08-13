@@ -163,6 +163,8 @@ class Job(Base):
     # Lease fields for resilient workers
     lease_owner = Column(String, nullable=True)
     lease_expires_at = Column(DateTime, nullable=True)
+    # Cooperative cancellation across workers
+    cancel_requested = Column(Boolean, nullable=False, default=False)
 
     target = relationship('Target', back_populates='jobs')
     session = relationship('Session', back_populates='jobs')
