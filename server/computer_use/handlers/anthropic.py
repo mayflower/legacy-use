@@ -49,6 +49,7 @@ class AnthropicHandler(BaseProviderHandler):
         token_efficient_tools_beta: bool = False,
         only_n_most_recent_images: Optional[int] = None,
         tenant_schema: Optional[str] = None,
+        max_retries: int = 2,
         **kwargs,
     ):
         """
@@ -70,6 +71,7 @@ class AnthropicHandler(BaseProviderHandler):
             only_n_most_recent_images=only_n_most_recent_images,
             enable_prompt_caching=enable_prompt_caching,
             tenant_schema=tenant_schema,
+            max_retries=max_retries,
             **kwargs,
         )
 
@@ -134,7 +136,7 @@ class AnthropicHandler(BaseProviderHandler):
         else:
             raise ValueError(f'Unsupported Anthropic provider: {self.provider}')
 
-        client = instructor.from_anthropic(client)
+        client = instructor.from_anthropic(client, max_retries=self.max_retries)
         return client
 
     def prepare_system(self, system_prompt: str) -> Iterable[BetaTextBlockParam]:

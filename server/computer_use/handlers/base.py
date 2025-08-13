@@ -121,6 +121,7 @@ class BaseProviderHandler(ABC):
         only_n_most_recent_images: Optional[int] = None,
         enable_prompt_caching: bool = False,
         tenant_schema: Optional[str] = None,
+        max_retries: int = 2,
         **kwargs,
     ):
         """
@@ -136,6 +137,7 @@ class BaseProviderHandler(ABC):
         self.only_n_most_recent_images = only_n_most_recent_images
         self.enable_prompt_caching = enable_prompt_caching
         self.tenant_schema = tenant_schema
+        self.max_retries = max_retries
         self.extra_params = kwargs
 
     def get_betas(self) -> list[str]:
