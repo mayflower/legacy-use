@@ -48,6 +48,72 @@ class OpenAIHandler(BaseProviderHandler):
     message format and the Anthropic format used for database storage.
     """
 
+    # Computer tool action names exposed as individual functions
+    COMPUTER_ACTIONS = {
+        'screenshot',
+        'left_click',
+        'mouse_move',
+        'type',
+        'key',
+        'scroll',
+        'left_click_drag',
+        'right_click',
+        'middle_click',
+        'double_click',
+        'triple_click',
+        'left_mouse_down',
+        'left_mouse_up',
+        'hold_key',
+        'wait',
+    }
+
+    # Key normalization mappings for computer tool
+    KEY_ALIASES = {
+        'esc': 'Escape',
+        'escape': 'Escape',
+        'enter': 'Return',
+        'return': 'Return',
+        'win': 'Super_L',
+        'windows': 'Super_L',
+        'super': 'Super_L',
+        'meta': 'Super_L',
+        'cmd': 'Super_L',
+        'backspace': 'BackSpace',
+        'del': 'Delete',
+        'delete': 'Delete',
+        'tab': 'Tab',
+        'space': 'space',
+        'pageup': 'Page_Up',
+        'pagedown': 'Page_Down',
+        'home': 'Home',
+        'end': 'End',
+        'up': 'Up',
+        'down': 'Down',
+        'left': 'Left',
+        'right': 'Right',
+        'printscreen': 'Print',
+        'prtsc': 'Print',
+    }
+
+    # Modifier key normalization
+    MODIFIER_KEYS = {
+        'ctrl': {'ctrl', 'control', 'ctrl_l', 'ctrl_r'},
+        'shift': {'shift', 'shift_l', 'shift_r'},
+        'alt': {'alt', 'alt_l', 'alt_r', 'option'},
+        'Super_L': {'super_l', 'super_r'},
+    }
+
+    # OpenAI finish reason to Anthropic stop reason mapping
+    STOP_REASON_MAP = {
+        'stop': 'end_turn',
+        'tool_calls': 'tool_use',
+        'length': 'max_tokens',
+    }
+
+    # Max length for debug logging messages
+    DEBUG_MESSAGE_MAX_LENGTH = 10000
+    DEBUG_MESSAGE_TRUNCATE_LENGTH = 7
+
     def __init__(
         self,
         model: str = 'gpt-4o',
@@ -92,6 +158,284 @@ class OpenAIHandler(BaseProviderHandler):
         """
         return system_prompt
 
+    def _normalize_key_combo(self, combo: str) -> str:
+        """
+        Normalize key combinations for xdotool compatibility.
+
+        Args:
+            combo: Key combination string (e.g., 'ctrl+c', 'alt+tab')
+
+        Returns:
+            Normalized key combination string
+        """
+        if not isinstance(combo, str):
+            return combo
+
+        parts = [p.strip() for p in combo.replace(' ', '').split('+') if p.strip()]
+        normalized = [self._normalize_key_part(p) for p in parts]
+        return '+'.join(normalized)
+
+    def _normalize_key_part(self, part: str) -> str:
+        """
+        Normalize a single key part.
+
+        Args:
+            part: Single key part to normalize
+
+        Returns:
+            Normalized key string
+        """
+        low = part.lower()
+
+        # Check modifier keys
+        for normalized, variants in self.MODIFIER_KEYS.items():
+            if low in variants:
+                return normalized
+
+        # Check key aliases
+        if low in self.KEY_ALIASES:
+            return self.KEY_ALIASES[low]
+
+        # Function keys
+        if low.startswith('f') and low[1:].isdigit():
+            return f'F{int(low[1:])}'
+
+        # Single letters or digits: keep as-is
+        if len(part) == 1:
+            return part
+
+        return part
+
+    def _create_text_message(
+        self, role: str, content: str
+    ) -> ChatCompletionMessageParam:
+        """
+        Create a simple text message in OpenAI format.
+
+        Args:
+            role: Message role ('user' or 'assistant')
+            content: Text content
+
+        Returns:
+            OpenAI message parameter
+        """
+        if role == 'user':
+            return cast(
+                ChatCompletionUserMessageParam,
+                {
+                    'role': 'user',
+                    'content': content,
+                },
+            )
+        else:
+            return cast(
+                ChatCompletionAssistantMessageParam,
+                {
+                    'role': 'assistant',
+                    'content': content,
+                },
+            )
+
+    def _process_tool_result_block(self, block: dict) -> tuple[str, str, Optional[str]]:
+        """
+        Process a single tool result block.
+
+        Args:
+            block: Tool result block from Anthropic format
+
+        Returns:
+            Tuple of (tool_call_id, text_content, image_data or None)
+        """
+        tool_call_id = block.get('tool_use_id')
+        text_content = ''
+        image_data = None
+
+        if 'error' in block:
+            text_content = str(block['error'])
+        elif 'content' in block and isinstance(block['content'], list):
+            for content_item in block['content']:
+                if isinstance(content_item, dict):
+                    if content_item.get('type') == 'text':
+                        text_content = content_item.get('text', '')
+                    elif content_item.get('type') == 'image':
+                        source = content_item.get('source', {})
+                        if source.get('type') == 'base64':
+                            image_data = source.get('data')
+
+        return str(tool_call_id or 'tool_call'), text_content, image_data
+
+    def _create_tool_message(
+        self, tool_call_id: str, content: str
+    ) -> ChatCompletionToolMessageParam:
+        """
+        Create a tool message in OpenAI format.
+
+        Args:
+            tool_call_id: ID of the tool call
+            content: Tool result content
+
+        Returns:
+            OpenAI tool message parameter
+        """
+        return {
+            'role': 'tool',
+            'tool_call_id': tool_call_id,
+            'content': str(content or 'Tool executed successfully'),
+        }
+
+    def _create_image_message(
+        self, images: list[tuple[str, str]]
+    ) -> ChatCompletionUserMessageParam:
+        """
+        Create a user message with images.
+
+        Args:
+            images: List of (text, base64_data) tuples
+
+        Returns:
+            OpenAI user message with image content
+        """
+        user_parts: list[ChatCompletionContentPartParam] = []
+
+        for text, img_data in images:
+            if text:
+                user_parts.append(
+                    cast(
+                        ChatCompletionContentPartTextParam,
+                        {'type': 'text', 'text': text},
+                    )
+                )
+            user_parts.append(
+                cast(
+                    ChatCompletionContentPartImageParam,
+                    {
+                        'type': 'image_url',
+                        'image_url': {'url': f'data:image/png;base64,{img_data}'},
+                    },
+                )
+            )
+
+        return {
+            'role': 'user',
+            'content': user_parts,
+        }
+
+    def _convert_content_block(
+        self, block: dict
+    ) -> tuple[
+        Optional[ChatCompletionContentPartParam],
+        Optional[ChatCompletionMessageToolCallParam],
+    ]:
+        """
+        Convert a single content block to OpenAI format.
+
+        Args:
+            block: Content block in Anthropic format
+
+        Returns:
+            Tuple of (content_part or None, tool_call or None)
+        """
+        block_type = block.get('type')
+
+        if block_type == 'text':
+            content_part = cast(
+                ChatCompletionContentPartTextParam,
+                {
+                    'type': 'text',
+                    'text': block.get('text', ''),
+                },
+            )
+            return content_part, None
+
+        elif block_type == 'image':
+            source = block.get('source', {})
+            if source.get('type') == 'base64':
+                content_part = cast(
+                    ChatCompletionContentPartImageParam,
+                    {
+                        'type': 'image_url',
+                        'image_url': {
+                            'url': f'data:{source.get("media_type", "image/png")};base64,{source.get("data", "")}',
+                        },
+                    },
+                )
+                return content_part, None
+
+        elif block_type == 'tool_use':
+            tool_call = cast(
+                ChatCompletionMessageToolCallParam,
+                {
+                    'id': str(block.get('id') or ''),
+                    'type': 'function',
+                    'function': {
+                        'name': str(block.get('name') or ''),
+                        'arguments': json.dumps(block.get('input', {})),
+                    },
+                },
+            )
+            return None, tool_call
+
+        return None, None
+
+    def _process_tool_result_messages(
+        self, messages: list[BetaMessageParam], start_idx: int
+    ) -> tuple[list[ChatCompletionMessageParam], int]:
+        """
+        Process consecutive tool result messages.
+
+        Args:
+            messages: List of all messages
+            start_idx: Starting index for processing
+
+        Returns:
+            Tuple of (OpenAI messages list, next index to process)
+        """
+        tool_messages: list[ChatCompletionToolMessageParam] = []
+        accumulated_images: list[tuple[str, str]] = []
+
+        current_idx = start_idx
+        while current_idx < len(messages):
+            current_msg = messages[current_idx]
+            current_role = current_msg['role']
+            current_content = current_msg['content']
+
+            # Only process user messages with tool_result blocks
+            if current_role != 'user' or not isinstance(current_content, list):
+                break
+
+            has_tool_result = False
+            for block in current_content:
+                if isinstance(block, dict) and block.get('type') == 'tool_result':
+                    has_tool_result = True
+                    # Cast to dict for type checker
+                    block_dict = cast(dict, block)
+                    tool_call_id, text_content, image_data = (
+                        self._process_tool_result_block(block_dict)
+                    )
+
+                    # Create tool message
+                    tool_messages.append(
+                        self._create_tool_message(tool_call_id, text_content)
+                    )
+
+                    # Accumulate image if present
+                    if image_data:
+                        accumulated_images.append((text_content, str(image_data)))
+
+            if not has_tool_result:
+                break
+            current_idx += 1
+
+        # Combine results
+        result_messages: list[ChatCompletionMessageParam] = []
+        result_messages.extend(tool_messages)
+
+        # Add accumulated images as a single user message
+        if accumulated_images:
+            result_messages.append(self._create_image_message(accumulated_images))
+
+        return result_messages, current_idx
+
     def convert_to_provider_messages(
         self, messages: list[BetaMessageParam]
     ) -> list[ChatCompletionMessageParam]:
@@ -109,9 +453,8 @@ class OpenAIHandler(BaseProviderHandler):
         IMPORTANT: OpenAI requires all tool messages to directly follow the assistant
         message with tool_calls, without any user messages in between.
         """
-        # Apply common preprocessing (prompt caching disabled for OpenAI, image filtering if configured)
+        # Apply common preprocessing
         messages = self.preprocess_messages(messages, image_truncation_threshold=1)
-
         openai_messages: list[ChatCompletionMessageParam] = []
 
         logger.info(
@@ -123,24 +466,14 @@ class OpenAIHandler(BaseProviderHandler):
             msg = messages[msg_idx]
             role = msg['role']
             content = msg['content']
+
             logger.debug(
                 f'  Message {msg_idx}: role={role}, content_type={type(content).__name__}'
             )
 
             if isinstance(content, str):
                 # Simple text message
-                if role == 'user':
-                    user_msg: ChatCompletionUserMessageParam = {
-                        'role': 'user',
-                        'content': content,
-                    }
-                    openai_messages.append(user_msg)
-                else:
-                    assistant_msg: ChatCompletionAssistantMessageParam = {
-                        'role': 'assistant',
-                        'content': content,
-                    }
-                    openai_messages.append(assistant_msg)
+                openai_messages.append(self._create_text_message(role, content))
                 msg_idx += 1
 
             elif isinstance(content, list):
@@ -151,184 +484,58 @@ class OpenAIHandler(BaseProviderHandler):
                 )
 
                 if has_tool_results and role == 'user':
-                    # This is a tool result message - collect all consecutive tool result messages
-                    tool_messages: list[ChatCompletionToolMessageParam] = []
-                    accumulated_images: list[
-                        tuple[str, str]
-                    ] = []  # (text, base64_data)
-
-                    # Process this message and look ahead for more tool result messages
-                    current_idx = msg_idx
-                    while current_idx < len(messages):
-                        current_msg = messages[current_idx]
-                        current_role = current_msg['role']
-                        current_content = current_msg['content']
-
-                        # Only process user messages with tool_result blocks
-                        if current_role != 'user' or not isinstance(
-                            current_content, list
-                        ):
-                            break
-
-                        has_tool_result = False
-                        for block in current_content:
-                            if (
-                                isinstance(block, dict)
-                                and block.get('type') == 'tool_result'
-                            ):
-                                has_tool_result = True
-                                tool_call_id = block.get('tool_use_id')
-                                text_content = ''
-                                image_data = None
-
-                                if 'error' in block:
-                                    text_content = str(block['error'])
-                                elif 'content' in block and isinstance(
-                                    block['content'], list
-                                ):
-                                    for content_item in block['content']:
-                                        if isinstance(content_item, dict):
-                                            if content_item.get('type') == 'text':
-                                                text_content = content_item.get(
-                                                    'text', ''
-                                                )
-                                            elif content_item.get('type') == 'image':
-                                                source = content_item.get('source', {})
-                                                if source.get('type') == 'base64':
-                                                    image_data = source.get('data')
-
-                                # Create tool message
-                                tool_msg: ChatCompletionToolMessageParam = {
-                                    'role': 'tool',
-                                    'tool_call_id': str(tool_call_id or 'tool_call'),
-                                    'content': str(
-                                        text_content or 'Tool executed successfully'
-                                    ),
-                                }
-                                tool_messages.append(tool_msg)
-
-                                # Accumulate image if present
-                                if image_data:
-                                    accumulated_images.append(
-                                        (text_content, str(image_data))
-                                    )
-
-                        if not has_tool_result:
-                            break
-                        current_idx += 1
-
-                    # Add all tool messages first
+                    # Process tool result messages
+                    tool_messages, msg_idx = self._process_tool_result_messages(
+                        messages, msg_idx
+                    )
                     openai_messages.extend(tool_messages)
-
-                    # Then add accumulated images as a single user message
-                    if accumulated_images:
-                        user_parts: list[ChatCompletionContentPartParam] = []
-                        for text, img_data in accumulated_images:
-                            if text:
-                                user_parts.append(
-                                    cast(
-                                        ChatCompletionContentPartTextParam,
-                                        {'type': 'text', 'text': text},
-                                    )
-                                )
-                            user_parts.append(
-                                cast(
-                                    ChatCompletionContentPartImageParam,
-                                    {
-                                        'type': 'image_url',
-                                        'image_url': {
-                                            'url': f'data:image/png;base64,{img_data}'
-                                        },
-                                    },
-                                )
-                            )
-                        image_msg: ChatCompletionUserMessageParam = {
-                            'role': 'user',
-                            'content': user_parts,
-                        }
-                        openai_messages.append(image_msg)
-
-                    # Skip the messages we've processed
-                    msg_idx = current_idx
-
                 else:
-                    # Not a tool result message - process normally
+                    # Process regular content blocks
                     content_parts: list[ChatCompletionContentPartParam] = []
                     tool_calls: list[ChatCompletionMessageToolCallParam] = []
 
                     for block in content:
                         if isinstance(block, dict):
-                            block_type = block.get('type')
+                            # Cast to dict for type checker
+                            block_dict = cast(dict, block)
+                            content_part, tool_call = self._convert_content_block(
+                                block_dict
+                            )
+                            if content_part:
+                                content_parts.append(content_part)
+                            if tool_call:
+                                tool_calls.append(tool_call)
 
-                            if block_type == 'text':
-                                content_parts.append(
-                                    cast(
-                                        ChatCompletionContentPartTextParam,
-                                        {
-                                            'type': 'text',
-                                            'text': block.get('text', ''),
-                                        },
-                                    )
-                                )
-
-                            elif block_type == 'image':
-                                source = block.get('source', {})
-                                if source.get('type') == 'base64':
-                                    content_parts.append(
-                                        cast(
-                                            ChatCompletionContentPartImageParam,
-                                            {
-                                                'type': 'image_url',
-                                                'image_url': {
-                                                    'url': f'data:{source.get("media_type", "image/png")};base64,{source.get("data", "")}',
-                                                },
-                                            },
-                                        )
-                                    )
-
-                            elif block_type == 'tool_use':
-                                tool_calls.append(
-                                    cast(
-                                        ChatCompletionMessageToolCallParam,
-                                        {
-                                            'id': str(block.get('id') or ''),
-                                            'type': 'function',
-                                            'function': {
-                                                'name': str(block.get('name') or ''),
-                                                'arguments': json.dumps(
-                                                    block.get('input', {})
-                                                ),
-                                            },
-                                        },
-                                    )
-                                )
-
-                    # Add the message based on role
+                    # Create appropriate message based on role and content
                     if role == 'user' and content_parts:
-                        user_msg2: ChatCompletionUserMessageParam = {
-                            'role': 'user',
-                            'content': content_parts,
-                        }
-                        openai_messages.append(user_msg2)
+                        openai_messages.append(
+                            {
+                                'role': 'user',
+                                'content': content_parts,
+                            }
+                        )
                     elif role == 'assistant':
-                        assistant_msg2: ChatCompletionAssistantMessageParam = {
+                        assistant_msg: ChatCompletionAssistantMessageParam = {
                             'role': 'assistant',
                         }
+
+                        # Extract text content if any
                         if content_parts:
-                            texts: list[str] = []
-                            for part in content_parts:
-                                if (
-                                    isinstance(part, dict)
-                                    and part.get('type') == 'text'
-                                ):
-                                    texts.append(str(part.get('text') or ''))
+                            texts = [
+                                str(part.get('text') or '')
+                                for part in content_parts
+                                if isinstance(part, dict) and part.get('type') == 'text'
+                            ]
                             if texts:
-                                assistant_msg2['content'] = '\n'.join(
+                                assistant_msg['content'] = '\n'.join(
                                     t for t in texts if t
                                 )
+
+                        # Add tool calls if any
                         if tool_calls:
-                            assistant_msg2['tool_calls'] = tool_calls
-                        openai_messages.append(assistant_msg2)
+                            assistant_msg['tool_calls'] = tool_calls
+
+                        openai_messages.append(assistant_msg)
 
                     msg_idx += 1
 
@@ -350,6 +557,29 @@ class OpenAIHandler(BaseProviderHandler):
         )
         return tools
 
+    def _truncate_for_debug(self, obj):
+        """
+        Recursively truncate long strings in objects for debug logging.
+
+        Args:
+            obj: Object to truncate
+
+        Returns:
+            Object with truncated strings
+        """
+        if isinstance(obj, list):
+            return [self._truncate_for_debug(m) for m in obj]
+        elif isinstance(obj, dict):
+            return {
+                self._truncate_for_debug(k): self._truncate_for_debug(v)
+                for k, v in obj.items()
+            }
+        elif isinstance(obj, str):
+            if len(obj) > self.DEBUG_MESSAGE_MAX_LENGTH:
+                return obj[: self.DEBUG_MESSAGE_TRUNCATE_LENGTH] + '...'
+            return obj
+        return obj
+
     async def call_api(
         self,
         client: instructor.AsyncInstructor,
@@ -367,8 +597,7 @@ class OpenAIHandler(BaseProviderHandler):
         logger.info(f'Tenant schema: {self.tenant_schema}')
         logger.debug(f'Max tokens: {max_tokens}, Temperature: {temperature}')
 
-        # Chat Completions API with function tools
-        # Add system message at the beginning if provided
+        # Build full message list with system message
         full_messages: list[ChatCompletionMessageParam] = []
         if system:
             sys_msg: ChatCompletionSystemMessageParam = {
@@ -378,28 +607,14 @@ class OpenAIHandler(BaseProviderHandler):
             full_messages.append(sys_msg)
         full_messages.extend(messages)
 
-        # iterate recursively and shorten any message longer than 10000 characters to 10
-        def shorten_message(message):
-            if isinstance(message, list):
-                return [shorten_message(m) for m in message]
-            elif isinstance(message, dict):
-                return {
-                    shorten_message(k): shorten_message(v) for k, v in message.items()
-                }
-            elif isinstance(message, str):
-                if len(message) > 10000:
-                    return message[:7] + '...'
-                else:
-                    return message
-            return message
-
-        logger.info(f'Messages: {shorten_message(full_messages)}')
+        # Log debug information
+        logger.info(f'Messages: {self._truncate_for_debug(full_messages)}')
         logger.info(
             f'Tools: {[t.get("function", {}).get("name") for t in tools] if tools else "None"}'
         )
-
         logger.info(f'Tools: {tools}')
 
+        # Make API call
         response = await client.beta.chat.completions.with_raw_response.create(
             model=model,
             messages=full_messages,
@@ -457,6 +672,138 @@ class OpenAIHandler(BaseProviderHandler):
 
         return content_blocks, stop_reason, request, raw_response
 
+    def _process_computer_tool(self, tool_name: str, tool_input: dict) -> dict:
+        """
+        Process computer tool input, normalizing action names and parameters.
+
+        Args:
+            tool_name: Name of the tool being called
+            tool_input: Raw tool input
+
+        Returns:
+            Processed tool input
+        """
+        # If called as an action function, embed action name
+        if tool_name in self.COMPUTER_ACTIONS:
+            tool_input = tool_input or {}
+            tool_input['action'] = tool_name
+
+        # Convert coordinate list to tuple if present
+        if 'coordinate' in tool_input and isinstance(tool_input['coordinate'], list):
+            tool_input['coordinate'] = tuple(tool_input['coordinate'])
+
+        # Map legacy 'click' action to 'left_click' for compatibility
+        if tool_input.get('action') == 'click':
+            tool_input['action'] = 'left_click'
+
+        # Normalize key combos and key/text field for key-like actions
+        action = tool_input.get('action')
+        if action in {'key', 'hold_key', 'scroll'}:
+            if 'text' not in tool_input and 'key' in tool_input:
+                # Remap key -> text
+                tool_input['text'] = tool_input.pop('key')
+            # Normalize combo naming for xdotool compatibility
+            if 'text' in tool_input and isinstance(tool_input['text'], str):
+                tool_input['text'] = self._normalize_key_combo(tool_input['text'])
+
+        return tool_input
+
+    def _process_extraction_tool(self, tool_input: dict) -> dict:
+        """
+        Process extraction tool input, ensuring proper data structure.
+
+        Args:
+            tool_input: Raw tool input
+
+        Returns:
+            Processed tool input with proper data structure
+        """
+        logger.info(f'Processing extraction tool - original input: {tool_input}')
+
+        # OpenAI sends {name: ..., result: ...} directly based on our simplified schema
+        # But our extraction tool expects {data: {name: ..., result: ...}}
+        if 'data' not in tool_input:
+            # If 'data' field is missing but we have name and result, wrap them
+            if 'name' in tool_input and 'result' in tool_input:
+                original_input = tool_input.copy()
+                tool_input = {
+                    'data': {
+                        'name': tool_input['name'],
+                        'result': tool_input['result'],
+                    }
+                }
+                logger.info(
+                    f'Wrapped extraction data - from: {original_input} to: {tool_input}'
+                )
+            else:
+                logger.warning(
+                    f'Extraction tool call missing required fields. Has: {tool_input.keys()}, needs: name, result'
+                )
+        else:
+            # data field already exists, validate its structure
+            extraction_data = tool_input['data']
+            logger.info(f"Extraction tool already has 'data' field: {extraction_data}")
+            if not isinstance(extraction_data, dict):
+                logger.warning(
+                    f'Extraction data is not a dict: {type(extraction_data)}'
+                )
+            elif 'name' not in extraction_data or 'result' not in extraction_data:
+                logger.warning(
+                    f'Extraction data missing required fields. Has: {extraction_data.keys()}, needs: name, result'
+                )
+
+        return tool_input
+
+    def _convert_tool_call(self, tool_call) -> BetaContentBlockParam:
+        """
+        Convert a single OpenAI tool call to Anthropic format.
+
+        Args:
+            tool_call: OpenAI tool call object
+
+        Returns:
+            Anthropic tool use block
+        """
+        try:
+            # Parse the function arguments
+            tool_input = json.loads(tool_call.function.arguments)
+            tool_name = tool_call.function.name
+
+            # Log the raw tool input for debugging
+            logger.info(f'Processing tool call: {tool_name} (id: {tool_call.id})')
+            logger.debug(f'Raw arguments: {tool_call.function.arguments}')
+
+            # Special handling for computer tool or any of its action functions
+            if tool_name == 'computer' or tool_name in self.COMPUTER_ACTIONS:
+                tool_input = self._process_computer_tool(tool_name, tool_input)
+                # Always emit a single Anthropic tool_use for 'computer'
+                tool_name = 'computer'
+                logger.info(
+                    f'Added computer tool_use from action {tool_call.function.name} - id: {tool_call.id}'
+                )
+
+            # Special handling for extraction tool
+            elif tool_name == 'extraction':
+                tool_input = self._process_extraction_tool(tool_input)
+
+            # Create the tool use block
+            return BetaToolUseBlockParam(
+                type='tool_use',
+                id=tool_call.id,
+                name=tool_name,
+                input=tool_input,
+            )
+
+        except json.JSONDecodeError as e:
+            logger.error(
+                f'Failed to parse tool arguments: {tool_call.function.arguments}, error: {e}'
+            )
+            # Return error as text block
+            return BetaTextBlockParam(
+                type='text',
+                text=f'Error parsing tool arguments for {tool_call.function.name}: {e}',
+            )
+
     def convert_from_provider_response(
         self, response: ChatCompletion
     ) -> tuple[list[BetaContentBlockParam], str]:
@@ -470,7 +817,7 @@ class OpenAIHandler(BaseProviderHandler):
         """
         content_blocks = []
 
-        # Log the full response for debugging (Chat Completions path)
+        # Log the full response for debugging
         logger.debug(f'Full OpenAI response object: {response}')
 
         # Extract message from OpenAI response
@@ -488,222 +835,21 @@ class OpenAIHandler(BaseProviderHandler):
         if message.content:
             content_blocks.append(BetaTextBlockParam(type='text', text=message.content))
 
-        # Helper: normalize key names for computer tool to match execution expectations
-        def _normalize_key_combo(combo: str) -> str:
-            if not isinstance(combo, str):
-                return combo
-            parts = [p.strip() for p in combo.replace(' ', '').split('+') if p.strip()]
-
-            alias_map = {
-                'esc': 'Escape',
-                'escape': 'Escape',
-                'enter': 'Return',
-                'return': 'Return',
-                'win': 'Super_L',
-                'windows': 'Super_L',
-                'super': 'Super_L',
-                'meta': 'Super_L',
-                'cmd': 'Super_L',
-                'backspace': 'BackSpace',
-                'del': 'Delete',
-                'delete': 'Delete',
-                'tab': 'Tab',
-                'space': 'space',
-                'pageup': 'Page_Up',
-                'pagedown': 'Page_Down',
-                'home': 'Home',
-                'end': 'End',
-                'up': 'Up',
-                'down': 'Down',
-                'left': 'Left',
-                'right': 'Right',
-                'printscreen': 'Print',
-                'prtsc': 'Print',
-            }
-
-            def normalize_part(p: str) -> str:
-                low = p.lower()
-                # Collapse left/right variants to base modifiers
-                if low in {'ctrl', 'control', 'ctrl_l', 'ctrl_r'}:
-                    return 'ctrl'
-                if low in {'shift', 'shift_l', 'shift_r'}:
-                    return 'shift'
-                if low in {'alt', 'alt_l', 'alt_r', 'option'}:
-                    return 'alt'
-                if low in {'super_l', 'super_r'}:
-                    return 'Super_L'
-                if low in alias_map:
-                    return alias_map[low]
-                # Function keys
-                if low.startswith('f') and low[1:].isdigit():
-                    return f'F{int(low[1:])}'
-                # Single letters or digits: keep as-is
-                if len(p) == 1:
-                    return p
-                # Title-case common words like 'Escape' already handled; otherwise keep original
-                return p
-
-            normalized = [normalize_part(p) for p in parts]
-            return '+'.join(normalized)
-
         # Convert tool calls
         if message.tool_calls:
             logger.info(
                 f'Converting {len(message.tool_calls)} tool calls from OpenAI response'
             )
-            # Computer tool action names exposed as individual functions
-            computer_actions = {
-                'screenshot',
-                'left_click',
-                'mouse_move',
-                'type',
-                'key',
-                'scroll',
-                'left_click_drag',
-                'right_click',
-                'middle_click',
-                'double_click',
-                'triple_click',
-                'left_mouse_down',
-                'left_mouse_up',
-                'hold_key',
-                'wait',
-            }
-
             for tool_call in message.tool_calls:
-                try:
-                    # Parse the function arguments
-                    tool_input = json.loads(tool_call.function.arguments)
-
-                    # Log the raw tool input for debugging
-                    logger.info(
-                        f'Processing tool call: {tool_call.function.name} (id: {tool_call.id})'
-                    )
-                    logger.debug(f'Raw arguments: {tool_call.function.arguments}')
-
-                    tool_name = tool_call.function.name
-
-                    # Special handling for computer tool or any of its action functions
-                    if tool_name == 'computer' or tool_name in computer_actions:
-                        # If called as an action function, embed action name
-                        if tool_name in computer_actions:
-                            tool_input = tool_input or {}
-                            tool_input['action'] = tool_name
-
-                        # Convert coordinate list to tuple if present
-                        if 'coordinate' in tool_input and isinstance(
-                            tool_input['coordinate'], list
-                        ):
-                            tool_input['coordinate'] = tuple(tool_input['coordinate'])
-
-                        # Map legacy 'click' action to 'left_click' for compatibility
-                        if tool_input.get('action') == 'click':
-                            tool_input['action'] = 'left_click'
-
-                        # Normalize key combos and key/text field for key-like actions
-                        action = tool_input.get('action')
-                        if action in {'key', 'hold_key', 'scroll'}:
-                            if 'text' not in tool_input and 'key' in tool_input:
-                                # Remap key -> text
-                                tool_input['text'] = tool_input.pop('key')
-                            # Normalize combo naming for xdotool compatibility
-                            if 'text' in tool_input and isinstance(
-                                tool_input['text'], str
-                            ):
-                                tool_input['text'] = _normalize_key_combo(
-                                    tool_input['text']
-                                )
-
-                        # Always emit a single Anthropic tool_use for 'computer'
-                        tool_use_block = BetaToolUseBlockParam(
-                            type='tool_use',
-                            id=tool_call.id,
-                            name='computer',
-                            input=tool_input,
-                        )
-                        content_blocks.append(tool_use_block)
-                        logger.info(
-                            f'Added computer tool_use from action {tool_name} - id: {tool_call.id}'
-                        )
-
-                        # Done with this tool call
-                        continue
-
-                    # Special handling for extraction tool
-                    elif tool_name == 'extraction':
-                        logger.info(
-                            f'Processing extraction tool - original input: {tool_input}'
-                        )
-
-                        # OpenAI sends {name: ..., result: ...} directly based on our simplified schema
-                        # But our extraction tool expects {data: {name: ..., result: ...}}
-                        if 'data' not in tool_input:
-                            # If 'data' field is missing but we have name and result, wrap them
-                            if 'name' in tool_input and 'result' in tool_input:
-                                original_input = tool_input.copy()
-                                tool_input = {
-                                    'data': {
-                                        'name': tool_input['name'],
-                                        'result': tool_input['result'],
-                                    }
-                                }
-                                logger.info(
-                                    f'Wrapped extraction data - from: {original_input} to: {tool_input}'
-                                )
-                            else:
-                                logger.warning(
-                                    f'Extraction tool call missing required fields. Has: {tool_input.keys()}, needs: name, result'
-                                )
-                        else:
-                            # data field already exists, validate its structure
-                            extraction_data = tool_input['data']
-                            logger.info(
-                                f"Extraction tool already has 'data' field: {extraction_data}"
-                            )
-                            if not isinstance(extraction_data, dict):
-                                logger.warning(
-                                    f'Extraction data is not a dict: {type(extraction_data)}'
-                                )
-                            elif (
-                                'name' not in extraction_data
-                                or 'result' not in extraction_data
-                            ):
-                                logger.warning(
-                                    f'Extraction data missing required fields. Has: {extraction_data.keys()}, needs: name, result'
-                                )
-
-                    # Create the tool use block
-                    tool_use_block = BetaToolUseBlockParam(
-                        type='tool_use',
-                        id=tool_call.id,
-                        name=tool_name,
-                        input=tool_input,
-                    )
-                    content_blocks.append(tool_use_block)
-
-                    logger.info(
-                        f'Added to content blocks - tool: {tool_call.function.name}, id: {tool_call.id}, input: {tool_input}'
-                    )
-                except json.JSONDecodeError as e:
-                    logger.error(
-                        f'Failed to parse tool arguments: {tool_call.function.arguments}, error: {e}'
-                    )
-                    # Add error block
-                    content_blocks.append(
-                        BetaTextBlockParam(
-                            type='text',
-                            text=f'Error parsing tool arguments for {tool_call.function.name}: {e}',
-                        )
-                    )
+                block = self._convert_tool_call(tool_call)
+                content_blocks.append(block)
+                logger.info(
+                    f'Added to content blocks - tool: {tool_call.function.name}, id: {tool_call.id}'
+                )
 
         # Map finish reason
         finish_reason = response.choices[0].finish_reason
-        stop_reason_map = {
-            'stop': 'end_turn',
-            'tool_calls': 'tool_use',
-            'length': 'max_tokens',
-        }
-        stop_reason = stop_reason_map.get(finish_reason, 'end_turn')
+        stop_reason = self.STOP_REASON_MAP.get(finish_reason, 'end_turn')
 
         # Final logging
         logger.info('=== OpenAI Response Conversion Complete ===')
