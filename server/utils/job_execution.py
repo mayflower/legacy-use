@@ -75,10 +75,12 @@ async def worker_loop_for_tenant(tenant_schema: str):
                 await asyncio.sleep(0.5)
                 continue
             job = Job(**claimed)
-            lease_task = asyncio.create_task(_lease_heartbeat(job, tenant_schema))
             try:
                 exec_task = asyncio.create_task(
                     execute_api_in_background_with_tenant(job, tenant_schema)
+                )
+                lease_task = asyncio.create_task(
+                    _lease_heartbeat(job, tenant_schema, exec_task)
                 )
                 running_job_tasks[str(job.id)] = exec_task
                 try:
@@ -92,7 +94,7 @@ async def worker_loop_for_tenant(tenant_schema: str):
             await asyncio.sleep(1.0)
 
 
-async def _lease_heartbeat(job: Job, tenant_schema: str):
+async def _lease_heartbeat(job: Job, tenant_schema: str, exec_task: asyncio.Task):
     from server.database.multi_tenancy import with_db
 
     try:
@@ -103,7 +105,10 @@ async def _lease_heartbeat(job: Job, tenant_schema: str):
                 # Renew lease and check for cancel signal
                 db.renew_job_lease(job.id, WORKER_ID)
                 if db.is_job_cancel_requested(job.id):
-                    raise asyncio.CancelledError()
+                    try:
+                        exec_task.cancel()
+                    finally:
+                        return
     except asyncio.CancelledError:
         return
 
