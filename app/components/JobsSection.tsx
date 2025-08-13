@@ -167,7 +167,7 @@ const JobsSection = ({
               </Typography>
               <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                 <Typography variant="body1">{queueStatus.running_job.api_name}</Typography>
-                <Chip label="RUNNING" size="small" color="warning" sx={{ mt: 1 }} />
+                <Chip label="RUNNING" size="small" color={getStatusColor('running')} sx={{ mt: 1 }} />
               </Paper>
             </Box>
           )}

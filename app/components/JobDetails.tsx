@@ -34,6 +34,7 @@ import {
 import JobStatusCard from './JobStatusCard';
 import JobTabs from './JobTabs';
 import type { HttpExchangeLog, Job, JobLogEntry, Target } from '@/gen/endpoints';
+import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const JobDetails = () => {
   const { targetId, jobId } = useParams();
@@ -480,21 +481,7 @@ const JobDetails = () => {
   };
 
   // Get color based on job status
-  const getStatusColor = (status?: string) => {
-    const statusMap: Record<string, any> = {
-      pending: 'info',
-      queued: 'warning',
-      running: 'primary',
-      paused: 'secondary', // Added color for paused
-      success: 'success',
-      error: 'error',
-      canceled: 'default',
-      // Map INTERRUPTED visually to warning or error?
-      // Assuming INTERRUPTED jobs end up in ERROR state based on backend logic seen earlier
-    };
-
-    return statusMap[(status || '').toLowerCase()] || 'default';
-  };
+  const getStatusColor = (status?: string) => getJobStatusChipColor(status);
 
   // Handle rerun job button click
   const handleRerun = async () => {
