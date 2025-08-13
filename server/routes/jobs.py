@@ -34,6 +34,7 @@ from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
+    create_and_enqueue_job,
     running_job_tasks,
     tenant_worker_tasks,
     start_worker_for_tenant,
@@ -171,73 +172,29 @@ async def create_job(
     Note: Jobs have a token usage limit of 15,000 tokens (combined input and output).
     Jobs exceeding this limit will be automatically terminated.
     """
-    # Check if target exists
-    target = db_tenant.get_target(target_id)
-    if not target:
+    # Validate target
+    if not db_tenant.get_target(target_id):
         raise HTTPException(status_code=404, detail='Target not found')
 
-    # Create job in database
-    job_data = job.model_dump()  # Use model_dump() for Pydantic v2
-
-    # Set target_id
-    job_data['target_id'] = target_id
-
-    # If no session_id is provided, try to find or create a session for the target
-    if not job_data.get('session_id'):
-        try:
-            # First, check if there's an active session for this target
-            active_session_info = db_tenant.has_active_session_for_target(target_id)
-            if active_session_info['has_active_session']:
-                existing_session = active_session_info['session']
-                job_data['session_id'] = existing_session['id']
-                logger.info(f'Using existing session {existing_session["id"]} for job')
-            else:
-                # No active session, create one
-                from server.utils.session_management import launch_session_for_target
-
-                session_info = await launch_session_for_target(str(target_id))
-                if session_info:
-                    job_data['session_id'] = session_info['id']
-                    logger.info(f'Created new session {session_info["id"]} for job')
-                else:
-                    logger.warning(
-                        f'Failed to create session for target {target_id}, job will run without session'
-                    )
-        except Exception as e:
-            logger.error(f'Error setting up session for job: {str(e)}')
-            # Continue without session_id - job will run without session context
-
-    # Try to get the API definition version ID
+    # Validate API definition exists so we can return a clear error
     try:
-        # Load API definitions fresh from the database
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
         api_definitions = await core.load_api_definitions()
-
-        # Check if the API definition exists
-        api_def = api_definitions.get(job.api_name)
-        if api_def and hasattr(api_def, 'version_id'):
-            job_data['api_definition_version_id'] = api_def.version_id
-        elif not api_def:
-            logger.warning(
-                f"API definition '{job.api_name}' not found during job creation."
+        if job.api_name not in api_definitions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"API definition '{job.api_name}' not found",
             )
-
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(
-            f"Error getting API definition during job creation for '{job.api_name}': {str(e)}"
+            f"Error validating API definition during job creation for '{job.api_name}': {e}"
         )
+        raise HTTPException(status_code=500, detail='Failed to validate API definition')
 
-    db_job_dict = db_tenant.create_job(job_data)
-
-    # Create job object from the dictionary returned by the database
-    job_obj = Job(**db_job_dict)
-
-    # Use the new helper function to update status, add to queue, and ensure processor runs
-
-    await enqueue_job(job_obj, tenant['schema'])
-
+    job_obj = await create_and_enqueue_job(target_id, job, tenant['schema'])
     capture_job_created(request, job_obj)
-
     return job_obj
 
 

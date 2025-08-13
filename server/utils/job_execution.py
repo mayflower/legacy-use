@@ -11,12 +11,13 @@ import logging
 import traceback
 from datetime import datetime
 from typing import Dict
+from uuid import UUID
 import os
 import socket
 
 
 # Remove direct import of APIGatewayCore
-from server.models.base import Job, JobStatus
+from server.models.base import Job, JobStatus, JobCreate
 from server.settings import settings
 from server.utils.db_dependencies import TenantAwareDatabaseService
 from server.utils.telemetry import capture_job_resolved
@@ -394,3 +395,52 @@ async def enqueue_job(job_obj: Job, tenant_schema: str):
         db_service.update_job_status(job_obj.id, JobStatus.QUEUED)
     add_job_log(str(job_obj.id), 'system', 'Job added to queue', tenant_schema)
     await start_worker_for_tenant(tenant_schema)
+
+
+async def create_and_enqueue_job(
+    target_id: UUID, job_create: JobCreate, tenant_schema: str
+) -> Job:
+    """Create a job for target and enqueue it. Handles session and API version."""
+    from server.database.multi_tenancy import with_db
+    from server.core import APIGatewayCore
+
+    # Build initial job data
+    job_data = job_create.model_dump()
+    job_data['target_id'] = target_id
+
+    # Ensure session
+    if not job_data.get('session_id'):
+        try:
+            with with_db(tenant_schema) as db_session:
+                db = TenantAwareDatabaseService(db_session)
+                active = db.has_active_session_for_target(target_id)
+                if active['has_active_session']:
+                    job_data['session_id'] = active['session']['id']
+                else:
+                    from server.utils.session_management import (
+                        launch_session_for_target,
+                    )
+
+                    session_info = await launch_session_for_target(str(target_id))
+                    if session_info:
+                        job_data['session_id'] = session_info['id']
+        except Exception:
+            # If session setup fails, continue without session
+            pass
+
+    # Resolve API definition version id
+    with with_db(tenant_schema) as db_session:
+        db = TenantAwareDatabaseService(db_session)
+        core = APIGatewayCore(tenant_schema=tenant_schema, db_tenant=db)
+        api_defs = await core.load_api_definitions()
+        api_def = api_defs.get(job_create.api_name)
+        job_data['api_definition_version_id'] = api_def.version_id
+
+    # Persist job
+    with with_db(tenant_schema) as db_session:
+        db = TenantAwareDatabaseService(db_session)
+        db_job_dict = db.create_job(job_data)
+
+    job_obj = Job(**db_job_dict)
+    await enqueue_job(job_obj, tenant_schema)
+    return job_obj
