@@ -30,10 +30,19 @@ class BaseAnthropicTool(metaclass=ABCMeta):
         actions, per-action params, normalization rules, and options.
         """
         params = self.to_params()
+        # Cope with SDK objects (e.g., pydantic/dataclass) and plain dicts
+        getter = getattr(params, 'get', None)
+        if callable(getter):
+            get = getter  # dict-like
+        else:
+
+            def get(k, default=None):
+                return getattr(params, k, default)  # attr-like
+
         return {
-            'name': params.get('name'),
-            'description': params.get('description'),
-            'input_schema': params.get('input_schema')
+            'name': get('name'),
+            'description': get('description'),
+            'input_schema': get('input_schema')
             or {
                 'type': 'object',
                 'properties': {},

@@ -39,8 +39,6 @@ from openai.types.chat import (
     ChatCompletionMessageToolCallParam,
 )
 
-import openai
-
 
 class OpenAIHandler(BaseProviderHandler):
     """
@@ -78,9 +76,14 @@ class OpenAIHandler(BaseProviderHandler):
         self, api_key: str, **kwargs
     ) -> instructor.AsyncInstructor:
         """Initialize OpenAI client."""
-        # Prefer tenant-specific key if available
         tenant_key = self.tenant_setting('OPENAI_API_KEY')
-        openai_client = AsyncOpenAI(api_key=tenant_key or api_key)
+        final_api_key = tenant_key or api_key
+        if not final_api_key:
+            raise ValueError(
+                'OpenAI API key is required. Please provide either '
+                'OPENAI_API_KEY tenant setting or api_key parameter.'
+            )
+        openai_client = AsyncOpenAI(api_key=final_api_key)
         return instructor.from_openai(openai_client, max_retries=self.max_retries)
 
     def prepare_system(self, system_prompt: str) -> str:
@@ -359,7 +362,6 @@ class OpenAIHandler(BaseProviderHandler):
         **kwargs,
     ) -> tuple[ChatCompletion, httpx.Request, httpx.Response]:
         """Make raw API call to OpenAI and return provider-specific response."""
-        print(f'oai version: {openai.__version__}')
         logger.info('=== OpenAI API Call ===')
         logger.info(f'Model: {model}')
         logger.info(f'Tenant schema: {self.tenant_schema}')

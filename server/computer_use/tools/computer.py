@@ -355,7 +355,7 @@ class ComputerTool20241022(BaseComputerTool, BaseAnthropicTool):
     def to_params(self) -> BetaToolUnionParam:
         return cast(
             BetaToolUnionParam,
-            {'name': self.name, 'type': 'computer_20241022', **self.options},
+            {'name': self.name, 'type': self.api_type, **self.options},
         )
 
 
@@ -365,7 +365,7 @@ class ComputerTool20250124(BaseComputerTool, BaseAnthropicTool):
     def to_params(self) -> BetaToolUnionParam:
         return cast(
             BetaToolUnionParam,
-            {'name': self.name, 'type': 'computer_20250124', **self.options},
+            {'name': self.name, 'type': self.api_type, **self.options},
         )
 
     async def __call__(

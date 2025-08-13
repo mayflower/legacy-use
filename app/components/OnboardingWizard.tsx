@@ -262,10 +262,11 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
         credentials.proxy_api_key = apiKeyInput;
       } else if (selectedProvider === 'openai') {
         if (!openaiCredentials.apiKey.trim()) {
+          setLoading(false);
           setError('Please enter your OpenAI API key');
           return;
         }
-        credentials.api_key = openaiCredentials.apiKey;
+        credentials.api_key = openaiCredentials.apiKey.trim();
       }
 
       // Use the new backend logic to configure the provider

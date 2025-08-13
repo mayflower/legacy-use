@@ -235,13 +235,12 @@ async def update_provider_settings(
         )
 
     elif provider_enum == APIProvider.OPENAI:
-        if 'api_key' not in request.credentials:
+        api_key = request.credentials.get('api_key', '')
+        if not isinstance(api_key, str) or not api_key.strip():
             raise HTTPException(
                 status_code=400, detail='API key is required for OpenAI provider'
             )
-        set_tenant_setting(
-            tenant_schema, 'OPENAI_API_KEY', request.credentials['api_key']
-        )
+        set_tenant_setting(tenant_schema, 'OPENAI_API_KEY', api_key.strip())
 
     # Set as active provider
     set_tenant_setting(tenant_schema, 'API_PROVIDER', provider_enum.value)

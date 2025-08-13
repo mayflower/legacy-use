@@ -46,6 +46,8 @@ def anthropic_tools_to_openai_functions(
 ) -> List[FunctionToolParam]:
     fns: List[FunctionToolParam] = []
     for t in tools:
+        if not isinstance(t, dict):
+            continue
         if t.get('name') == 'computer':
             continue
         fn: FunctionToolParam = cast(

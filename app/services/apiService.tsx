@@ -127,7 +127,6 @@ export const updateProviderSettings = async (
     provider,
     credentials,
   };
-  console.log('updateRequest', updateRequest);
   return updateProviderSettingsSettingsProvidersPost(updateRequest);
 };
 
