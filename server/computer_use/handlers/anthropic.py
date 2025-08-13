@@ -9,9 +9,6 @@ from typing import Iterable, Optional, cast
 
 import httpx
 from anthropic import (
-    APIError,
-    APIResponseValidationError,
-    APIStatusError,
     AsyncAnthropic,
     AsyncAnthropicBedrock,
     AsyncAnthropicVertex,
@@ -23,6 +20,7 @@ from anthropic.types.beta import (
     BetaToolUnionParam,
     BetaMessage,
 )
+import instructor
 
 from server.computer_use.client import LegacyUseClient
 from server.computer_use.config import APIProvider
@@ -80,18 +78,22 @@ class AnthropicHandler(BaseProviderHandler):
         self.tool_beta_flag = tool_beta_flag
         self.image_truncation_threshold = 1
 
-    async def initialize_client(self, api_key: str, **kwargs) -> AnthropicClient:
+    async def initialize_client(
+        self, api_key: str, **kwargs
+    ) -> instructor.AsyncInstructor:
         """Initialize the appropriate Anthropic client based on provider."""
         # Reload settings to get latest environment variables
         settings.__init__()
 
+        client = None
+
         if self.provider == APIProvider.ANTHROPIC:
             # Prefer tenant-specific key if available
             tenant_key = self.tenant_setting('ANTHROPIC_API_KEY')
-            return AsyncAnthropic(api_key=tenant_key or api_key, max_retries=4)
+            client = AsyncAnthropic(api_key=tenant_key or api_key, max_retries=4)
 
         elif self.provider == APIProvider.VERTEX:
-            return AsyncAnthropicVertex()
+            client = AsyncAnthropicVertex()
 
         elif self.provider == APIProvider.BEDROCK:
             # AWS credentials from tenant settings (fallback to env settings)
@@ -113,7 +115,7 @@ class AnthropicHandler(BaseProviderHandler):
 
             # Initialize with available credentials using explicit kwargs for clearer typing
             logger.info(f'Using AsyncAnthropicBedrock client with region: {aws_region}')
-            return AsyncAnthropicBedrock(
+            client = AsyncAnthropicBedrock(
                 aws_region=aws_region,
                 aws_access_key=aws_access_key or None,
                 aws_secret_key=aws_secret_key or None,
@@ -127,9 +129,13 @@ class AnthropicHandler(BaseProviderHandler):
                 raise ValueError(
                     'LEGACYUSE_PROXY_API_KEY is required for LegacyUseClient'
                 )
-            return LegacyUseClient(api_key=proxy_key)
+            client = LegacyUseClient(api_key=proxy_key)
+            client = cast(AsyncAnthropic, client)
         else:
             raise ValueError(f'Unsupported Anthropic provider: {self.provider}')
+
+        client = instructor.from_anthropic(client)
+        return client
 
     def prepare_system(self, system_prompt: str) -> Iterable[BetaTextBlockParam]:
         """Prepare system prompt as Anthropic BetaTextBlockParam."""
@@ -169,48 +175,40 @@ class AnthropicHandler(BaseProviderHandler):
 
     async def _call_raw_api(
         self,
-        client: AnthropicClient,
+        client: instructor.AsyncInstructor,
         messages: list[BetaMessageParam],
         system: Iterable[BetaTextBlockParam],
         tools: list[BetaToolUnionParam],
         model: str,
         max_tokens: int,
-        temperature: float = 0.0,
+        temperature: float,
         **kwargs,
     ) -> tuple[BetaMessage, httpx.Request, httpx.Response]:
         """Make raw API call to Anthropic and return provider-specific response."""
         betas = self.get_betas()
 
-        try:
-            raw_response = await client.beta.messages.with_raw_response.create(
-                max_tokens=max_tokens,
-                messages=messages,
-                model=model,
-                system=system,
-                tools=tools,
-                betas=betas,
-                temperature=temperature,
-                **kwargs,
-            )
+        raw_response = await client.beta.messages.with_raw_response.create(
+            max_tokens=max_tokens,
+            messages=messages,
+            model=model,
+            system=system,
+            tools=tools,
+            betas=betas,
+            temperature=temperature,
+            **kwargs,
+        )
 
-            parsed_response = cast(BetaMessage, raw_response.parse())
+        parsed_response = cast(BetaMessage, raw_response.parse())
 
-            return (
-                parsed_response,
-                raw_response.http_response.request,
-                raw_response.http_response,
-            )
-
-        except (APIStatusError, APIResponseValidationError) as e:
-            # Re-raise with original exception for proper error handling
-            raise e
-        except APIError as e:
-            # Re-raise with original exception for proper error handling
-            raise e
+        return (
+            parsed_response,
+            raw_response.http_response.request,
+            raw_response.http_response,
+        )
 
     async def call_api(
         self,
-        client: AnthropicClient,
+        client: instructor.AsyncInstructor,
         messages: list[BetaMessageParam],
         system: Iterable[BetaTextBlockParam],
         tools: list[BetaToolUnionParam],
