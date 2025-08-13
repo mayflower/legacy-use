@@ -10,7 +10,7 @@ export const formatDuration = (durationSeconds: number) => {
   const minutes = Math.floor((durationSeconds % 3600) / 60);
   const seconds = Math.floor(durationSeconds % 60);
 
-  const parts = [];
+  const parts: string[] = [];
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);

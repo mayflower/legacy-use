@@ -29,23 +29,26 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
+import type { APIDefinition, Job, Target } from '@/gen/endpoints';
 
 const JobsList = () => {
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   // Filter states
-  const [filters, setFilters] = useState({
-    status: '',
-    target_id: '',
-    api_name: '',
-  });
-  const [statusOptions] = useState([
+  const [filters, setFilters] = useState<{ status: string; target_id: string; api_name: string }>(
+    {
+      status: '',
+      target_id: '',
+      api_name: '',
+    },
+  );
+  const [statusOptions] = useState<string[]>([
     'success',
     'error',
     'running',
@@ -53,10 +56,10 @@ const JobsList = () => {
     'queued',
     'canceled',
   ]);
-  const [targets, setTargets] = useState([]);
-  const [apis, setApis] = useState([]);
-  const [loadingOptions, setLoadingOptions] = useState(false);
-  const [cancelingJobId, setCancelingJobId] = useState(null);
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState<boolean>(false);
+  const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
 
   // Fetch available targets and APIs for filters
   const fetchFilterOptions = async () => {
@@ -90,8 +93,8 @@ const JobsList = () => {
       // Only include non-empty filters
       const activeFilters = Object.entries(filters)
         .filter(([, value]) => value !== '')
-        .reduce((acc, [key, value]) => {
-          acc[key] = value;
+        .reduce((acc: Record<string, string>, [key, value]) => {
+          acc[key] = value as string;
           return acc;
         }, {});
 
@@ -114,17 +117,17 @@ const JobsList = () => {
     fetchFilterOptions();
   }, []);
 
-  const handleChangePage = (_event, newPage) => {
+  const handleChangePage = (_event: any, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = event => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleFilterChange = event => {
-    const { name, value } = event.target;
+  const handleFilterChange = (event: any) => {
+    const { name, value } = event.target as { name: keyof typeof filters; value: string };
     setFilters(prev => ({
       ...prev,
       [name]: value,
@@ -146,7 +149,7 @@ const JobsList = () => {
     fetchJobs();
   };
 
-  const handleRowClick = (event, job) => {
+  const handleRowClick = (event: any, job: Job) => {
     if (event.ctrlKey || event.metaKey) {
       // Open in new tab/window if Ctrl key (or Command key on Mac) is pressed
       window.open(`/jobs/${job.target_id}/${job.id}`, '_blank');
@@ -156,7 +159,7 @@ const JobsList = () => {
     }
   };
 
-  const getStatusColor = status => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
         return 'success';
@@ -174,19 +177,19 @@ const JobsList = () => {
     }
   };
 
-  const formatDate = dateString => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleCancelJob = async (event, job) => {
+  const handleCancelJob = async (event: any, job: Job) => {
     // Prevent row click event
     event.stopPropagation();
 
     if (cancelingJobId === job.id) return;
 
     try {
-      setCancelingJobId(job.id);
-      await cancelJob(job.target_id, job.id);
+      setCancelingJobId(job.id || null);
+      await cancelJob(job.target_id, job.id || '');
       // Refresh the jobs list
       fetchJobs();
     } catch (err) {
@@ -273,7 +276,7 @@ const JobsList = () => {
                   <em>All</em>
                 </MenuItem>
                 {targets.map(target => (
-                  <MenuItem key={target.id} value={target.id}>
+                  <MenuItem key={target.id} value={target.id || ''}>
                     {target.name}
                   </MenuItem>
                 ))}
@@ -363,18 +366,18 @@ const JobsList = () => {
                   <TableCell>{job.id}</TableCell>
                   <TableCell>{job.api_name}</TableCell>
                   <TableCell>
-                    <Chip label={job.status} color={getStatusColor(job.status)} size="small" />
+                    <Chip label={job.status} color={getStatusColor(job.status || '')} size="small" />
                   </TableCell>
                   <TableCell>
                     {job.duration_seconds ? `${Math.round(job.duration_seconds)}s` : '-'}
                   </TableCell>
                   <TableCell>
-                    {job.total_input_tokens || job.total_output_tokens ? (
+                    {(job.total_input_tokens ?? 0) || (job.total_output_tokens ?? 0) ? (
                       <>
-                        {job.total_input_tokens + job.total_output_tokens}
+                        {(job.total_input_tokens ?? 0) + (job.total_output_tokens ?? 0)}
                         {(() => {
-                          const inputCost = (job.total_input_tokens / 1000000) * 3; // $3 per 1M input tokens
-                          const outputCost = (job.total_output_tokens / 1000000) * 15; // $15 per 1M output tokens
+                          const inputCost = ((job.total_input_tokens ?? 0) / 1000000) * 3; // $3 per 1M input tokens
+                          const outputCost = ((job.total_output_tokens ?? 0) / 1000000) * 15; // $15 per 1M output tokens
                           const totalCost = inputCost + outputCost;
                           return ` ($${totalCost.toFixed(3)})`;
                         })()}
@@ -383,8 +386,8 @@ const JobsList = () => {
                       '-'
                     )}
                   </TableCell>
-                  <TableCell>{formatDate(job.created_at)}</TableCell>
-                  <TableCell>{formatDate(job.updated_at)}</TableCell>
+                  <TableCell>{formatDate(job.created_at || '')}</TableCell>
+                  <TableCell>{formatDate(job.updated_at || job.created_at || '')}</TableCell>
                   <TableCell>
                     <Box
                       sx={{
@@ -401,8 +404,7 @@ const JobsList = () => {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {job.error ||
-                          (job.result && `${JSON.stringify(job.result).slice(0, 100)}...`)}
+                        {job.error || (job.result && `${JSON.stringify(job.result).slice(0, 100)}...`)}
                       </Box>
                       {(job.status === 'queued' || job.status === 'pending') && (
                         <Tooltip title="Cancel Job">
