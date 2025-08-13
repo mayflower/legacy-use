@@ -13,9 +13,9 @@ from anthropic.types.beta import (
     BetaContentBlockParam,
     BetaMessageParam,
 )
+import instructor
 
--from server.computer_use.tools import ToolCollection
-+from server.computer_use.tools.collection import ToolCollection
+from server.computer_use.tools import ToolCollection
 from server.settings_tenant import get_tenant_setting as _get_tenant_setting
 from server.computer_use.utils import (
     _inject_prompt_caching,
@@ -85,10 +85,10 @@ class ProviderHandler(Protocol):
     @abstractmethod
     async def call_api(
         self,
-        client: Any,
-        messages: list[Any],
-        system: Any,
-        tools: Any,
+        client: instructor.AsyncInstructor,
+        messages: list[BetaMessageParam],
+        system: str,
+        tools: ToolCollection,
         model: str,
         max_tokens: int,
         temperature: float = 0.0,

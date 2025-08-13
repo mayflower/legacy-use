@@ -212,8 +212,8 @@ class AnthropicHandler(BaseProviderHandler):
         self,
         client: instructor.AsyncInstructor,
         messages: list[BetaMessageParam],
-        system: Iterable[BetaTextBlockParam],
-        tools: list[BetaToolUnionParam],
+        system: str,
+        tools: ToolCollection,
         model: str,
         max_tokens: int,
         temperature: float = 0.0,
@@ -223,13 +223,20 @@ class AnthropicHandler(BaseProviderHandler):
         Make API call to Anthropic and return standardized response format.
 
         This is the public interface that calls the raw API and converts the response.
+        Now handles conversions internally for a cleaner interface.
         """
+
+        # Convert inputs to provider format if needed
+        system_formatted = self.prepare_system(system)
+        tools_formatted = self.prepare_tools(tools)
+        messages_formatted = self.convert_to_provider_messages(messages)
+
         # Call the raw API
         parsed_response, request, raw_response = await self._call_raw_api(
             client=client,
-            messages=messages,
-            system=system,
-            tools=tools,
+            messages=messages_formatted,
+            system=system_formatted,
+            tools=tools_formatted,
             model=model,
             max_tokens=max_tokens,
             temperature=temperature,

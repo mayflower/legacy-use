@@ -116,9 +116,8 @@ async def sampling_loop(
         tenant_schema=tenant_schema,
     )
 
-    # Prepare system prompt via handler
+    # Load system prompt
     system_prompt = _load_system_prompt(system_prompt_suffix)
-    system = handler.prepare_system(system_prompt)
 
     # Keep track of all exchanges for logging
     exchanges = []
@@ -160,17 +159,9 @@ async def sampling_loop(
             raise ValueError(f'Failed to load message history for job {job_id}') from e
         # --- Fetch current history from DB --- END
 
-        # --- Initialize client and prepare messages via handler ---
+        # --- Initialize client ---
 
         client = await handler.initialize_client(api_key=api_key)
-
-        # Convert messages to provider format
-        provider_messages = handler.convert_to_provider_messages(
-            current_messages_for_api
-        )
-
-        # Prepare tools in provider format
-        provider_tools = handler.prepare_tools(tool_collection)
 
         # Check for cancellation before API call
         try:
@@ -189,9 +180,9 @@ async def sampling_loop(
                 raw_response,
             ) = await handler.call_api(
                 client=client,
-                messages=provider_messages,
-                system=system,
-                tools=provider_tools,
+                messages=current_messages_for_api,  # Pass raw Anthropic format
+                system=system_prompt,  # type: ignore[arg-type]  # Pass raw string
+                tools=tool_collection,  # type: ignore[arg-type]  # Pass raw ToolCollection
                 model=model,
                 max_tokens=max_tokens,
                 temperature=0.0,
@@ -348,7 +339,7 @@ async def sampling_loop(
                 result = await tool_collection.run(
                     name=content_block['name'],
                     tool_input=cast(dict[str, Any], content_block['input']),
-                    session_id=session_id,
+                    session_id=session_id or '',
                     session=session_obj,
                 )
 
