@@ -73,10 +73,16 @@ async def worker_loop_for_tenant(tenant_schema: str):
                 await asyncio.sleep(0.5)
                 continue
             job = Job(**claimed)
-            # Maintain a lease heartbeat during execution
             lease_task = asyncio.create_task(_lease_heartbeat(job, tenant_schema))
             try:
-                await process_job_with_tenant(job, tenant_schema)
+                exec_task = asyncio.create_task(
+                    execute_api_in_background_with_tenant(job, tenant_schema)
+                )
+                running_job_tasks[str(job.id)] = exec_task
+                try:
+                    await exec_task
+                finally:
+                    running_job_tasks.pop(str(job.id), None)
             finally:
                 lease_task.cancel()
         except Exception as e:
@@ -98,29 +104,6 @@ async def _lease_heartbeat(job: Job, tenant_schema: str):
 
 
 #
-
-
-async def process_job_with_tenant(job: Job, tenant_schema: str):
-    """Process a job using tenant-aware database service."""
-
-    # Execute the job using the existing execute_api_in_background function
-    # but with tenant-aware database service
-    task = asyncio.create_task(
-        execute_api_in_background_with_tenant(job, tenant_schema)
-    )
-    running_job_tasks[str(job.id)] = task
-
-    # Wait for the job to complete
-    try:
-        await task
-    except Exception as e:
-        logger.error(
-            f'Error executing job {job.id} for tenant {tenant_schema}: {str(e)}'
-        )
-
-    # Remove the job from running_job_tasks
-    if str(job.id) in running_job_tasks:
-        del running_job_tasks[str(job.id)]
 
 
 # Main job execution logic
@@ -393,9 +376,6 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
     finally:
         if job_id_str in running_job_tasks:
             del running_job_tasks[job_id_str]
-
-
-# Removed deprecated process_job_queue and process_next_job.
 
 
 async def enqueue_job(job_obj: Job, tenant_schema: str):
