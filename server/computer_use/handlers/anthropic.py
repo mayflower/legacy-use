@@ -244,13 +244,13 @@ class AnthropicHandler(BaseProviderHandler):
         )
 
         # Convert response to standardized format
-        content_blocks, stop_reason = self._convert_from_provider_response(
+        content_blocks, stop_reason = self.convert_from_provider_response(
             parsed_response
         )
 
         return content_blocks, stop_reason, request, raw_response
 
-    def _convert_from_provider_response(
+    def convert_from_provider_response(
         self, response: BetaMessage
     ) -> tuple[list[BetaContentBlockParam], str]:
         """

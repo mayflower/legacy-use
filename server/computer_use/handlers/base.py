@@ -139,6 +139,15 @@ class ProviderHandler(Protocol):
         """
         ...
 
+    @abstractmethod
+    def convert_from_provider_response(
+        self, response: Any
+    ) -> tuple[list[BetaContentBlockParam], str]:
+        """
+        Convert provider-specific response to content blocks and stop reason.
+        """
+        ...
+
 
 class BaseProviderHandler(ABC):
     """Base class with common functionality for provider handlers."""
