@@ -65,6 +65,9 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     projectId: '',
     region: 'us-central1',
   });
+  const [openaiCredentials, setOpenaiCredentials] = useState({
+    apiKey: '',
+  });
 
   const steps = ['Welcome', 'Get Started', 'Configure Provider'];
 
@@ -257,6 +260,12 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
           return;
         }
         credentials.proxy_api_key = apiKeyInput;
+      } else if (selectedProvider === 'openai') {
+        if (!openaiCredentials.apiKey.trim()) {
+          setError('Please enter your OpenAI API key');
+          return;
+        }
+        credentials.api_key = openaiCredentials.apiKey;
       }
 
       // Use the new backend logic to configure the provider
@@ -609,6 +618,24 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
               />
             </Grid>
           </Grid>
+        </Paper>
+      )}
+
+      {selectedProvider === 'openai' && (
+        <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            OpenAI Configuration
+          </Typography>
+          <TextField
+            fullWidth
+            label="API Key"
+            type="password"
+            value={openaiCredentials.apiKey}
+            onChange={e => setOpenaiCredentials(prev => ({ ...prev, apiKey: e.target.value }))}
+            variant="outlined"
+            placeholder="Enter your OpenAI API key"
+            helperText="You can get your API key from the OpenAI Console"
+          />
         </Paper>
       )}
 

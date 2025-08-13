@@ -13,15 +13,13 @@ from anthropic.types.beta import (
     BetaContentBlockParam,
     BetaMessageParam,
     BetaTextBlockParam,
-    BetaToolResultBlockParam,
     BetaToolUseBlockParam,
 )
 import instructor
 
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
-from server.computer_use.tools import ToolCollection, ToolResult
-from server.computer_use.utils import _make_api_tool_result
+from server.computer_use.tools import ToolCollection
 from server.computer_use.converters import (
     internal_specs_to_openai_chat_functions,
 )
@@ -717,9 +715,3 @@ class OpenAIHandler(BaseProviderHandler):
         logger.info('==========================================')
 
         return content_blocks, stop_reason
-
-    def make_tool_result(
-        self, result: ToolResult, tool_use_id: str
-    ) -> BetaToolResultBlockParam:
-        """Create tool result block using existing utility to mirror Anthropic behavior."""
-        return _make_api_tool_result(result, tool_use_id)
