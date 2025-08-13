@@ -355,8 +355,11 @@ class DatabaseService:
                 job.lease_owner = None
                 job.lease_expires_at = None
                 affected.append(self._to_dict(job))
-            if affected:
-                session.commit()
+            # Always finalize the transaction to avoid leaving an open txn when
+            # this method is used alongside other operations on the same Session
+            # (e.g., claim_next_job starts its own explicit transaction).
+            # Committing with no changes is a no-op and safely ends the transaction.
+            session.commit()
             return affected
         finally:
             session.close()
