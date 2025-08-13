@@ -14,7 +14,8 @@ from anthropic.types.beta import (
     BetaMessageParam,
 )
 
-from server.computer_use.tools import ToolCollection
+-from server.computer_use.tools import ToolCollection
++from server.computer_use.tools.collection import ToolCollection
 from server.settings_tenant import get_tenant_setting as _get_tenant_setting
 from server.computer_use.utils import (
     _inject_prompt_caching,
