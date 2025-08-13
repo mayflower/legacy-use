@@ -218,3 +218,22 @@ class BaseProviderHandler(ABC):
             )
 
         return messages
+
+    # Debug message constants for logging
+    DEBUG_MESSAGE_MAX_LENGTH = 10000
+    DEBUG_MESSAGE_TRUNCATE_LENGTH = 7
+
+    def _truncate_for_debug(self, obj):
+        """Recursively truncate long strings in objects for debug logging."""
+        if isinstance(obj, list):
+            return [self._truncate_for_debug(m) for m in obj]
+        elif isinstance(obj, dict):
+            return {
+                self._truncate_for_debug(k): self._truncate_for_debug(v)
+                for k, v in obj.items()
+            }
+        elif isinstance(obj, str):
+            if len(obj) > self.DEBUG_MESSAGE_MAX_LENGTH:
+                return obj[: self.DEBUG_MESSAGE_TRUNCATE_LENGTH] + '...'
+            return obj
+        return obj

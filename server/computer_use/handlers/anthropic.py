@@ -189,6 +189,8 @@ class AnthropicHandler(BaseProviderHandler):
         """Make raw API call to Anthropic and return provider-specific response."""
         betas = self.get_betas()
 
+        logger.info(f'Messages: {self._truncate_for_debug(messages)}')
+
         raw_response = await client.beta.messages.with_raw_response.create(
             max_tokens=max_tokens,
             messages=messages,

@@ -110,10 +110,6 @@ class OpenAIHandler(BaseProviderHandler):
         'length': 'max_tokens',
     }
 
-    # Max length for debug logging messages
-    DEBUG_MESSAGE_MAX_LENGTH = 10000
-    DEBUG_MESSAGE_TRUNCATE_LENGTH = 7
-
     def __init__(
         self,
         model: str = 'gpt-4o',
@@ -557,29 +553,6 @@ class OpenAIHandler(BaseProviderHandler):
         )
         return tools
 
-    def _truncate_for_debug(self, obj):
-        """
-        Recursively truncate long strings in objects for debug logging.
-
-        Args:
-            obj: Object to truncate
-
-        Returns:
-            Object with truncated strings
-        """
-        if isinstance(obj, list):
-            return [self._truncate_for_debug(m) for m in obj]
-        elif isinstance(obj, dict):
-            return {
-                self._truncate_for_debug(k): self._truncate_for_debug(v)
-                for k, v in obj.items()
-            }
-        elif isinstance(obj, str):
-            if len(obj) > self.DEBUG_MESSAGE_MAX_LENGTH:
-                return obj[: self.DEBUG_MESSAGE_TRUNCATE_LENGTH] + '...'
-            return obj
-        return obj
-
     async def call_api(
         self,
         client: instructor.AsyncInstructor,
@@ -592,11 +565,6 @@ class OpenAIHandler(BaseProviderHandler):
         **kwargs,
     ) -> tuple[ChatCompletion, httpx.Request, httpx.Response]:
         """Make raw API call to OpenAI and return provider-specific response."""
-        logger.info('=== OpenAI API Call ===')
-        logger.info(f'Model: {model}')
-        logger.info(f'Tenant schema: {self.tenant_schema}')
-        logger.debug(f'Max tokens: {max_tokens}, Temperature: {temperature}')
-
         # Build full message list with system message
         full_messages: list[ChatCompletionMessageParam] = []
         if system:
@@ -609,10 +577,6 @@ class OpenAIHandler(BaseProviderHandler):
 
         # Log debug information
         logger.info(f'Messages: {self._truncate_for_debug(full_messages)}')
-        logger.info(
-            f'Tools: {[t.get("function", {}).get("name") for t in tools] if tools else "None"}'
-        )
-        logger.info(f'Tools: {tools}')
 
         # Make API call
         response = await client.beta.chat.completions.with_raw_response.create(
