@@ -292,7 +292,11 @@ const HttpExchangeItem = ({ exchange }) => {
               {(() => {
                 let tokenUsage: { input: number; output: number } | null = null;
                 try {
-                  if (response_body && typeof response_body === 'object' && (response_body as any).usage) {
+                  if (
+                    response_body &&
+                    typeof response_body === 'object' &&
+                    (response_body as any).usage
+                  ) {
                     tokenUsage = {
                       input: (response_body as any).usage.input_tokens,
                       output: (response_body as any).usage.output_tokens,

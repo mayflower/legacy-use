@@ -174,10 +174,13 @@ const JobDetails = () => {
 
       // Preserve the API definition version which doesn't change
       if (jobData) {
-        setJob(prevJob => ({
-          ...jobData,
-          api_definition_version: (prevJob as any)?.api_definition_version,
-        } as Job));
+        setJob(
+          prevJob =>
+            ({
+              ...jobData,
+              api_definition_version: (prevJob as any)?.api_definition_version,
+            }) as Job,
+        );
       }
 
       // Determine which tab is active and refresh only that data
@@ -201,7 +204,15 @@ const JobDetails = () => {
         setLoading(false);
       }
     }
-  }, [targetIdReq, jobIdReq, refreshJobStatus, fetchJobLogs, fetchJobHttpExchanges, activeTab, job]);
+  }, [
+    targetIdReq,
+    jobIdReq,
+    refreshJobStatus,
+    fetchJobLogs,
+    fetchJobHttpExchanges,
+    activeTab,
+    job,
+  ]);
 
   // Effect to update the VNC viewer context
   useEffect(() => {
@@ -305,10 +316,13 @@ const JobDetails = () => {
         console.log(`[${new Date().toISOString()}] Current job status: ${jobData.status}`);
 
         // Update job state but preserve the prompt version which doesn't change
-        setJob(prevJob => ({
-          ...jobData,
-          api_definition_version: (prevJob as any)?.api_definition_version, // Preserve the version info
-        } as Job));
+        setJob(
+          prevJob =>
+            ({
+              ...jobData,
+              api_definition_version: (prevJob as any)?.api_definition_version, // Preserve the version info
+            }) as Job,
+        );
 
         // If job is no longer running or queued (e.g., becomes PAUSED), clear the interval
         if (!activePollingStates.includes((jobData.status || '').toLowerCase())) {
@@ -381,7 +395,15 @@ const JobDetails = () => {
         clearInterval(pollingInterval);
       }
     };
-  }, [targetIdReq, jobIdReq, job?.status, activeTab, httpExchangesLoaded, fetchJobLogs, fetchJobHttpExchanges]);
+  }, [
+    targetIdReq,
+    jobIdReq,
+    job?.status,
+    activeTab,
+    httpExchangesLoaded,
+    fetchJobLogs,
+    fetchJobHttpExchanges,
+  ]);
 
   // Watch for job status changes (separate from polling)
   useEffect(() => {
@@ -594,7 +616,7 @@ const JobDetails = () => {
             value={selectedTargetForRerun}
             onChange={e => setSelectedTargetForRerun(e.target.value as string)}
           >
-                        {availableTargets.map(target => (
+            {availableTargets.map(target => (
               <MenuItem key={target.id} value={target.id || ''}>
                 {target.name || target.id} - {target.type}
               </MenuItem>
@@ -796,7 +818,6 @@ const JobDetails = () => {
           job={job || {}}
           regularLogs={logs}
           httpExchanges={httpExchanges}
-
           httpExchangesLoading={httpExchangesLoading}
           hasHttpExchanges={true}
         />

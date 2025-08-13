@@ -185,7 +185,9 @@ const ApiList = () => {
       });
 
       // Process parameters before sending
-      const processedParams: Record<string, string | unknown[]> = { ...(paramValues[api.name] as Record<string, string | unknown[]>) };
+      const processedParams: Record<string, string | unknown[]> = {
+        ...(paramValues[api.name] as Record<string, string | unknown[]>),
+      };
       let validationError: string | null = null;
       if (api.parameters) {
         for (const param of api.parameters) {

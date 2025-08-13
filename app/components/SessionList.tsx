@@ -211,7 +211,9 @@ const SessionList = () => {
               </TableHead>
               <TableBody>
                 {[...sessions]
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .sort(
+                    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+                  )
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map(session => (
                     <TableRow
@@ -252,14 +254,23 @@ const SessionList = () => {
                       <TableCell>
                         {(session as any).container_status?.health ? (
                           <Tooltip
-                            title={(session as any).container_status.health?.reason || 'No reason provided'}
+                            title={
+                              (session as any).container_status.health?.reason ||
+                              'No reason provided'
+                            }
                           >
                             <Chip
                               label={
-                                (session as any).container_status.health?.healthy ? 'Healthy' : 'Unhealthy'
+                                (session as any).container_status.health?.healthy
+                                  ? 'Healthy'
+                                  : 'Unhealthy'
                               }
                               size="small"
-                              color={(session as any).container_status.health?.healthy ? 'success' : 'error'}
+                              color={
+                                (session as any).container_status.health?.healthy
+                                  ? 'success'
+                                  : 'error'
+                              }
                             />
                           </Tooltip>
                         ) : (

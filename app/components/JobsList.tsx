@@ -41,13 +41,11 @@ const JobsList = () => {
   const [totalCount, setTotalCount] = useState<number>(0);
 
   // Filter states
-  const [filters, setFilters] = useState<{ status: string; target_id: string; api_name: string }>(
-    {
-      status: '',
-      target_id: '',
-      api_name: '',
-    },
-  );
+  const [filters, setFilters] = useState<{ status: string; target_id: string; api_name: string }>({
+    status: '',
+    target_id: '',
+    api_name: '',
+  });
   const [statusOptions] = useState<string[]>([
     'success',
     'error',
@@ -366,7 +364,11 @@ const JobsList = () => {
                   <TableCell>{job.id}</TableCell>
                   <TableCell>{job.api_name}</TableCell>
                   <TableCell>
-                    <Chip label={job.status} color={getStatusColor(job.status || '')} size="small" />
+                    <Chip
+                      label={job.status}
+                      color={getStatusColor(job.status || '')}
+                      size="small"
+                    />
                   </TableCell>
                   <TableCell>
                     {job.duration_seconds ? `${Math.round(job.duration_seconds)}s` : '-'}
@@ -404,7 +406,8 @@ const JobsList = () => {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {job.error || (job.result && `${JSON.stringify(job.result).slice(0, 100)}...`)}
+                        {job.error ||
+                          (job.result && `${JSON.stringify(job.result).slice(0, 100)}...`)}
                       </Box>
                       {(job.status === 'queued' || job.status === 'pending') && (
                         <Tooltip title="Cancel Job">

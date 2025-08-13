@@ -100,7 +100,11 @@ const CreateSession = () => {
       console.error('Error creating session:', err);
 
       // Handle specific conflict error for existing active session
-      if ((err as any).status === 409 && (err as any).detail && (err as any).detail.existing_session) {
+      if (
+        (err as any).status === 409 &&
+        (err as any).detail &&
+        (err as any).detail.existing_session
+      ) {
         const existingSession = (err as any).detail.existing_session;
         const formattedDate = new Date(existingSession.created_at).toLocaleString();
         setError(

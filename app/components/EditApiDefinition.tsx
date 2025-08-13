@@ -75,9 +75,9 @@ const EditApiDefinition = () => {
 
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>(
-    'success',
-  );
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'warning' | 'info'
+  >('success');
 
   // Load API definition details
   useEffect(() => {
@@ -119,23 +119,31 @@ const EditApiDefinition = () => {
           setSelectedVersionId(versionId);
           const selectedVersion = (versionsData as any[]).find(v => v.id === versionId);
           if (selectedVersion) {
-                    setApiDefinition((prevState: any) => ({
-          ...prevState,
-          name: prevState?.name ?? '',
-          description: prevState?.description ?? '',
-          is_archived: prevState?.is_archived ?? false,
-          parameters: selectedVersion.parameters || [],
-          prompt: selectedVersion.prompt || '',
-          prompt_cleanup: selectedVersion.prompt_cleanup || '',
-          response_example: selectedVersion.response_example || {},
-        }));
-                    setOriginalApiDefinition((prevState: any) => ({
-          ...(prevState || { name: '', description: '', is_archived: false, parameters: [], prompt: '', prompt_cleanup: '', response_example: {} }),
-          parameters: selectedVersion.parameters,
-          prompt: selectedVersion.prompt,
-          prompt_cleanup: selectedVersion.prompt_cleanup,
-          response_example: selectedVersion.response_example,
-        }));
+            setApiDefinition((prevState: any) => ({
+              ...prevState,
+              name: prevState?.name ?? '',
+              description: prevState?.description ?? '',
+              is_archived: prevState?.is_archived ?? false,
+              parameters: selectedVersion.parameters || [],
+              prompt: selectedVersion.prompt || '',
+              prompt_cleanup: selectedVersion.prompt_cleanup || '',
+              response_example: selectedVersion.response_example || {},
+            }));
+            setOriginalApiDefinition((prevState: any) => ({
+              ...(prevState || {
+                name: '',
+                description: '',
+                is_archived: false,
+                parameters: [],
+                prompt: '',
+                prompt_cleanup: '',
+                response_example: {},
+              }),
+              parameters: selectedVersion.parameters,
+              prompt: selectedVersion.prompt,
+              prompt_cleanup: selectedVersion.prompt_cleanup,
+              response_example: selectedVersion.response_example,
+            }));
           }
         }
 
@@ -264,7 +272,7 @@ const EditApiDefinition = () => {
           prompt_cleanup: selectedVersion.prompt_cleanup,
           response_example: selectedVersion.response_example,
         }));
-        setOriginalApiDefinition((_prevState) => ({
+        setOriginalApiDefinition(_prevState => ({
           name: apiDefinition.name || '',
           description: apiDefinition.description || '',
           is_archived: apiDefinition.is_archived || false,

@@ -256,7 +256,13 @@ const TargetList = () => {
     }
   };
 
-  const handleEditRecommendedResolutionClick = ({ width, height }: { width: number; height: number }) => {
+  const handleEditRecommendedResolutionClick = ({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
+  }) => {
     setEditFormData((prev: any) => ({ ...prev, width, height }));
   };
 
@@ -482,7 +488,12 @@ const TargetList = () => {
                           <Chip
                             icon={<HourglassEmptyIcon />}
                             label={target.queued_tasks_count}
-                            color={typeof target.queued_tasks_count === 'number' && target.queued_tasks_count > 0 ? 'warning' : 'default'}
+                            color={
+                              typeof target.queued_tasks_count === 'number' &&
+                              target.queued_tasks_count > 0
+                                ? 'warning'
+                                : 'default'
+                            }
                             size="small"
                           />
                         )}

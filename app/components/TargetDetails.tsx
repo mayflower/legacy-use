@@ -127,7 +127,9 @@ const TargetDetails = () => {
           setTargetSessions(updatedSessions);
 
           // Update the selected session if it exists
-          const updatedSession = updatedSessions.find(s => s.id === (selectedSession as Session).id);
+          const updatedSession = updatedSessions.find(
+            s => s.id === (selectedSession as Session).id,
+          );
           if (updatedSession) {
             // Fetch detailed session information including container_status
             try {
@@ -287,7 +289,9 @@ const TargetDetails = () => {
         } catch (err) {
           console.error('Error fetching detailed session during refresh:', err);
           // Fallback to basic session data
-          const updatedSession = updatedSessions.find(s => s.id === (selectedSession as Session).id);
+          const updatedSession = updatedSessions.find(
+            s => s.id === (selectedSession as Session).id,
+          );
           if (updatedSession) {
             setSelectedSession(updatedSession);
             setCurrentSession(updatedSession);

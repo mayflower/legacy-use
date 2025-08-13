@@ -49,13 +49,15 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const { refreshProviders } = useAiProvider();
 
   // Signup form state
-  const [signupData, setSignupData] = useState<{ email: string; description: string; referralCode: string }>(
-    {
-      email: '',
-      description: '',
-      referralCode: '',
-    },
-  );
+  const [signupData, setSignupData] = useState<{
+    email: string;
+    description: string;
+    referralCode: string;
+  }>({
+    email: '',
+    description: '',
+    referralCode: '',
+  });
 
   // Provider configuration state
   const [apiKeyInput, setApiKeyInput] = useState<string>('');

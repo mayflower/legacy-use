@@ -24,10 +24,11 @@ export default function TeachingMode() {
   );
 
   // Analyze state
-  const [analyzeResult, setAnalyzeResult] = useLocalStorage<null | AnalyzeVideoTeachingModeAnalyzeVideoPostResult>(
-    `analyze-result-${currentSession?.id}`,
-    null,
-  );
+  const [analyzeResult, setAnalyzeResult] =
+    useLocalStorage<null | AnalyzeVideoTeachingModeAnalyzeVideoPostResult>(
+      `analyze-result-${currentSession?.id}`,
+      null,
+    );
   const [analyzeError, setAnalyzeError] = useState<null | string>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(false);
 

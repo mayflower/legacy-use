@@ -114,7 +114,13 @@ const CreateTarget = () => {
     }));
   };
 
-  const handleRecommendedResolutionClick = ({ width, height }: { width: number; height: number }) => {
+  const handleRecommendedResolutionClick = ({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
+  }) => {
     setTargetData(prev => ({ ...prev, width, height }));
   };
 
