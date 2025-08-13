@@ -178,7 +178,7 @@ async def sampling_loop(
                 stop_reason,
                 request,
                 raw_response,
-            ) = await handler.call_api(
+            ) = await handler.execute(
                 client=client,
                 messages=current_messages_for_api,  # Pass raw Anthropic format
                 system=system_prompt,  # type: ignore[arg-type]  # Pass raw string

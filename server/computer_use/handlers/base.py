@@ -85,6 +85,33 @@ class ProviderHandler(Protocol):
     @abstractmethod
     async def call_api(
         self,
+        client: Any,
+        messages: list[Any],
+        system: Any,
+        tools: Any,
+        model: str,
+        max_tokens: int,
+        temperature: float = 0.0,
+        **kwargs,
+    ) -> Any:
+        """
+        Make the API call to the provider and return response.
+
+        Args:
+            client: The provider client instance
+            messages: Messages in provider format
+            system: System prompt in provider format
+            tools: Tools in provider format
+            model: Model identifier
+            max_tokens: Maximum tokens for response
+            temperature: Temperature for generation
+            **kwargs: Additional provider-specific parameters
+        """
+        ...
+
+    @abstractmethod
+    async def execute(
+        self,
         client: instructor.AsyncInstructor,
         messages: list[BetaMessageParam],
         system: str,
@@ -95,13 +122,13 @@ class ProviderHandler(Protocol):
         **kwargs,
     ) -> tuple[list[BetaContentBlockParam], str, httpx.Request, httpx.Response]:
         """
-        Make the API call to the provider and return standardized response.
+        Execute the API call to the provider and return standardized response.
 
         Args:
             client: The provider client instance
-            messages: Messages in provider format
-            system: System prompt in provider format
-            tools: Tools in provider format
+            messages: Messages in global format
+            system: System prompt in global format
+            tools: Tools in global format
             model: Model identifier
             max_tokens: Maximum tokens for response
             temperature: Temperature for generation
