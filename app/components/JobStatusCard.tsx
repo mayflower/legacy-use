@@ -37,7 +37,7 @@ const JobStatusCard = ({
   resuming,
   normalizedJobStatus,
 }) => {
-  const [versionInfo, setVersionInfo] = useState(null);
+  const [versionInfo, setVersionInfo] = useState<any>(null);
   const [loadingVersion, setLoadingVersion] = useState(false);
 
   // Fetch version information if available
@@ -76,15 +76,15 @@ const JobStatusCard = ({
   const renderDurationAndTokens = () => {
     const duration = formatDuration(job.created_at, job.completed_at);
     const tokens = tokenUsage
-      ? `${tokenUsage.input.toLocaleString()} in / ${tokenUsage.output.toLocaleString()} out`
+      ? `${(tokenUsage.input ?? 0).toLocaleString()} in / ${(tokenUsage.output ?? 0).toLocaleString()} out`
       : 'N/A';
     const isRunning = normalizedJobStatus === 'running';
 
     // Calculate costs if token usage is available
-    let costInfo = null;
+    let costInfo = null as string | null;
     if (tokenUsage) {
-      const inputCost = (tokenUsage.input / 1000000) * 3; // $3 per 1M input tokens
-      const outputCost = (tokenUsage.output / 1000000) * 15; // $15 per 1M output tokens
+      const inputCost = ((tokenUsage.input ?? 0) / 1000000) * 3; // $3 per 1M input tokens
+      const outputCost = ((tokenUsage.output ?? 0) / 1000000) * 15; // $15 per 1M output tokens
       const totalCost = inputCost + outputCost;
       costInfo = `($${totalCost.toFixed(3)})`;
     }

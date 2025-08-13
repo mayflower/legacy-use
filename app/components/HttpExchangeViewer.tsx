@@ -49,6 +49,7 @@ const HttpExchangeItem = ({ exchange }) => {
   else if (response.status) status = response.status;
   else if (exchangeData.status_code) status = exchangeData.status_code;
   else if (exchangeData.status) status = exchangeData.status;
+  const statusCode = status ?? 0;
 
   const request_headers = request.headers || exchangeData.request_headers || {};
   const response_headers = response.headers || exchangeData.response_headers || {};
@@ -118,7 +119,7 @@ const HttpExchangeItem = ({ exchange }) => {
               variant="subtitle1"
               sx={{
                 fontWeight: 'bold',
-                color: error ? '#ff6b6b' : status >= 400 ? '#ffa94d' : '#4dabf5',
+                color: error ? '#ff6b6b' : statusCode >= 400 ? '#ffa94d' : '#4dabf5',
               }}
             >
               {method} {pathname}
@@ -126,7 +127,7 @@ const HttpExchangeItem = ({ exchange }) => {
           </Box>
           <Chip
             label={status ? `${status}` : error ? 'Error' : 'Pending'}
-            color={error ? 'error' : status >= 400 ? 'warning' : 'success'}
+            color={error ? 'error' : statusCode >= 400 ? 'warning' : 'success'}
             size="small"
           />
         </Box>
@@ -289,12 +290,16 @@ const HttpExchangeItem = ({ exchange }) => {
               )}
 
               {(() => {
-                let tokenUsage = null;
+                let tokenUsage: { input: number; output: number } | null = null;
                 try {
-                  if (response_body && typeof response_body === 'object' && response_body.usage) {
+                  if (
+                    response_body &&
+                    typeof response_body === 'object' &&
+                    (response_body as any).usage
+                  ) {
                     tokenUsage = {
-                      input: response_body.usage.input_tokens,
-                      output: response_body.usage.output_tokens,
+                      input: (response_body as any).usage.input_tokens,
+                      output: (response_body as any).usage.output_tokens,
                     };
                   }
                 } catch (err) {

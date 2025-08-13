@@ -10,10 +10,10 @@ import { API_BASE_URL } from '../utils/apiConstants';
 const VncViewer = ({ viewOnly = true }: { viewOnly?: boolean }) => {
   const location = useLocation();
   const { selectedSessionId, currentSession } = useContext(SessionContext);
-  const [sessionId, setSessionId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [cookieSet, setCookieSet] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [cookieSet, setCookieSet] = useState<boolean>(false);
 
   // Get session ID from context or URL
   useEffect(() => {

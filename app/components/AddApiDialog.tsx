@@ -14,7 +14,7 @@ const AddApiDialog = ({ open, onClose, onApiAdded }) => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = e => {
     setName(e.target.value);
@@ -54,7 +54,7 @@ const AddApiDialog = ({ open, onClose, onApiAdded }) => {
 
       // Redirect to edit page
       navigate(`/apis/${name.trim()}/edit`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating API:', err);
       setError(err.response?.data?.detail || 'Failed to create API');
     } finally {
