@@ -25,7 +25,7 @@ from anthropic.types.beta import (
 
 from server.computer_use.config import APIProvider
 from server.computer_use.logging import logger
-from server.computer_use.handlers import get_handler
+from server.computer_use.handlers.registry import get_handler
 from server.computer_use.tools import (
     TOOL_GROUPS_BY_VERSION,
     ToolCollection,
