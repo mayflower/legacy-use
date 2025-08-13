@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { TargetCreate, TargetCreatePort, TargetType } from '@/gen/endpoints';
 import { createTarget } from '../services/apiService';
 import ResolutionRecommendation from './ResolutionRecommendation';
 import VPNConfigInputField from './VPNConfigInputField';
@@ -29,19 +30,10 @@ const DEFAULT_PORTS: Record<string, number> = {
   'rdp+openvpn': 3389,
 };
 
-interface TargetFormState {
-  name: string;
-  type: string;
-  host: string;
-  username: string;
-  password: string;
-  port: number | null;
-  vpn_config: string;
-  vpn_username: string;
-  vpn_password: string;
+interface TargetFormState extends TargetCreate {
+  port: TargetCreatePort;
   width: number;
   height: number;
-  rdp_params: string;
 }
 
 const CreateTarget = () => {
@@ -63,12 +55,12 @@ const CreateTarget = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  const [validationErrors, setValidationErrors] = useState<any>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Check if OpenVPN is allowed based on environment variable
   const isOpenVPNAllowed = import.meta.env.VITE_ALLOW_OPENVPN === 'true';
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target as { name: keyof TargetFormState; value: string };
     setTargetData(prev => ({
       ...prev,
@@ -76,7 +68,7 @@ const CreateTarget = () => {
     }));
   };
 
-  const handlePortChange = (e: any) => {
+  const handlePortChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value as string;
     if (value === '') {
       setTargetData(prev => ({
@@ -94,24 +86,21 @@ const CreateTarget = () => {
     }
   };
 
-  const handleResolutionChange = (e: any) => {
+  const handleResolutionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target as { name: keyof TargetFormState; value: string };
     const numValue = parseInt(value, 10);
     if (!Number.isNaN(numValue)) {
       setTargetData(prev => ({
         ...prev,
-        [name]: numValue as any,
+        [name]: numValue,
       }));
     }
   };
 
-  const handleTypeChange = (e: any) => {
-    const newType = e.target.value as string;
-    setTargetData(prev => ({
-      ...prev,
-      type: newType,
-      port: DEFAULT_PORTS[newType] ?? null,
-    }));
+  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const type = e.target.value as TargetType;
+    const port = DEFAULT_PORTS[type];
+    setTargetData(prev => ({ ...prev, type, port }));
   };
 
   const handleRecommendedResolutionClick = ({
@@ -125,7 +114,7 @@ const CreateTarget = () => {
   };
 
   const validateForm = () => {
-    const errors: any = {};
+    const errors: Record<string, string> = {};
 
     if (!targetData.name.trim()) {
       errors.name = 'Name is required';
@@ -175,7 +164,7 @@ const CreateTarget = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -187,7 +176,7 @@ const CreateTarget = () => {
       setError(null);
 
       // Prepare data for submission
-      const submissionData = { ...targetData } as any;
+      const submissionData = { ...targetData };
 
       await createTarget(submissionData);
 
@@ -198,7 +187,7 @@ const CreateTarget = () => {
       setTimeout(() => {
         navigate('/targets');
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating target:', err);
       setError(err.response?.data?.detail || 'Failed to create target. Please try again.');
       setLoading(false);
