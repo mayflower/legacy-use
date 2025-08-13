@@ -20,7 +20,7 @@ import instructor
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
 from server.computer_use.tools import ToolCollection
-from server.computer_use.converters import (
+from server.computer_use.handlers.converter_utils import (
     internal_specs_to_openai_chat_functions,
 )
 

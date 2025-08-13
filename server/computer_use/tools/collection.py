@@ -59,8 +59,6 @@ class ToolCollection:
     ) -> list[BetaToolUnionParam]:
         return [tool.to_params() for tool in self.tools]
 
-    # Removed: OpenAI-specific conversion is handled by central converters
-
     async def run(
         self,
         *,

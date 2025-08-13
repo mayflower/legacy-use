@@ -62,9 +62,6 @@ class BaseComputerTool(BaseAnthropicTool):
             {'name': self.name, 'type': self.api_type, **self.options},
         )
 
-    # Deprecated OpenAI-specific adapter removed in favor of internal_spec() + central converters
-
-    # --- SSOT hooks ---
     def internal_spec(self) -> dict:
         return {
             'name': 'computer',

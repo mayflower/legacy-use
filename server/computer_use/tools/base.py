@@ -19,9 +19,6 @@ class BaseAnthropicTool(metaclass=ABCMeta):
     ) -> BetaToolUnionParam:
         raise NotImplementedError
 
-    # Removed: OpenAI-specific conversion now handled by central converters using internal_spec()
-
-    # --- Single-source-of-truth spec for provider compilers ---
     def internal_spec(self) -> dict:
         """Provider-agnostic spec for this tool (actions, params, docs).
 
