@@ -2,7 +2,7 @@
 add job lease fields
 
 Revision ID: f9f9b9e0f1a3
-Revises: f705ed66700e_add_tenant_settings_table
+Revises: a899d3a8acb6_add_rdp_params
 Create Date: 2025-08-12 00:00:00.000000
 """
 
