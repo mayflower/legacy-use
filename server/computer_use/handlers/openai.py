@@ -16,6 +16,7 @@ from anthropic.types.beta import (
     BetaToolResultBlockParam,
     BetaToolUseBlockParam,
 )
+import instructor
 
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
@@ -74,14 +75,24 @@ class OpenAIHandler(BaseProviderHandler):
         self.model = model
         # Keep this handler focused on Chat Completions + function calling
 
-    async def initialize_client(self, api_key: str, **kwargs) -> AsyncOpenAI:
+    async def initialize_client(
+        self, api_key: str, **kwargs
+    ) -> instructor.AsyncInstructor:
         """Initialize OpenAI client."""
         # Prefer tenant-specific key if available
-        return AsyncOpenAI(api_key=api_key)
+        tenant_key = self.tenant_setting('OPENAI_API_KEY')
+        openai_client = AsyncOpenAI(api_key=tenant_key or api_key)
+        return instructor.from_openai(openai_client, max_retries=self.max_retries)
 
     def prepare_system(self, system_prompt: str) -> str:
         """
-        Prepare system prompt for OpenAI.
+        Prepare system prompt for OpenAI (kept for Protocol compatibility).
+        """
+        return self._prepare_system(system_prompt)
+
+    def _prepare_system(self, system_prompt: str) -> str:
+        """
+        Internal: Prepare system prompt for OpenAI.
         OpenAI uses a simple string for system prompts.
         """
         return system_prompt
@@ -90,7 +101,15 @@ class OpenAIHandler(BaseProviderHandler):
         self, messages: list[BetaMessageParam]
     ) -> list[ChatCompletionMessageParam]:
         """
-        Convert Anthropic-format messages to OpenAI format.
+        Convert Anthropic-format messages to OpenAI format (kept for Protocol compatibility).
+        """
+        return self._convert_to_provider_messages(messages)
+
+    def _convert_to_provider_messages(
+        self, messages: list[BetaMessageParam]
+    ) -> list[ChatCompletionMessageParam]:
+        """
+        Internal: Convert Anthropic-format messages to OpenAI format.
 
         OpenAI format:
         {
@@ -103,15 +122,8 @@ class OpenAIHandler(BaseProviderHandler):
         IMPORTANT: OpenAI requires all tool messages to directly follow the assistant
         message with tool_calls, without any user messages in between.
         """
-        # Apply image filtering if configured
-        if self.only_n_most_recent_images:
-            from server.computer_use.utils import _maybe_filter_to_n_most_recent_images
-
-            _maybe_filter_to_n_most_recent_images(
-                messages,
-                self.only_n_most_recent_images,
-                min_removal_threshold=1,
-            )
+        # Apply common preprocessing (prompt caching disabled for OpenAI, image filtering if configured)
+        messages = self.preprocess_messages(messages, image_truncation_threshold=1)
 
         openai_messages: list[ChatCompletionMessageParam] = []
 
@@ -341,6 +353,13 @@ class OpenAIHandler(BaseProviderHandler):
     def prepare_tools(
         self, tool_collection: ToolCollection
     ) -> list[ChatCompletionToolParam]:
+        """Convert tool collection to OpenAI format (kept for Protocol compatibility)."""
+        return self._prepare_tools(tool_collection)
+
+    def _prepare_tools(
+        self, tool_collection: ToolCollection
+    ) -> list[ChatCompletionToolParam]:
+        """Internal: Convert tool collection to OpenAI format."""
         # Build OpenAI tool definitions from each tool's internal_spec().
         tools: list[ChatCompletionToolParam] = internal_specs_to_openai_chat_functions(
             list(tool_collection.tools)
@@ -350,18 +369,18 @@ class OpenAIHandler(BaseProviderHandler):
         )
         return tools
 
-    async def call_api(
+    async def _call_raw_api(
         self,
-        client: AsyncOpenAI,
+        client: instructor.AsyncInstructor,
         messages: list[ChatCompletionMessageParam],
         system: str,
         tools: list[ChatCompletionToolParam],
         model: str,
         max_tokens: int,
-        temperature: float = 0.0,
+        temperature: float,
         **kwargs,
     ) -> tuple[ChatCompletion, httpx.Request, httpx.Response]:
-        """Make API call to OpenAI."""
+        """Make raw API call to OpenAI and return provider-specific response."""
         logger.info('=== OpenAI API Call ===')
         logger.info(f'Model: {model}')
         logger.info(f'Tenant schema: {self.tenant_schema}')
@@ -411,9 +430,53 @@ class OpenAIHandler(BaseProviderHandler):
         parsed_response = response.parse()
         logger.info(f'Parsed response: {parsed_response}')
 
-        return parsed_response, response.http_response.request, response.http_response
+        return (
+            parsed_response,
+            response.http_response.request,
+            response.http_response,
+        )
 
-    def convert_from_provider_response(
+    async def call_api(
+        self,
+        client: instructor.AsyncInstructor,
+        messages: list[BetaMessageParam],
+        system: str,
+        tools: ToolCollection,
+        model: str,
+        max_tokens: int,
+        temperature: float = 0.0,
+        **kwargs,
+    ) -> tuple[list[BetaContentBlockParam], str, httpx.Request, httpx.Response]:
+        """
+        Make API call to OpenAI and return standardized response format.
+
+        This is the public interface that calls the raw API and converts the response.
+        Now handles conversions internally for a cleaner interface.
+        """
+        # Convert inputs to provider format
+        openai_messages = self._convert_to_provider_messages(messages)
+        system_str = self._prepare_system(system)
+        openai_tools = self._prepare_tools(tools)
+
+        parsed_response, request, raw_response = await self._call_raw_api(
+            client=client,
+            messages=openai_messages,
+            system=system_str,
+            tools=openai_tools,
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            **kwargs,
+        )
+
+        # Convert response to standardized format
+        content_blocks, stop_reason = self._convert_from_provider_response(
+            parsed_response
+        )
+
+        return content_blocks, stop_reason, request, raw_response
+
+    def _convert_from_provider_response(
         self, response: ChatCompletion
     ) -> tuple[list[BetaContentBlockParam], str]:
         """

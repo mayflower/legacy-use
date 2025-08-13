@@ -140,7 +140,11 @@ class AnthropicHandler(BaseProviderHandler):
         return client
 
     def prepare_system(self, system_prompt: str) -> Iterable[BetaTextBlockParam]:
-        """Prepare system prompt as Anthropic BetaTextBlockParam."""
+        """Prepare system prompt as Anthropic BetaTextBlockParam (kept for Protocol compatibility)."""
+        return self._prepare_system(system_prompt)
+
+    def _prepare_system(self, system_prompt: str) -> Iterable[BetaTextBlockParam]:
+        """Internal: Prepare system prompt as Anthropic BetaTextBlockParam."""
         system = BetaTextBlockParam(type='text', text=system_prompt)
 
         # Add cache control for prompt caching
@@ -154,6 +158,15 @@ class AnthropicHandler(BaseProviderHandler):
     ) -> list[BetaMessageParam]:
         """
         For Anthropic, messages are already in the correct format.
+        (Kept for Protocol compatibility).
+        """
+        return self._convert_to_provider_messages(messages)
+
+    def _convert_to_provider_messages(
+        self, messages: list[BetaMessageParam]
+    ) -> list[BetaMessageParam]:
+        """
+        Internal: For Anthropic, messages are already in the correct format.
         Apply caching and image filtering if configured.
         """
         # Apply common preprocessing (prompt caching + image filtering)
@@ -164,7 +177,13 @@ class AnthropicHandler(BaseProviderHandler):
     def prepare_tools(
         self, tool_collection: ToolCollection
     ) -> list[BetaToolUnionParam]:
-        """Convert tool collection to Anthropic format."""
+        """Convert tool collection to Anthropic format (kept for Protocol compatibility)."""
+        return self._prepare_tools(tool_collection)
+
+    def _prepare_tools(
+        self, tool_collection: ToolCollection
+    ) -> list[BetaToolUnionParam]:
+        """Internal: Convert tool collection to Anthropic format."""
         logger.info(f'tool_collection: {tool_collection}')
         return tool_collection.to_params()
 
@@ -212,8 +231,8 @@ class AnthropicHandler(BaseProviderHandler):
         self,
         client: instructor.AsyncInstructor,
         messages: list[BetaMessageParam],
-        system: Iterable[BetaTextBlockParam],
-        tools: list[BetaToolUnionParam],
+        system: str,
+        tools: ToolCollection,
         model: str,
         max_tokens: int,
         temperature: float = 0.0,
@@ -223,13 +242,20 @@ class AnthropicHandler(BaseProviderHandler):
         Make API call to Anthropic and return standardized response format.
 
         This is the public interface that calls the raw API and converts the response.
+        Now handles conversions internally for a cleaner interface.
         """
+
+        # Convert inputs to provider format if needed
+        system_formatted = self._prepare_system(system)
+        tools_formatted = self._prepare_tools(tools)
+        messages_formatted = self._convert_to_provider_messages(messages)
+
         # Call the raw API
         parsed_response, request, raw_response = await self._call_raw_api(
             client=client,
-            messages=messages,
-            system=system,
-            tools=tools,
+            messages=messages_formatted,
+            system=system_formatted,
+            tools=tools_formatted,
             model=model,
             max_tokens=max_tokens,
             temperature=temperature,
