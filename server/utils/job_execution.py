@@ -32,9 +32,6 @@ from server.utils.job_logging import (
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Remove global database service - will use TenantAwareDatabaseService per tenant
-# db = DatabaseService()
-
 
 running_job_tasks: Dict[str, asyncio.Task] = {}
 tenant_worker_tasks: Dict[str, asyncio.Task] = {}
@@ -67,13 +64,10 @@ async def worker_loop_for_tenant(tenant_schema: str):
 
     while True:
         try:
-            # Expire stale RUNNING jobs for this tenant before claiming
+            # Expire stale RUNNING jobs for this tenant, then claim next in one session
             with with_db(tenant_schema) as db_session:
                 db = TenantAwareDatabaseService(db_session)
                 db.expire_stale_running_jobs()
-            claimed = None
-            with with_db(tenant_schema) as db_session:
-                db = TenantAwareDatabaseService(db_session)
                 claimed = db.claim_next_job(WORKER_ID, tenant_schema=tenant_schema)
             if not claimed:
                 await asyncio.sleep(0.5)
@@ -103,7 +97,7 @@ async def _lease_heartbeat(job: Job, tenant_schema: str):
         return
 
 
-# Removed deprecated queue processing; worker_loop_for_tenant is authoritative.
+#
 
 
 async def process_job_with_tenant(job: Job, tenant_schema: str):
@@ -127,19 +121,6 @@ async def process_job_with_tenant(job: Job, tenant_schema: str):
     # Remove the job from running_job_tasks
     if str(job.id) in running_job_tasks:
         del running_job_tasks[str(job.id)]
-
-
-# Exported symbol kept for compatibility with routes; will start workers
-job_queue_initializer = start_workers_for_all_tenants
-
-
-"""Logging helpers moved to server.utils.job_logging."""
-
-
-# In-memory target locks deprecated in favor of DB-backed advisory locks.
-
-
-# Removed local logging helpers and callbacks; imported from server.utils.job_logging
 
 
 # Main job execution logic

@@ -34,9 +34,9 @@ from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
-    job_queue_initializer,
     running_job_tasks,
     tenant_worker_tasks,
+    start_worker_for_tenant,
 )
 from server.utils.job_utils import compute_job_metrics
 from server.utils.telemetry import (
@@ -674,8 +674,8 @@ async def resync_queue(
             f'Queue inconsistency detected for tenant {tenant["schema"]}: {old_queue_size} jobs in memory vs {db_queued_count_before} in database'
         )
 
-    # Ensure workers are running
-    await job_queue_initializer()
+    # Ensure worker is running for this tenant
+    await start_worker_for_tenant(tenant['schema'])
 
     # Get updated queue status after resync
     async with tenant_resources_lock:
