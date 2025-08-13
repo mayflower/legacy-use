@@ -98,6 +98,9 @@ class Settings(BaseSettings):
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
     API_SLUG_PREFIX: str = '/api'  # Slug prefix for all API routes, e.g. '/slug'. Default is empty (no prefix)
 
+    # Graceful shutdown configuration
+    SHUTDOWN_GRACE_PERIOD_SECONDS: int = 300
+
     model_config = SettingsConfigDict(
         env_file=get_setting_env_file(),
         extra='allow',

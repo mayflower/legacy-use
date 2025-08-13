@@ -62,3 +62,17 @@ stateDiagram-v2
 
 ## Operational notes
 - A `PAUSED` or `ERROR` job blocks further jobs for that target from being claimed (target queue pause). Clearing/Resolving or Resuming allows the queue to continue.
+
+## Graceful shutdown (drain mode)
+- On process shutdown (e.g., SIGTERM), the server enters a drain mode:
+  - **Stop claiming new jobs**: worker loops exit before calling `claim_next_job`, so only currently running jobs continue.
+  - **Wait for in-flight jobs**: the shutdown hook waits up to `SHUTDOWN_GRACE_PERIOD_SECONDS` (default 300) for running jobs to complete.
+  - **Timeout behavior**: if the grace period elapses, remaining in-flight tasks are cancelled. Cancellation marks jobs as `PAUSED` with a message "Job was interrupted by user" (unless token-limit driven).
+- New jobs enqueued during drain will remain in `QUEUED` and will be picked up after the next server start.
+- Configuration:
+  - Set `SHUTDOWN_GRACE_PERIOD_SECONDS` in environment to control how long the server waits before cancelling in-flight jobs.
+- Implementation points:
+  - `server/server.py`: FastAPI `shutdown` event triggers `initiate_graceful_shutdown(timeout_seconds=...)`.
+  - `server/utils/job_execution.py`:
+    - Drain flag stops worker loops from claiming new jobs and lets the loop exit.
+    - Tracks running tasks and cancels them if the grace period expires.

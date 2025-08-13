@@ -27,6 +27,7 @@ from server.utils.api_prefix import api_prefix
 from server.utils.auth import get_api_key
 from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import start_workers_for_all_tenants
+from server.utils.job_execution import initiate_graceful_shutdown
 from server.utils.log_pruning import scheduled_log_pruning
 from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
@@ -325,6 +326,16 @@ For more information, please refer to the migration documentation.
     # Start worker loops so any existing queued jobs are processed on boot
     await start_workers_for_all_tenants()
     logger.info('Started worker loops for all active tenants')
+
+
+@app.on_event('shutdown')
+async def shutdown_event():
+    """Gracefully drain workers on shutdown (SIGTERM)."""
+    try:
+        timeout = getattr(settings, 'SHUTDOWN_GRACE_PERIOD_SECONDS', 300)
+        await initiate_graceful_shutdown(timeout_seconds=timeout)
+    except Exception as e:
+        logger.error(f'Error during graceful shutdown: {e}')
 
 
 if __name__ == '__main__':

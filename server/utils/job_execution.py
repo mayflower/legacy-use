@@ -40,6 +40,21 @@ tenant_worker_tasks: Dict[str, asyncio.Task] = {}
 tenant_worker_lock = asyncio.Lock()
 WORKER_ID = f'{socket.gethostname()}:{os.getpid()}'
 
+# When set, workers will not claim new jobs and will exit their loops after
+# finishing any in-flight job. Used to support graceful shutdown.
+_drain_mode_event: asyncio.Event | None = None
+
+
+def _get_drain_event() -> asyncio.Event:
+    global _drain_mode_event
+    if _drain_mode_event is None:
+        _drain_mode_event = asyncio.Event()
+    return _drain_mode_event
+
+
+def is_draining() -> bool:
+    return _get_drain_event().is_set()
+
 
 async def start_workers_for_all_tenants():
     """Start a worker loop per active tenant."""
@@ -66,6 +81,13 @@ async def worker_loop_for_tenant(tenant_schema: str):
 
     while True:
         try:
+            # If draining is active, do not claim new work. Exit the loop so the
+            # task can finish once any in-flight job has completed.
+            if is_draining():
+                logger.info(
+                    f'Worker loop for tenant {tenant_schema} exiting due to drain mode'
+                )
+                return
             # Expire stale RUNNING jobs for this tenant, then claim next in one session
             with with_db(tenant_schema) as db_session:
                 db = TenantAwareDatabaseService(db_session)
@@ -92,6 +114,53 @@ async def worker_loop_for_tenant(tenant_schema: str):
         except Exception as e:
             logger.error(f'Worker loop error (tenant={tenant_schema}): {e}')
             await asyncio.sleep(1.0)
+
+
+async def initiate_graceful_shutdown(timeout_seconds: int = 300) -> None:
+    """Enter drain mode and wait for workers to finish in-flight jobs.
+
+    - Signals worker loops to stop claiming new jobs
+    - Waits for tenant worker tasks to complete (each at most one in-flight job)
+    - If timeout elapses, cancels remaining job tasks
+    """
+    drain_event = _get_drain_event()
+    if not drain_event.is_set():
+        logger.info('Entering drain mode: stopping new job claims')
+        drain_event.set()
+    else:
+        logger.info('Drain mode already active')
+
+    # Snapshot tasks to await
+    tasks_to_await = [t for t in tenant_worker_tasks.values() if t is not None]
+    if not tasks_to_await:
+        logger.info('No tenant worker tasks running; shutdown can proceed immediately')
+        return
+
+    try:
+        await asyncio.wait_for(
+            asyncio.gather(*tasks_to_await, return_exceptions=True),
+            timeout=timeout_seconds,
+        )
+        logger.info('All tenant worker tasks completed during drain window')
+    except asyncio.TimeoutError:
+        logger.warning(
+            f'Graceful shutdown timeout ({timeout_seconds}s) reached; cancelling in-flight jobs'
+        )
+        # Best-effort cancel any remaining running job tasks
+        for job_id, task in list(running_job_tasks.items()):
+            if not task.done():
+                logger.info(f'Cancelling in-flight job task {job_id}')
+                task.cancel()
+        # Await cancellation completion (best-effort, short timeout)
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(
+                    *[t for t in running_job_tasks.values()], return_exceptions=True
+                ),
+                timeout=10,
+            )
+        except asyncio.TimeoutError:
+            logger.warning('Timed out waiting for in-flight job tasks to cancel')
 
 
 async def _lease_heartbeat(job: Job, tenant_schema: str, exec_task: asyncio.Task):
