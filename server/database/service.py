@@ -253,7 +253,7 @@ class DatabaseService:
     def claim_next_job(
         self,
         lease_owner: str,
-        lease_seconds: int = 300,
+        lease_seconds: int = 60,
         tenant_schema: str | None = None,
     ):
         """Atomically claim the next runnable job for execution.
@@ -366,7 +366,7 @@ class DatabaseService:
             session.close()
 
     def renew_job_lease(
-        self, job_id: UUID, lease_owner: str, lease_seconds: int = 300
+        self, job_id: UUID, lease_owner: str, lease_seconds: int = 60
     ) -> bool:
         """Extend the lease for a RUNNING job if owned by this worker."""
         session = self.Session()
