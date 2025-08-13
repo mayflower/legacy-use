@@ -315,11 +315,12 @@ class DatabaseService:
                     trans.rollback()
                     return None
 
-                # Transition to RUNNING with lease
+                # Transition to RUNNING with lease, clear any stale cancel requests
                 candidate.status = 'RUNNING'
                 candidate.updated_at = now
                 candidate.lease_owner = lease_owner
                 candidate.lease_expires_at = lease_exp
+                candidate.cancel_requested = False
 
                 session.commit()
                 result = self._to_dict(candidate)

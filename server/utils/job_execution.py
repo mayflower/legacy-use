@@ -322,18 +322,24 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                     job_id_str, 'system', 'API execution was cancelled', tenant_schema
                 )
 
-            # Update job status to ERROR using tenant-aware database service
+            # Update job status: PAUSED if user-interrupted, ERROR if token limit
             with with_db(tenant_schema) as db_session:
                 db_service = TenantAwareDatabaseService(db_session)
+                user_interrupted = running_token_total <= settings.TOKEN_LIMIT
+                status_value = JobStatus.PAUSED if user_interrupted else JobStatus.ERROR
+                error_value = (
+                    'Job was interrupted by user'
+                    if user_interrupted
+                    else 'Job was automatically terminated: exceeded token limit'
+                )
                 db_service.update_job(
                     job.id,
                     {
-                        'status': JobStatus.ERROR,
-                        'error': 'Job was automatically terminated: exceeded token limit'
-                        if running_token_total > settings.TOKEN_LIMIT
-                        else 'Job was interrupted by user',
+                        'status': status_value,
+                        'error': error_value,
                         'completed_at': datetime.now(),
                         'updated_at': datetime.now(),
+                        'cancel_requested': False,
                         'total_input_tokens': running_token_total
                         // 2,  # Rough estimate
                         'total_output_tokens': running_token_total
