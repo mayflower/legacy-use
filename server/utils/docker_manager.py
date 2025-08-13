@@ -207,48 +207,71 @@ async def get_container_status(container_id: str, session_state: str) -> Dict:
         f'Getting status for container {container_id} (session state: {session_state})'
     )
 
-    container = docker.containers.get(container_id)
+    try:
+        container = docker.containers.get(container_id)
+    except Exception as e:
+        logger.error(f'Container {container_id} not found or unavailable: {str(e)}')
+        return {
+            'id': container_id,
+            'state': {'Status': 'not_found', 'Running': False},
+            'error': str(e),
+        }
+
     if not container:
         logger.error(f'Container {container_id} not found')
-        return {'id': container_id, 'state': {'Status': 'not_found'}}
+        return {'id': container_id, 'state': {'Status': 'not_found', 'Running': False}}
 
     # Status information
+    state = container.attrs.get('State', {})
     status_data = {
         'id': container_id,
         'image': container.attrs.get('Config', {}).get('Image', 'unknown'),
-        'state': container.attrs.get('State', {}),
+        'state': state,
         'network_settings': container.attrs.get('NetworkSettings', {}),
     }
 
-    # Check health endpoint if container is running and we have an IP
-    container_ip = get_container_ip(container_id)
-    if container_ip:
-        status_data['health'] = await check_target_container_health(container_ip)
-        status_data['health']['timestamp'] = time.strftime('%Y-%m-%dT%H:%M:%S%z')
+    is_running = state.get('Running', False)
 
-    # Get load average using docker exec
-    # Execute cat /proc/loadavg in the container to get load average
-    loadavg = container.exec_run(['cat', '/proc/loadavg'])
-    if loadavg.exit_code != 0:
-        logger.warning(
-            f'Failed to get load average for {container_id}: {loadavg.output}'
-        )
-        status_data['load_average'] = {'error': str(loadavg.output)}
-        return status_data
+    # Only attempt health checks if running and IP is available
+    if is_running:
+        try:
+            container_ip = get_container_ip(container_id)
+        except Exception as e:
+            logger.warning(f'Error getting IP for container {container_id}: {str(e)}')
+            container_ip = None
 
-    try:
-        loadavg_values = loadavg.output.strip().split()
-        if len(loadavg_values) >= 3:
-            status_data['load_average'] = {
-                'load_1': loadavg_values[0],
-                'load_5': loadavg_values[1],
-                'load_15': loadavg_values[2],
-                'timestamp': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
-            }
-    except Exception as e:
-        logger.warning(
-            f'Could not get load average for container {container_id}: {str(e)}'
-        )
-        status_data['load_average'] = {'error': str(e)}
+        if container_ip:
+            status_data['health'] = await check_target_container_health(container_ip)
+            status_data['health']['timestamp'] = time.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+        # Get load average using docker exec only if running
+        try:
+            loadavg = container.exec_run(['cat', '/proc/loadavg'])
+            if loadavg.exit_code != 0:
+                logger.warning(
+                    f'Failed to get load average for {container_id}: {loadavg.output}'
+                )
+                status_data['load_average'] = {'error': str(loadavg.output)}
+            else:
+                try:
+                    loadavg_values = loadavg.output.strip().split()
+                    if len(loadavg_values) >= 3:
+                        status_data['load_average'] = {
+                            'load_1': loadavg_values[0],
+                            'load_5': loadavg_values[1],
+                            'load_15': loadavg_values[2],
+                            'timestamp': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+                        }
+                except Exception as e:
+                    logger.warning(
+                        f'Could not parse load average for container {container_id}: {str(e)}'
+                    )
+                    status_data['load_average'] = {'error': str(e)}
+        except Exception as e:
+            # If the container stopped between checks, don't raise
+            logger.warning(
+                f'Could not exec into container {container_id} to get load average: {str(e)}'
+            )
+            status_data.setdefault('load_average', {'error': str(e)})
 
     return status_data

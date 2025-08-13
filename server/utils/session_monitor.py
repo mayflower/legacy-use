@@ -113,7 +113,12 @@ async def monitor_sessions_for_tenant(tenant_schema: str):
                         f"Container for session {session_id} is not running, updating state to 'destroyed'"
                     )
                     db_service.update_session(
-                        session_id, {'state': 'destroyed', 'is_archived': True}
+                        session_id,
+                        {
+                            'state': 'destroyed',
+                            'is_archived': True,
+                            'archive_reason': 'container-not-running',
+                        },
                     )
                     continue
 
