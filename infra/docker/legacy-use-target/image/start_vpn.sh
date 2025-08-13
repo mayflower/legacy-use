@@ -153,7 +153,7 @@ EOF
         --auth-user-pass "$AUTH_FILE" \
         --verb 4 \
         --log "$OPENVPN_LOG" \
-        --data-ciphers "AES-256-GCM:AES-128-GCM:AES-128-CBC:CHACHA20-POLY1305" \
+        --data-ciphers "AES-256-GCM:AES-128-GCM:AES-256-CBC:AES-128-CBC:CHACHA20-POLY1305" \
         --cipher AES-128-CBC \
         --dev tun0 \
         --script-security 2 \
