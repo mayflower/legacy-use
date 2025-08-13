@@ -14,6 +14,7 @@ from typing import Dict
 from uuid import UUID
 import os
 import socket
+import time
 
 
 # Remove direct import of APIGatewayCore
@@ -110,6 +111,54 @@ async def _lease_heartbeat(job: Job, tenant_schema: str):
 #
 
 
+# Wait for session readiness before execution
+async def _wait_for_session_ready(
+    *, session_id: UUID, tenant_schema: str, max_wait_seconds: int = 90
+) -> tuple[bool, str]:
+    """Poll session until its container is healthy or timeout.
+
+    Returns (is_ready, reason_if_not_ready).
+    """
+    from server.database.multi_tenancy import with_db
+    from server.utils.db_dependencies import TenantAwareDatabaseService
+    from server.utils.docker_manager import check_target_container_health
+
+    start_ts = time.monotonic()
+    last_reason = 'Waiting for session container to become healthy'
+
+    while time.monotonic() - start_ts < max_wait_seconds:
+        try:
+            with with_db(tenant_schema) as db_session:
+                db_service = TenantAwareDatabaseService(db_session)
+                sess = db_service.get_session(session_id)
+            if not sess:
+                return False, 'Session not found'
+
+            state = sess.get('state')
+            container_ip = sess.get('container_ip')
+            if state in ['destroying', 'destroyed']:
+                return False, f'Session is {state}'
+            if state == 'error':
+                return False, 'Session is in error state'
+
+            if container_ip:
+                try:
+                    health = await check_target_container_health(container_ip)
+                    if health.get('healthy'):
+                        return True, 'Health check successful'
+                    last_reason = health.get('reason', 'Container not healthy yet')
+                except Exception as e:
+                    last_reason = f'Health check error: {str(e)}'
+            else:
+                last_reason = 'Container IP not yet available'
+        except Exception as e:
+            last_reason = f'Error while checking session readiness: {str(e)}'
+
+        await asyncio.sleep(2)
+
+    return False, f'Timeout waiting for session to become ready: {last_reason}'
+
+
 # Main job execution logic
 async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
     """Execute a job's API call in the background."""
@@ -139,6 +188,46 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
             # Create tenant-aware database service for the core
             with with_db(tenant_schema) as db_session:
                 db_service = TenantAwareDatabaseService(db_session)
+
+                # If a session is attached to this job, wait for it to be ready before executing
+                if job.session_id:
+                    add_job_log(
+                        job_id_str,
+                        'system',
+                        'Waiting for session to become ready before execution',
+                        tenant_schema,
+                    )
+                    is_ready, not_ready_reason = await _wait_for_session_ready(
+                        session_id=job.session_id, tenant_schema=tenant_schema
+                    )
+                    if not is_ready:
+                        updated_job = db_service.update_job(
+                            job.id,
+                            {
+                                'status': JobStatus.PAUSED,
+                                'error': not_ready_reason,
+                                'completed_at': datetime.now(),
+                                'updated_at': datetime.now(),
+                            },
+                        )
+                        logger.info(
+                            f'Target {job.target_id} queue will be paused due to job paused'
+                        )
+                        add_job_log(
+                            job_id_str,
+                            'system',
+                            f'Target {job.target_id} queue will be paused due to job paused',
+                            tenant_schema,
+                        )
+
+                        add_job_log(
+                            job_id_str,
+                            'system',
+                            f'Job paused: {not_ready_reason}',
+                            tenant_schema,
+                        )
+                        return
+
                 core = APIGatewayCore(tenant_schema=tenant_schema, db_tenant=db_service)
 
                 # Wrap the execute_api call in its own try-except block to better handle cancellation
@@ -186,21 +275,6 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                         f'Target {job.target_id} queue will be paused due to job {api_response.status.value}',
                         tenant_schema,
                     )
-
-            # Set completion future if it exists
-            try:
-                from server.routes import jobs
-
-                if (
-                    hasattr(jobs, 'completion_futures')
-                    and job_id_str in jobs.completion_futures
-                ):
-                    future = jobs.completion_futures[job_id_str]
-                    if not future.done():
-                        future.set_result(api_response.status == JobStatus.SUCCESS)
-                        logger.info(f'Set completion future for job {job_id_str}')
-            except Exception as e:
-                logger.error(f'Error setting completion future: {e}')
 
             msg = f'Job completed with status: {api_response.status}'
             # if status is not success, add the reason
@@ -262,23 +336,6 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                     },
                 )
 
-            # Set completion future with error if it exists
-            try:
-                from server.routes import jobs
-
-                if (
-                    hasattr(jobs, 'completion_futures')
-                    and job_id_str in jobs.completion_futures
-                ):
-                    future = jobs.completion_futures[job_id_str]
-                    if not future.done():
-                        future.set_exception(asyncio.CancelledError())
-                        logger.info(
-                            f'Set completion future with error for job {job_id_str}'
-                        )
-            except Exception as e:
-                logger.error(f'Error setting completion future with error: {e}')
-
             # Re-raise to be caught by the outer try-except
             raise
 
@@ -307,23 +364,6 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
         # Remove the task from running_job_tasks
         if job_id_str in running_job_tasks:
             del running_job_tasks[job_id_str]
-
-        # Ensure completion future is set if it exists and hasn't been set yet
-        try:
-            from server.routes import jobs
-
-            if (
-                hasattr(jobs, 'completion_futures')
-                and job_id_str in jobs.completion_futures
-            ):
-                future = jobs.completion_futures[job_id_str]
-                if not future.done():
-                    future.set_result(True)
-                    logger.info(
-                        f'Set completion future in finally block for job {job_id_str}'
-                    )
-        except Exception as e:
-            logger.error(f'Error setting completion future in finally: {e}')
 
         # No chained processing here; worker loop will pick next claim
 
@@ -354,23 +394,6 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
             f'Target {job.target_id} queue will be paused due to job error',
             tenant_schema,
         )
-
-        # Set completion future with error if it exists
-        try:
-            from server.routes import jobs
-
-            if (
-                hasattr(jobs, 'completion_futures')
-                and job_id_str in jobs.completion_futures
-            ):
-                future = jobs.completion_futures[job_id_str]
-                if not future.done():
-                    future.set_exception(e)
-                    logger.info(
-                        f'Set completion future with error for job {job_id_str}'
-                    )
-        except Exception as e:
-            logger.error(f'Error setting completion future with error: {e}')
 
         # Log the error
         add_job_log(

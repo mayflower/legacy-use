@@ -74,8 +74,7 @@ class PaginatedJobsResponse(BaseModel):
     jobs: List[Job]
 
 
-# Dictionary to store completion futures
-completion_futures = {}
+# Removed completion_futures map; workers no longer set/await in-memory futures
 
 
 @job_router.get('/jobs/', response_model=PaginatedJobsResponse)
