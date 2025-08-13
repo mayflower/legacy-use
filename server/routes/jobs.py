@@ -36,7 +36,6 @@ from server.utils.job_execution import (
     enqueue_job,
     create_and_enqueue_job,
     running_job_tasks,
-    tenant_worker_tasks,
     start_worker_for_tenant,
 )
 from server.utils.job_utils import compute_job_metrics
@@ -236,32 +235,6 @@ async def get_job(
         )
 
     return job_model_with_metrics
-
-
-@job_router.get('/jobs/queue/status')
-async def get_queue_status(
-    db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant_from_request),
-):
-    """Get the current status of the job queue for the current tenant."""
-    # DB is the source of truth
-    jobs_data = db_tenant.list_jobs(limit=1000)
-    db_queued_count = sum(
-        1 for j in jobs_data if j.get('status') == JobStatus.QUEUED.value
-    )
-    running_jobs = [j for j in jobs_data if j.get('status') == JobStatus.RUNNING.value]
-    running_job_dict = running_jobs[0] if running_jobs else None
-    is_processor_running = (
-        tenant['schema'] in tenant_worker_tasks
-        and tenant_worker_tasks[tenant['schema']] is not None
-        and not tenant_worker_tasks[tenant['schema']].done()
-    )
-    return {
-        'queue_size': db_queued_count,
-        'queued_in_db': db_queued_count,
-        'running_job': running_job_dict,
-        'is_processor_running': is_processor_running,
-    }
 
 
 @job_router.post(

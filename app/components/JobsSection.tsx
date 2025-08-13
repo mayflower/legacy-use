@@ -21,7 +21,7 @@ const JobsSection = ({
   blockingJobs,
   queuedJobs,
   executedJobs,
-  queueStatus,
+  runningJob,
   activeTab,
   setActiveTab,
   targetId,
@@ -160,13 +160,13 @@ const JobsSection = ({
     {activeTab === 2 &&
       (queuedJobs.length > 0 ? (
         <>
-          {queueStatus?.running_job && (
+          {runningJob && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Currently Running:
               </Typography>
               <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                <Typography variant="body1">{queueStatus.running_job.api_name}</Typography>
+                <Typography variant="body1">{runningJob.api_name}</Typography>
                 <Chip label="RUNNING" size="small" color="warning" sx={{ mt: 1 }} />
               </Paper>
             </Box>

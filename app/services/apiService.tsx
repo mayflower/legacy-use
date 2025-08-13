@@ -233,9 +233,7 @@ export const getJobs = async (targetId: string): Promise<Job[]> => {
   return listTargetJobsTargetsTargetIdJobsGet(targetId);
 };
 
-export const getJobQueueStatus = async () => {
-  return getQueueStatusJobsQueueStatusGet();
-};
+// Deprecated: compute queue status client-side per target
 
 export const getAllJobs = async (
   limit = 10,
