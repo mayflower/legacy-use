@@ -15,14 +15,15 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { getAllJobs, getApiDefinitions, getSessions, getTargets } from '../services/apiService';
+import type { APIDefinition, Job, Session, Target } from '@/gen/endpoints';
 
 const Dashboard = () => {
-  const [apis, setApis] = useState([]);
-  const [sessions, setSessions] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [targets, setTargets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,12 +45,16 @@ const Dashboard = () => {
 
         // Sort jobs by created_at in descending order and take the most recent 5
         const sortedJobs = [...jobsData]
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .sort((a, b) => {
+            const tb = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const ta = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return ta - tb;
+          })
           .slice(0, 5);
 
         setJobs(sortedJobs);
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data');
         setLoading(false);
@@ -64,7 +69,7 @@ const Dashboard = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const getStatusColor = status => {
+  const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'success':
         return 'success';
@@ -79,7 +84,8 @@ const Dashboard = () => {
     }
   };
 
-  const formatDate = dateString => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
@@ -127,7 +133,7 @@ const Dashboard = () => {
                         <Chip
                           label={job.status}
                           size="small"
-                          color={getStatusColor(job.status)}
+                          color={getStatusColor(job.status || '')}
                           sx={{ height: 20, fontSize: '0.7rem' }}
                         />
                       </Box>
@@ -203,7 +209,7 @@ const Dashboard = () => {
                         }}
                       >
                         <Typography variant="body2" noWrap>
-                          {target.name || `Target ${target.id.substring(0, 8)}`}
+                          {target.name || `Target ${String(target.id).substring(0, 8)}`}
                         </Typography>
                         <Chip
                           label={target.type}
@@ -248,7 +254,8 @@ const Dashboard = () => {
                   <ListItemText
                     primary={api.name}
                     secondary={
-                      api.description.substring(0, 60) + (api.description.length > 60 ? '...' : '')
+                      (api.description || '').substring(0, 60) +
+                      ((api.description || '').length > 60 ? '...' : '')
                     }
                   />
                 </ListItem>

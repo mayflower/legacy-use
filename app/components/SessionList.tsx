@@ -28,20 +28,21 @@ import {
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { deleteSession, getSessions, getTargets } from '../services/apiService';
+import type { Session } from '@/gen/endpoints';
 
 const SessionList = () => {
   const navigate = useNavigate();
-  const [sessions, setSessions] = useState([]);
-  const [targets, setTargets] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [sessionToDelete, setSessionToDelete] = useState(null);
-  const [hardDelete, setHardDelete] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const [deleteInProgress, setDeleteInProgress] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [targets, setTargets] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [sessionToDelete, setSessionToDelete] = useState<Session | null>(null);
+  const [hardDelete, setHardDelete] = useState<boolean>(false);
+  const [showArchived, setShowArchived] = useState<boolean>(false);
+  const [deleteInProgress, setDeleteInProgress] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
 
   const fetchSessions = async () => {
     try {
@@ -49,7 +50,7 @@ const SessionList = () => {
       const sessionsData = await getSessions(showArchived);
       setSessions(sessionsData);
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching sessions:', err);
       setError('Failed to load sessions. Please try again later.');
       setLoading(false);
@@ -60,9 +61,11 @@ const SessionList = () => {
     try {
       const targetsData = await getTargets(true); // Include archived targets
       // Create a map of target_id to target name for quick lookup
-      const targetsMap = {};
+      const targetsMap: Record<string, string> = {};
       targetsData.forEach(target => {
-        targetsMap[target.id] = target.name || `Target ${target.id.substring(0, 8)}`;
+        if (target.id) {
+          targetsMap[target.id] = target.name || `Target ${String(target.id).substring(0, 8)}`;
+        }
       });
       setTargets(targetsMap);
     } catch (err) {
@@ -75,7 +78,7 @@ const SessionList = () => {
     fetchTargets();
   }, [showArchived]);
 
-  const getStatusColor = status => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED':
         return 'success';
@@ -90,13 +93,13 @@ const SessionList = () => {
     }
   };
 
-  const formatDate = dateString => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
 
-  const handleDeleteClick = (session, event) => {
+  const handleDeleteClick = (session: Session, event: any) => {
     event.stopPropagation(); // Prevent row click navigation
     setSessionToDelete(session);
     setHardDelete(false);
@@ -115,7 +118,7 @@ const SessionList = () => {
 
       setDeleteDialogOpen(false);
       setSessionToDelete(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting session:', err);
       // Keep the dialog open and show error
       setError(`Failed to delete session: ${err.message}`);
@@ -130,7 +133,7 @@ const SessionList = () => {
     setSessionToDelete(null);
   };
 
-  const handleRowClick = session => {
+  const handleRowClick = (session: Session) => {
     // Navigate to the target's detail page with the session pre-selected
     if (session.target_id) {
       navigate(`/targets/${session.target_id}?sessionId=${session.id}`);
@@ -140,11 +143,11 @@ const SessionList = () => {
     }
   };
 
-  const handleChangePage = (_event, newPage) => {
+  const handleChangePage = (_event: any, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = event => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -247,16 +250,16 @@ const SessionList = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {session.container_status?.health ? (
+                        {(session as any).container_status?.health ? (
                           <Tooltip
-                            title={session.container_status.health.reason || 'No reason provided'}
+                            title={(session as any).container_status.health?.reason || 'No reason provided'}
                           >
                             <Chip
                               label={
-                                session.container_status.health.healthy ? 'Healthy' : 'Unhealthy'
+                                (session as any).container_status.health?.healthy ? 'Healthy' : 'Unhealthy'
                               }
                               size="small"
-                              color={session.container_status.health.healthy ? 'success' : 'error'}
+                              color={(session as any).container_status.health?.healthy ? 'success' : 'error'}
                             />
                           </Tooltip>
                         ) : (

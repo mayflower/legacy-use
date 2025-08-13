@@ -19,7 +19,7 @@ import ResolutionRecommendation from './ResolutionRecommendation';
 import VPNConfigInputField from './VPNConfigInputField';
 
 // Default ports for different target types
-const DEFAULT_PORTS = {
+const DEFAULT_PORTS: Record<string, number> = {
   vnc: 5900,
   'vnc+tailscale': 5900,
   rdp: 3389,
@@ -29,9 +29,24 @@ const DEFAULT_PORTS = {
   'rdp+openvpn': 3389,
 };
 
+interface TargetFormState {
+  name: string;
+  type: string;
+  host: string;
+  username: string;
+  password: string;
+  port: number | null;
+  vpn_config: string;
+  vpn_username: string;
+  vpn_password: string;
+  width: number;
+  height: number;
+  rdp_params: string;
+}
+
 const CreateTarget = () => {
   const navigate = useNavigate();
-  const [targetData, setTargetData] = useState({
+  const [targetData, setTargetData] = useState<TargetFormState>({
     name: '',
     type: 'vnc',
     host: '',
@@ -45,24 +60,24 @@ const CreateTarget = () => {
     height: 768,
     rdp_params: '',
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<any>({});
 
   // Check if OpenVPN is allowed based on environment variable
   const isOpenVPNAllowed = import.meta.env.VITE_ALLOW_OPENVPN === 'true';
 
-  const handleChange = e => {
-    const { name, value } = e.target;
+  const handleChange = (e: any) => {
+    const { name, value } = e.target as { name: keyof TargetFormState; value: string };
     setTargetData(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handlePortChange = e => {
-    const value = e.target.value;
+  const handlePortChange = (e: any) => {
+    const value = e.target.value as string;
     if (value === '') {
       setTargetData(prev => ({
         ...prev,
@@ -79,27 +94,27 @@ const CreateTarget = () => {
     }
   };
 
-  const handleResolutionChange = e => {
-    const { name, value } = e.target;
+  const handleResolutionChange = (e: any) => {
+    const { name, value } = e.target as { name: keyof TargetFormState; value: string };
     const numValue = parseInt(value, 10);
     if (!Number.isNaN(numValue)) {
       setTargetData(prev => ({
         ...prev,
-        [name]: numValue,
+        [name]: numValue as any,
       }));
     }
   };
 
-  const handleTypeChange = e => {
-    const newType = e.target.value;
+  const handleTypeChange = (e: any) => {
+    const newType = e.target.value as string;
     setTargetData(prev => ({
       ...prev,
       type: newType,
-      port: DEFAULT_PORTS[newType] || null,
+      port: DEFAULT_PORTS[newType] ?? null,
     }));
   };
 
-  const handleRecommendedResolutionClick = ({ width, height }) => {
+  const handleRecommendedResolutionClick = ({ width, height }: { width: number; height: number }) => {
     setTargetData(prev => ({ ...prev, width, height }));
   };
 
@@ -139,13 +154,13 @@ const CreateTarget = () => {
 
     // Validate OpenVPN fields when target type is rdp+openvpn
     if (targetData.type === 'rdp+openvpn') {
-      if (!targetData.vpn_username.trim()) {
+      if (!targetData.vpn_username || !targetData.vpn_username.trim()) {
         errors.vpn_username = 'OpenVPN username is required';
       }
-      if (!targetData.vpn_password.trim()) {
+      if (!targetData.vpn_password || !targetData.vpn_password.trim()) {
         errors.vpn_password = 'OpenVPN password is required';
       }
-      if (!targetData.vpn_config.trim()) {
+      if (!targetData.vpn_config || !targetData.vpn_config.trim()) {
         errors.vpn_config = 'OpenVPN config is required';
       }
     }
@@ -154,7 +169,7 @@ const CreateTarget = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -166,11 +181,9 @@ const CreateTarget = () => {
       setError(null);
 
       // Prepare data for submission
-      const submissionData = { ...targetData };
+      const submissionData = { ...targetData } as any;
 
-      // No need to concatenate VPN fields anymore - they are sent as separate fields
-
-      await createTarget(submissionData as any);
+      await createTarget(submissionData);
 
       setSuccess(true);
       setLoading(false);
@@ -179,7 +192,7 @@ const CreateTarget = () => {
       setTimeout(() => {
         navigate('/targets');
       }, 1500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating target:', err);
       setError(err.response?.data?.detail || 'Failed to create target. Please try again.');
       setLoading(false);
