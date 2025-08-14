@@ -19,8 +19,10 @@ targets_with_pending_sessions: Set[str] = set()
 targets_with_pending_sessions_lock = asyncio.Lock()
 
 
-async def launch_session_for_target(target_id: str) -> Optional[Dict[str, Any]]:
-    """Launch a new session for the given target."""
+async def launch_session_for_target(
+    target_id: str, tenant_schema: str
+) -> Optional[Dict[str, Any]]:
+    """Launch a new session for the given target within the provided tenant schema."""
     try:
         logger.info(f'Launching session for target {target_id}')
         # Log the session launch - we don't have a job ID so we'll just log to the system logger
@@ -34,15 +36,22 @@ async def launch_session_for_target(target_id: str) -> Optional[Dict[str, Any]]:
             target_id=UUID(target_id), name=session_name
         )  # Ensure target_id is UUID
 
-        # Launch session - use deferred import to avoid circular dependency
+        # Launch session using the existing route function with proper dependencies
+        # to avoid duplicating logic here.
         from server.routes.sessions import create_session
+        from server.database.multi_tenancy import with_db
+        from server.utils.db_dependencies import TenantAwareDatabaseService
 
-        # create_session returns a Session object (Pydantic model), not a dict directly usually.
-        # Assuming it returns something dict-like or has a .dict() method
-        # Let's assume it returns a dict for now as used later.
-        session_info: Optional[Dict[str, Any]] = await create_session(
-            session_create, request=None
-        )  # TODO: this is a bit hacky, we should not need to pass a request here -> wrapper around create_session endpoint and use child function instead?
+        # Create a tenant-aware DB service and pass it explicitly, along with the tenant dict
+        with with_db(tenant_schema) as db_session:
+            db_tenant = TenantAwareDatabaseService(db_session)
+            session_info: Optional[Dict[str, Any]] = await create_session(
+                session_create,
+                request=None,
+                get_or_create=False,
+                db_tenant=db_tenant,
+                tenant={'schema': tenant_schema},
+            )
 
         if session_info:
             # Log with prominent session ID

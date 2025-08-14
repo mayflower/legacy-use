@@ -5,16 +5,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
-import type { Job, Session, Target } from '@/gen/endpoints';
+import type { Job, Session, Target, TargetBlockingJobsAnyOfItem } from '@/gen/endpoints';
 import { SessionContext } from '../App';
-import {
-  deleteSession,
-  getJobQueueStatus,
-  getJobs,
-  getSession,
-  getSessions,
-  getTarget,
-} from '../services/apiService';
+import { deleteSession, getJobs, getSession, getSessions, getTarget } from '../services/apiService';
 import DeleteSessionDialog from './DeleteSessionDialog';
 import JobsSection from './JobsSection';
 import SessionDetailsCard from './SessionDetailsCard';
@@ -37,8 +30,8 @@ const TargetDetails = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [queuedJobs, setQueuedJobs] = useState<Job[]>([]);
   const [executedJobs, setExecutedJobs] = useState<Job[]>([]);
-  const [blockingJobs, setBlockingJobs] = useState<Job[]>([]);
-  const [queueStatus, setQueueStatus] = useState<any>(null);
+  const [blockingJobs, setBlockingJobs] = useState<TargetBlockingJobsAnyOfItem[]>([]);
+  const [runningJob, setRunningJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showContainerDetails, setShowContainerDetails] = useState(false);
@@ -167,31 +160,18 @@ const TargetDetails = () => {
       // Get the target to get blocking jobs information
       const targetData = await getTarget(targetId as string);
 
-      // Fetch queue status
-      try {
-        const queueStatusData = await getJobQueueStatus();
-        setQueueStatus(queueStatusData);
+      // Group locally: running, queued, executed based on jobs + target info
+      const blocking = targetData.blocking_jobs || [];
+      const running = jobsData.find(job => job.status === 'running') || null;
+      const queued = jobsData.filter(job => job.status === 'queued');
+      const blockingIds = new Set(blocking.map(job => job.id));
+      const executed = jobsData.filter(job => job.status !== 'queued' && !blockingIds.has(job.id));
 
-        // Separate jobs into queued and executed
-        // Get blocking jobs from the target data
-        const queued = jobsData.filter(job => job.status === 'queued');
-        const blocking = targetData.blocking_jobs || [];
-
-        // For executed jobs, filter out queued and blocking jobs
-        const blockingIds = new Set((blocking as any[]).map((job: any) => job.id));
-        const executed = jobsData.filter(
-          job => job.status !== 'queued' && !blockingIds.has(job.id), // Exclude jobs that are in the blocking list
-        );
-
-        setQueuedJobs(queued);
-        setBlockingJobs(blocking as any);
-        setExecutedJobs(executed);
-      } catch (queueErr) {
-        console.error('Error fetching queue status:', queueErr);
-        // If we can't get queue status, just show all jobs as executed
-        setExecutedJobs(jobsData);
-      }
-    } catch (err: any) {
+      setRunningJob(running);
+      setQueuedJobs(queued);
+      setBlockingJobs(blocking);
+      setExecutedJobs(executed);
+    } catch (err) {
       console.error('Error fetching jobs:', err);
       setError(`Failed to fetch jobs: ${err.message}`);
     }
@@ -436,7 +416,7 @@ const TargetDetails = () => {
             blockingJobs={blockingJobs}
             queuedJobs={queuedJobs}
             executedJobs={executedJobs}
-            queueStatus={queueStatus}
+            runningJob={runningJob}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             targetId={targetId}
