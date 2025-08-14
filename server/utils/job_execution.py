@@ -36,8 +36,10 @@ logger = logging.getLogger(__name__)
 
 
 running_job_tasks: Dict[str, asyncio.Task] = {}
-tenant_worker_tasks: Dict[str, List[asyncio.Task]] = {}
-tenant_worker_lock = asyncio.Lock()
+# Shared worker pool for this process (single queue across all tenants)
+shared_worker_tasks: List[asyncio.Task] = []
+shared_worker_lock = asyncio.Lock()
+_rr_index: int = 0  # round-robin starting index across tenants
 WORKER_ID = f'{socket.gethostname()}:{os.getpid()}'
 
 # When set, workers will not claim new jobs and will exit their loops after
@@ -56,58 +58,89 @@ def is_draining() -> bool:
     return _get_drain_event().is_set()
 
 
-async def start_workers_for_all_tenants():
-    """Start a worker loop per active tenant."""
-    logger.info('Starting worker loops for all active tenants...')
-    from server.utils.tenant_utils import get_active_tenants
+async def start_shared_workers(desired_concurrency: int | None = None):
+    """Ensure a shared worker pool is running for this process.
 
-    tenants = get_active_tenants()
-    for tenant in tenants:
-        await start_worker_for_tenant(tenant['schema'])
-
-
-async def start_worker_for_tenant(tenant_schema: str):
-    async with tenant_worker_lock:
-        existing_tasks = tenant_worker_tasks.get(tenant_schema, [])
+    The pool size is the total number of concurrent jobs this process may run,
+    shared across all tenants.
+    """
+    global shared_worker_tasks
+    concurrency = max(1, desired_concurrency or getattr(settings, 'JOB_WORKERS', 1))
+    async with shared_worker_lock:
         # Prune finished tasks
-        existing_tasks = [t for t in existing_tasks if not t.done()]
+        shared_worker_tasks = [t for t in shared_worker_tasks if not t.done()]
 
-        desired_concurrency = max(1, getattr(settings, 'JOB_WORKERS_PER_TENANT', 1))
-        missing = desired_concurrency - len(existing_tasks)
+        missing = concurrency - len(shared_worker_tasks)
         if missing > 0:
             logger.info(
-                f'Starting {missing} worker loop(s) for tenant {tenant_schema} (target={desired_concurrency})'
+                f'Starting {missing} shared worker loop(s) (target={concurrency})'
             )
             new_tasks = [
-                asyncio.create_task(worker_loop_for_tenant(tenant_schema))
-                for _ in range(missing)
+                asyncio.create_task(worker_loop_shared()) for _ in range(missing)
             ]
-            existing_tasks.extend(new_tasks)
-
-        tenant_worker_tasks[tenant_schema] = existing_tasks
+            shared_worker_tasks.extend(new_tasks)
 
 
-async def worker_loop_for_tenant(tenant_schema: str):
+async def ensure_shared_workers_running():
+    """Helper to lazily start shared workers if none running."""
+    async with shared_worker_lock:
+        if not any(t for t in shared_worker_tasks if not t.done()):
+            await start_shared_workers()
+
+
+async def worker_loop_shared():
     from server.database.multi_tenancy import with_db
+    from server.utils.tenant_utils import get_active_tenants
+
+    global _rr_index
 
     while True:
         try:
-            # If draining is active, do not claim new work. Exit the loop so the
-            # task can finish once any in-flight job has completed.
             if is_draining():
-                logger.info(
-                    f'Worker loop for tenant {tenant_schema} exiting due to drain mode'
-                )
+                logger.info('Shared worker loop exiting due to drain mode')
                 return
-            # Expire stale RUNNING jobs for this tenant, then claim next in one session
-            with with_db(tenant_schema) as db_session:
-                db = TenantAwareDatabaseService(db_session)
-                db.expire_stale_running_jobs()
-                claimed = db.claim_next_job(WORKER_ID, tenant_schema=tenant_schema)
-            if not claimed:
-                await asyncio.sleep(0.5)
+
+            tenants = get_active_tenants() or []
+            tenant_schemas = [t['schema'] for t in tenants]
+
+            if not tenant_schemas:
+                await asyncio.sleep(60)
                 continue
-            job = Job(**claimed)
+
+            # Round-robin across tenants for fairness
+            num_tenants = len(tenant_schemas)
+            start_idx = _rr_index % num_tenants
+            claimed_job = None
+            claimed_tenant: str | None = None
+
+            for offset in range(num_tenants):
+                idx = (start_idx + offset) % num_tenants
+                tenant_schema = tenant_schemas[idx]
+                try:
+                    with with_db(tenant_schema) as db_session:
+                        db = TenantAwareDatabaseService(db_session)
+                        db.expire_stale_running_jobs()
+                        claimed = db.claim_next_job(
+                            WORKER_ID, tenant_schema=tenant_schema
+                        )
+                    if claimed:
+                        claimed_job = Job(**claimed)
+                        claimed_tenant = tenant_schema
+                        _rr_index = (
+                            idx + 1
+                        )  # next round starts after the tenant that got work
+                        break
+                except Exception as e:
+                    logger.error(f'Error during claim for tenant {tenant_schema}: {e}')
+                    # Try next tenant
+                    continue
+
+            if not claimed_job:
+                await asyncio.sleep(3)
+                continue
+
+            job = claimed_job
+            tenant_schema = claimed_tenant or ''
             try:
                 exec_task = asyncio.create_task(
                     execute_api_in_background_with_tenant(job, tenant_schema)
@@ -123,7 +156,7 @@ async def worker_loop_for_tenant(tenant_schema: str):
             finally:
                 lease_task.cancel()
         except Exception as e:
-            logger.error(f'Worker loop error (tenant={tenant_schema}): {e}')
+            logger.error(f'Shared worker loop error: {e}')
             await asyncio.sleep(1.0)
 
 
@@ -142,11 +175,8 @@ async def initiate_graceful_shutdown(timeout_seconds: int = 300) -> None:
         logger.info('Drain mode already active')
 
     # Snapshot tasks to await
-    all_tasks: List[asyncio.Task] = []
-    for task_list in tenant_worker_tasks.values():
-        if task_list:
-            all_tasks.extend(task_list)
-    tasks_to_await = [t for t in all_tasks if t is not None]
+    tasks_to_await: List[asyncio.Task] = []
+    tasks_to_await.extend([t for t in shared_worker_tasks if t is not None])
     if not tasks_to_await:
         logger.info('No tenant worker tasks running; shutdown can proceed immediately')
         return
@@ -156,7 +186,7 @@ async def initiate_graceful_shutdown(timeout_seconds: int = 300) -> None:
             asyncio.gather(*tasks_to_await, return_exceptions=True),
             timeout=timeout_seconds,
         )
-        logger.info('All tenant worker tasks completed during drain window')
+        logger.info('All shared worker tasks completed during drain window')
     except asyncio.TimeoutError:
         logger.warning(
             f'Graceful shutdown timeout ({timeout_seconds}s) reached; cancelling in-flight jobs'
@@ -502,8 +532,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
 
 async def enqueue_job(job_obj: Job, tenant_schema: str):
     """
-    Updates a job's status to QUEUED, adds it to the tenant-specific queue,
-    logs the event, and ensures the job processor task is running.
+    Updates a job's status to QUEUED, logs the event, and ensures the shared
+    worker pool is running.
 
     Args:
         job_obj: The Job Pydantic model instance to enqueue.
@@ -515,7 +545,7 @@ async def enqueue_job(job_obj: Job, tenant_schema: str):
         db_service = TenantAwareDatabaseService(db_session)
         db_service.update_job_status(job_obj.id, JobStatus.QUEUED)
     add_job_log(str(job_obj.id), 'system', 'Job added to queue', tenant_schema)
-    await start_worker_for_tenant(tenant_schema)
+    await ensure_shared_workers_running()
 
 
 async def create_and_enqueue_job(

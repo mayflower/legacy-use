@@ -26,7 +26,7 @@ from server.routes.settings import settings_router
 from server.utils.api_prefix import api_prefix
 from server.utils.auth import get_api_key
 from server.utils.tenant_utils import get_tenant_from_request
-from server.utils.job_execution import start_workers_for_all_tenants
+from server.utils.job_execution import start_shared_workers
 from server.utils.job_execution import initiate_graceful_shutdown
 from server.utils.log_pruning import scheduled_log_pruning
 from server.utils.session_monitor import start_session_monitor
@@ -330,9 +330,9 @@ For more information, please refer to the migration documentation.
     # No need to load API definitions on startup anymore
     # They will be loaded on demand when needed
 
-    # Start worker loops so any existing queued jobs are processed on boot
-    await start_workers_for_all_tenants()
-    logger.info('Started worker loops for all active tenants')
+    # Start shared worker loops so any existing queued jobs are processed on boot
+    await start_shared_workers()
+    logger.info('Started shared worker loops')
 
 
 @app.on_event('shutdown')
