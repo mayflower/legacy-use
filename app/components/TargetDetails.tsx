@@ -19,6 +19,7 @@ import JobsSection from './JobsSection';
 import SessionDetailsCard from './SessionDetailsCard';
 import SessionSelector from './SessionSelector';
 import TargetInfoCard from './TargetInfoCard';
+import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const TargetDetails = () => {
   const { targetId } = useParams();
@@ -218,24 +219,7 @@ const TargetDetails = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'running':
-        return 'warning';
-      case 'success':
-        return 'success';
-      case 'error':
-        return 'error';
-      case 'queued':
-        return 'info';
-      case 'canceled':
-        return 'default';
-      case 'pending':
-        return 'default';
-      default:
-        return 'default';
-    }
-  };
+  const getStatusColor = (status: string) => getJobStatusChipColor(status);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';

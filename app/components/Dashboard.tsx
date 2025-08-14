@@ -16,6 +16,7 @@ import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { getAllJobs, getApiDefinitions, getSessions, getTargets } from '../services/apiService';
 import type { APIDefinition, Job, Session, Target } from '@/gen/endpoints';
+import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const Dashboard = () => {
   const [apis, setApis] = useState<APIDefinition[]>([]);
@@ -69,20 +70,7 @@ const Dashboard = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'success':
-        return 'success';
-      case 'error':
-        return 'error';
-      case 'running':
-        return 'primary';
-      case 'pending':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
+  const getStatusColor = (status: string) => getJobStatusChipColor(status);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';

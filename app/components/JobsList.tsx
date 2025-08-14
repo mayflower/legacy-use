@@ -30,6 +30,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 import type { APIDefinition, Job, Target } from '@/gen/endpoints';
+import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const JobsList = () => {
   const navigate = useNavigate();
@@ -157,23 +158,7 @@ const JobsList = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'success':
-        return 'success';
-      case 'error':
-        return 'error';
-      case 'running':
-        return 'primary';
-      case 'pending':
-      case 'queued':
-        return 'warning';
-      case 'canceled':
-        return 'default';
-      default:
-        return 'default';
-    }
-  };
+  const getStatusColor = (status: string) => getJobStatusChipColor(status);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
