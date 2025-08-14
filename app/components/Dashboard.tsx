@@ -15,14 +15,16 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { getAllJobs, getApiDefinitions, getSessions, getTargets } from '../services/apiService';
+import type { APIDefinition, Job, Session, Target } from '@/gen/endpoints';
+import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const Dashboard = () => {
-  const [apis, setApis] = useState([]);
-  const [sessions, setSessions] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [targets, setTargets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,12 +46,16 @@ const Dashboard = () => {
 
         // Sort jobs by created_at in descending order and take the most recent 5
         const sortedJobs = [...jobsData]
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .sort((a, b) => {
+            const tb = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const ta = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return ta - tb;
+          })
           .slice(0, 5);
 
         setJobs(sortedJobs);
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data');
         setLoading(false);
@@ -64,22 +70,10 @@ const Dashboard = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const getStatusColor = status => {
-    switch (status.toLowerCase()) {
-      case 'success':
-        return 'success';
-      case 'error':
-        return 'error';
-      case 'running':
-        return 'primary';
-      case 'pending':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
+  const getStatusColor = (status: string) => getJobStatusChipColor(status);
 
-  const formatDate = dateString => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
@@ -107,7 +101,6 @@ const Dashboard = () => {
             jobs.map(job => (
               <React.Fragment key={job.id}>
                 <ListItem
-                  button
                   component={RouterLink}
                   to={`/jobs/${job.target_id}/${job.id}`}
                   sx={{ color: 'white' }}
@@ -128,7 +121,7 @@ const Dashboard = () => {
                         <Chip
                           label={job.status}
                           size="small"
-                          color={getStatusColor(job.status)}
+                          color={getStatusColor(job.status || '')}
                           sx={{ height: 20, fontSize: '0.7rem' }}
                         />
                       </Box>
@@ -159,7 +152,7 @@ const Dashboard = () => {
           {sessions.length > 0 ? (
             sessions.slice(0, 3).map(session => (
               <React.Fragment key={session.id}>
-                <ListItem button component={RouterLink} to={`/sessions`} sx={{ color: 'white' }}>
+                <ListItem component={RouterLink} to={`/sessions`} sx={{ color: 'white' }}>
                   <ListItemText
                     primary={session.name || `Session ${session.id.substring(0, 8)}`}
                     secondary={`Target: ${session.target_id.substring(0, 8)}`}
@@ -174,7 +167,7 @@ const Dashboard = () => {
             </ListItem>
           )}
           {sessions.length > 3 && (
-            <ListItem button component={RouterLink} to="/sessions" sx={{ color: 'white' }}>
+            <ListItem component={RouterLink} to="/sessions" sx={{ color: 'white' }}>
               <ListItemText primary={`View all ${sessions.length} sessions`} />
             </ListItem>
           )}
@@ -193,7 +186,7 @@ const Dashboard = () => {
           {targets.length > 0 ? (
             targets.slice(0, 3).map(target => (
               <React.Fragment key={target.id}>
-                <ListItem button component={RouterLink} to="/targets" sx={{ color: 'white' }}>
+                <ListItem component={RouterLink} to="/targets" sx={{ color: 'white' }}>
                   <ListItemText
                     primary={
                       <Box
@@ -204,7 +197,7 @@ const Dashboard = () => {
                         }}
                       >
                         <Typography variant="body2" noWrap>
-                          {target.name || `Target ${target.id.substring(0, 8)}`}
+                          {target.name || `Target ${String(target.id).substring(0, 8)}`}
                         </Typography>
                         <Chip
                           label={target.type}
@@ -226,7 +219,7 @@ const Dashboard = () => {
             </ListItem>
           )}
           {targets.length > 3 && (
-            <ListItem button component={RouterLink} to="/targets" sx={{ color: 'white' }}>
+            <ListItem component={RouterLink} to="/targets" sx={{ color: 'white' }}>
               <ListItemText primary={`View all ${targets.length} targets`} />
             </ListItem>
           )}
@@ -245,11 +238,12 @@ const Dashboard = () => {
           {apis.length > 0 ? (
             apis.slice(0, 3).map(api => (
               <React.Fragment key={api.name}>
-                <ListItem button component={RouterLink} to="/apis" sx={{ color: 'white' }}>
+                <ListItem component={RouterLink} to="/apis" sx={{ color: 'white' }}>
                   <ListItemText
                     primary={api.name}
                     secondary={
-                      api.description.substring(0, 60) + (api.description.length > 60 ? '...' : '')
+                      (api.description || '').substring(0, 60) +
+                      ((api.description || '').length > 60 ? '...' : '')
                     }
                   />
                 </ListItem>
@@ -262,7 +256,7 @@ const Dashboard = () => {
             </ListItem>
           )}
           {apis.length > 3 && (
-            <ListItem button component={RouterLink} to="/apis" sx={{ color: 'white' }}>
+            <ListItem component={RouterLink} to="/apis" sx={{ color: 'white' }}>
               <ListItemText primary={`View all ${apis.length} APIs`} />
             </ListItem>
           )}

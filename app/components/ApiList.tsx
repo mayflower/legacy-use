@@ -47,26 +47,27 @@ import {
 } from '../services/apiService';
 import AddApiDialog from './AddApiDialog';
 import DuplicateApiDialog from './DuplicateApiDialog';
+import type { APIDefinition, Target } from '@/gen/endpoints';
 
 const ApiList = () => {
   const navigate = useNavigate();
   const { selectedSessionId, setSelectedSessionId } = useContext(SessionContext);
-  const [apis, setApis] = useState([]);
-  const [targets, setTargets] = useState([]);
-  const [selectedTarget, setSelectedTarget] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [paramValues, setParamValues] = useState({});
-  const [executingApi, setExecutingApi] = useState(null);
-  const [executionResult, setExecutionResult] = useState({});
-  const [expandedApis, setExpandedApis] = useState({});
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const fileInputRef = useRef(null);
-  const [addApiDialogOpen, setAddApiDialogOpen] = useState(false);
-  const [duplicateApiDialogOpen, setDuplicateApiDialogOpen] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const [duplicateApiName, setDuplicateApiName] = useState(null);
+  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [selectedTarget, setSelectedTarget] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [paramValues, setParamValues] = useState<Record<string, Record<string, unknown>>>({});
+  const [executingApi, setExecutingApi] = useState<string | null>(null);
+  const [executionResult, setExecutionResult] = useState<Record<string, any>>({});
+  const [expandedApis, setExpandedApis] = useState<Record<string, boolean>>({});
+  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [addApiDialogOpen, setAddApiDialogOpen] = useState<boolean>(false);
+  const [duplicateApiDialogOpen, setDuplicateApiDialogOpen] = useState<boolean>(false);
+  const [showArchived, setShowArchived] = useState<boolean>(false);
+  const [duplicateApiName, setDuplicateApiName] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -101,10 +102,10 @@ const ApiList = () => {
       }
 
       // Initialize parameter values
-      const initialParamValues = {};
-      const initialExpandedState = {};
+      const initialParamValues: Record<string, Record<string, unknown>> = {};
+      const initialExpandedState: Record<string, boolean> = {};
       apisData.forEach(api => {
-        const apiParams = {};
+        const apiParams: Record<string, unknown> = {};
         if (api.parameters) {
           api.parameters.forEach(param => {
             apiParams[param.name] = param.default || '';
@@ -117,7 +118,7 @@ const ApiList = () => {
       setExpandedApis(initialExpandedState);
 
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching API data:', err);
       setError('Failed to load API data. Please try again later.');
       setLoading(false);
@@ -129,8 +130,8 @@ const ApiList = () => {
   }, [fetchData]);
 
   // Handle target change
-  const handleTargetChange = event => {
-    const newTargetId = event.target.value;
+  const handleTargetChange = (event: any) => {
+    const newTargetId = event.target.value as string;
     setSelectedTarget(newTargetId);
     setSelectedSessionId(newTargetId); // Keep for compatibility with session context
 
@@ -144,7 +145,7 @@ const ApiList = () => {
     window.history.replaceState({}, '', url);
   };
 
-  const handleParamChange = (apiName, paramName, value) => {
+  const handleParamChange = (apiName: string, paramName: string, value: unknown) => {
     setParamValues(prev => ({
       ...prev,
       [apiName]: {
@@ -154,14 +155,14 @@ const ApiList = () => {
     }));
   };
 
-  const toggleApiExpand = apiName => {
+  const toggleApiExpand = (apiName: string) => {
     setExpandedApis(prev => ({
       ...prev,
       [apiName]: !prev[apiName],
     }));
   };
 
-  const handleExecuteApi = async api => {
+  const handleExecuteApi = async (api: APIDefinition) => {
     if (!selectedTarget) {
       setExecutionResult({
         ...executionResult,
@@ -184,8 +185,10 @@ const ApiList = () => {
       });
 
       // Process parameters before sending
-      const processedParams = { ...paramValues[api.name] };
-      let validationError = null;
+      const processedParams: Record<string, string | unknown[]> = {
+        ...(paramValues[api.name] as Record<string, string | unknown[]>),
+      };
+      let validationError: string | null = null;
       if (api.parameters) {
         for (const param of api.parameters) {
           if (param.type === 'list') {
@@ -248,7 +251,7 @@ const ApiList = () => {
 
       // Navigate to the job details page with the logs tab active
       navigate(`/jobs/${selectedTarget}/${result.id}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error executing API ${api.name}:`, err);
       setExecutionResult({
         ...executionResult,
@@ -262,7 +265,7 @@ const ApiList = () => {
     }
   };
 
-  const handleExportDefinition = async apiName => {
+  const handleExportDefinition = async (apiName: string) => {
     try {
       const data = await exportApiDefinition(apiName);
       const jsonString = JSON.stringify(data, null, 2);
@@ -275,25 +278,26 @@ const ApiList = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error exporting API definition for ${apiName}:`, err);
       setError(`Failed to export API definition for ${apiName}`);
     }
   };
 
   const handleImportClick = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
 
-  const handleFileUpload = async event => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (event: any) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     try {
       const reader = new FileReader();
       reader.onload = async e => {
         try {
-          const content = JSON.parse(e.target.result);
+          const text = (e?.target as FileReader)?.result as string;
+          const content = JSON.parse(text);
 
           // Check if the file has the expected structure
           if (!content.api_definition) {
@@ -303,7 +307,7 @@ const ApiList = () => {
           }
 
           // Import the API definition
-          const result = await importApiDefinition({ api_definition: content.api_definition });
+          const result = await importApiDefinition(content.api_definition);
 
           // Show success message
           setSnackbarMessage(result.message);
@@ -349,7 +353,7 @@ const ApiList = () => {
     fetchData();
   };
 
-  const handleArchiveApi = async (apiName, event) => {
+  const handleArchiveApi = async (apiName: string, event: any) => {
     // Stop event propagation to prevent card expansion
     event.stopPropagation();
 
@@ -362,14 +366,14 @@ const ApiList = () => {
 
       // Refresh the API list
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error archiving API ${apiName}:`, err);
       setSnackbarMessage(`Failed to archive API: ${err.message || 'Unknown error'}`);
       setSnackbarOpen(true);
     }
   };
 
-  const handleUnarchiveApi = async (apiName, event) => {
+  const handleUnarchiveApi = async (apiName: string, event: any) => {
     // Stop event propagation to prevent card expansion
     event.stopPropagation();
 
@@ -389,10 +393,10 @@ const ApiList = () => {
           setApis(apisData);
 
           // Initialize parameter values
-          const initialParamValues = {};
-          const initialExpandedState = {};
+          const initialParamValues: Record<string, Record<string, unknown>> = {};
+          const initialExpandedState: Record<string, boolean> = {};
           apisData.forEach(api => {
-            const apiParams = {};
+            const apiParams: Record<string, unknown> = {};
             if (api.parameters) {
               api.parameters.forEach(param => {
                 apiParams[param.name] = param.default || '';
@@ -408,7 +412,7 @@ const ApiList = () => {
           console.error('Error fetching API data:', err);
           setError('Failed to load API data. Please try again later.');
         });
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error unarchiving API ${apiName}:`, err);
       setSnackbarMessage(`Failed to unarchive API: ${err.message || 'Unknown error'}`);
       setSnackbarOpen(true);
@@ -425,10 +429,10 @@ const ApiList = () => {
           setApis(apisData);
 
           // Initialize parameter values
-          const initialParamValues = {};
-          const initialExpandedState = {};
+          const initialParamValues: Record<string, Record<string, unknown>> = {};
+          const initialExpandedState: Record<string, boolean> = {};
           apisData.forEach(api => {
-            const apiParams = {};
+            const apiParams: Record<string, unknown> = {};
             if (api.parameters) {
               api.parameters.forEach(param => {
                 apiParams[param.name] = param.default || '';
@@ -451,7 +455,7 @@ const ApiList = () => {
   };
 
   // Function to handle API duplication
-  const handleDuplicateClick = apiName => {
+  const handleDuplicateClick = (apiName: string) => {
     setDuplicateApiName(apiName);
     setDuplicateApiDialogOpen(true);
   };
@@ -540,8 +544,8 @@ const ApiList = () => {
               <em>None</em>
             </MenuItem>
             {targets.map(target => (
-              <MenuItem key={target.id} value={target.id}>
-                {target.name || `Target ${target.id.substring(0, 8)}`}
+              <MenuItem key={target.id} value={target.id || ''}>
+                {target.name || `Target ${String(target.id).substring(0, 8)}`}
               </MenuItem>
             ))}
           </Select>
@@ -632,7 +636,7 @@ const ApiList = () => {
                         <>
                           <IconButton
                             onClick={() => toggleApiExpand(api.name)}
-                            aria-expanded={expandedApis[api.name]}
+                            aria-expanded={!!expandedApis[api.name]}
                             aria-label="show more"
                           >
                             <SettingsIcon />
@@ -674,7 +678,7 @@ const ApiList = () => {
                     </Box>
                   )}
 
-                  <Collapse in={expandedApis[api.name]} timeout="auto" unmountOnExit>
+                  <Collapse in={!!expandedApis[api.name]} timeout="auto" unmountOnExit>
                     <Box sx={{ p: 2 }}>
                       <Typography variant="h6" gutterBottom>
                         Parameters

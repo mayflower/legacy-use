@@ -34,28 +34,33 @@ import { useNavigate } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { getProviders, getTargets, updateProviderSettings } from '../services/apiService';
 import { API_BASE_URL } from '../utils/apiConstants';
+import type { ProviderConfiguration } from '@/gen/endpoints';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [providers, setProviders] = useState([]);
-  const [selectedProvider, setSelectedProvider] = useState('');
-  const [signupCompleted, setSignupCompleted] = useState(false);
-  const [activationCode, setActivationCode] = useState('');
-  const [resendTimer, setResendTimer] = useState(0);
+  const [activeStep, setActiveStep] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [providers, setProviders] = useState<ProviderConfiguration[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [signupCompleted, setSignupCompleted] = useState<boolean>(false);
+  const [activationCode, setActivationCode] = useState<string>('');
+  const [resendTimer, setResendTimer] = useState<number>(0);
   const { refreshProviders } = useAiProvider();
 
   // Signup form state
-  const [signupData, setSignupData] = useState({
+  const [signupData, setSignupData] = useState<{
+    email: string;
+    description: string;
+    referralCode: string;
+  }>({
     email: '',
     description: '',
     referralCode: '',
   });
 
   // Provider configuration state
-  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [awsCredentials, setAwsCredentials] = useState({
     accessKeyId: '',
     secretAccessKey: '',
@@ -227,7 +232,7 @@ const OnboardingWizard = ({ open, onClose, onComplete }) => {
     setError('');
 
     try {
-      let credentials = {};
+      let credentials: any = {};
 
       if (selectedProvider === 'anthropic') {
         if (!apiKeyInput.trim()) {

@@ -46,25 +46,30 @@ import {
 
 import ResolutionRecommendation from './ResolutionRecommendation';
 import VPNConfigInputField from './VPNConfigInputField';
+import type { Target } from '@/gen/endpoints';
+
+type TargetWithDetails = Target & {
+  is_blocked: boolean | 'Error' | null | undefined;
+  queued_tasks_count: number | 'Error';
+};
 
 const TargetList = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [targetToDelete, setTargetToDelete] = useState(null);
-  const [hardDelete, setHardDelete] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const [deleteInProgress, setDeleteInProgress] = useState(false);
-  const [editTargetDialogOpen, setEditTargetDialogOpen] = useState(false);
-  const [targetToEdit, setTargetToEdit] = useState(null);
-  const [editInProgress, setEditInProgress] = useState(false);
-  const [editFormData, setEditFormData] = useState({});
-  const [validationErrors, setValidationErrors] = useState({});
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [targetsWithDetails, setTargetsWithDetails] = useState([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [targetToDelete, setTargetToDelete] = useState<Target | null>(null);
+  const [hardDelete, setHardDelete] = useState<boolean>(false);
+  const [showArchived, setShowArchived] = useState<boolean>(false);
+  const [deleteInProgress, setDeleteInProgress] = useState<boolean>(false);
+  const [editTargetDialogOpen, setEditTargetDialogOpen] = useState<boolean>(false);
+  const [targetToEdit, setTargetToEdit] = useState<Target | null>(null);
+  const [editInProgress, setEditInProgress] = useState<boolean>(false);
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [validationErrors, setValidationErrors] = useState<any>({});
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [targetsWithDetails, setTargetsWithDetails] = useState<TargetWithDetails[]>([]);
 
   const fetchTargets = async () => {
     try {
@@ -73,18 +78,18 @@ const TargetList = () => {
       // setTargets(targetsData); // We will set targetsWithDetails instead
 
       // Fetch additional details for each target
-      const detailedTargets = await Promise.all(
+      const detailedTargets: TargetWithDetails[] = await Promise.all(
         targetsData.map(async target => {
           try {
-            const fullTargetDetails = await getTarget(target.id);
-            const jobs = await getJobs(target.id);
+            const fullTargetDetails = await getTarget(target.id as string);
+            const jobs = await getJobs(target.id as string);
             const queuedTasks = jobs.filter(job => job.status === 'queued').length;
             return {
               ...target,
               is_blocked:
                 fullTargetDetails.blocking_jobs && fullTargetDetails.blocking_jobs.length > 0,
               queued_tasks_count: queuedTasks,
-            };
+            } as TargetWithDetails;
           } catch (err) {
             console.error(`Error fetching details for target ${target.id}:`, err);
             // Return target with default/error state for additional fields
@@ -92,13 +97,13 @@ const TargetList = () => {
               ...target,
               is_blocked: 'Error', // Indicate error or unknown
               queued_tasks_count: 'Error', // Indicate error or unknown
-            };
+            } as TargetWithDetails;
           }
         }),
       );
       setTargetsWithDetails(detailedTargets);
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching targets:', err);
       setError('Failed to load targets. Please try again later.');
       setLoading(false);
@@ -114,13 +119,13 @@ const TargetList = () => {
     return () => clearInterval(intervalId);
   }, [showArchived]);
 
-  const formatDate = dateString => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
 
-  const handleDeleteClick = (target, event) => {
+  const handleDeleteClick = (target: Target, event: any) => {
     event.stopPropagation(); // Prevent row click navigation
     setTargetToDelete(target);
     setDeleteDialogOpen(true);
@@ -132,13 +137,13 @@ const TargetList = () => {
 
     try {
       setDeleteInProgress(true);
-      await deleteTarget(targetToDelete.id, hardDelete);
+      await deleteTarget(targetToDelete.id as string, hardDelete);
       // Refresh the targets list
       fetchTargets();
       // Close the dialog
       setDeleteDialogOpen(false);
       setTargetToDelete(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting target:', err);
       setError(`Failed to delete target: ${err.message}`);
     } finally {
@@ -152,23 +157,23 @@ const TargetList = () => {
     setTargetToDelete(null);
   };
 
-  const handleUnarchiveClick = async (target, event) => {
+  const handleUnarchiveClick = async (target: Target, event: any) => {
     event.stopPropagation(); // Prevent row click navigation
     try {
-      await unarchiveTarget(target.id);
+      await unarchiveTarget(target.id as string);
       // Refresh the targets list
       fetchTargets();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error unarchiving target:', err);
       setError(`Failed to unarchive target: ${err.message}`);
     }
   };
 
   // TODO: Potentially move this into a seperate component since it's mostly redudant with CreateTarget.js
-  const handleEditClick = async (target, event) => {
+  const handleEditClick = async (target: Target, event: any) => {
     event.stopPropagation(); // Prevent row click navigation
     try {
-      const targetDetails = await getTarget(target.id);
+      const targetDetails = await getTarget(target.id as string);
       setTargetToEdit(targetDetails);
       // VPN fields are now stored separately in the database
 
@@ -187,21 +192,21 @@ const TargetList = () => {
         rdp_params: targetDetails.rdp_params || '',
       });
       setEditTargetDialogOpen(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching target details:', err);
       setError(`Failed to fetch target details: ${err.message}`);
     }
   };
 
-  const handleRowClick = target => {
+  const handleRowClick = (target: Target) => {
     navigate(`/targets/${target.id}`);
   };
 
-  const handleChangePage = (_event, newPage) => {
+  const handleChangePage = (_event: any, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = event => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -214,25 +219,25 @@ const TargetList = () => {
     setValidationErrors({});
   };
 
-  const handleEditChange = e => {
+  const handleEditChange = (e: any) => {
     const { name, value } = e.target;
-    setEditFormData(prev => ({
+    setEditFormData((prev: any) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleEditPortChange = e => {
+  const handleEditPortChange = (e: any) => {
     const value = e.target.value;
     if (value === '') {
-      setEditFormData(prev => ({
+      setEditFormData((prev: any) => ({
         ...prev,
         port: null,
       }));
     } else {
       const portValue = parseInt(value, 10);
       if (!Number.isNaN(portValue)) {
-        setEditFormData(prev => ({
+        setEditFormData((prev: any) => ({
           ...prev,
           port: portValue,
         }));
@@ -240,23 +245,29 @@ const TargetList = () => {
     }
   };
 
-  const handleEditResolutionChange = e => {
+  const handleEditResolutionChange = (e: any) => {
     const { name, value } = e.target;
     const numValue = parseInt(value, 10);
     if (!Number.isNaN(numValue)) {
-      setEditFormData(prev => ({
+      setEditFormData((prev: any) => ({
         ...prev,
         [name]: numValue,
       }));
     }
   };
 
-  const handleEditRecommendedResolutionClick = ({ width, height }) => {
-    setEditFormData(prev => ({ ...prev, width, height }));
+  const handleEditRecommendedResolutionClick = ({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
+  }) => {
+    setEditFormData((prev: any) => ({ ...prev, width, height }));
   };
 
   const validateEditForm = () => {
-    const errors = {};
+    const errors: any = {};
 
     if (!editFormData.name.trim()) {
       errors.name = 'Name is required';
@@ -309,11 +320,11 @@ const TargetList = () => {
       setEditInProgress(true);
 
       // Prepare data for submission
-      const submissionData = { ...editFormData };
+      const submissionData = { ...editFormData } as any;
 
       // No need to concatenate VPN fields anymore - they are sent as separate fields
 
-      await updateTarget(targetToEdit.id, submissionData);
+      await updateTarget(targetToEdit.id as string, submissionData);
 
       // Refresh the targets list
       fetchTargets();
@@ -325,13 +336,15 @@ const TargetList = () => {
 
       // Show notification that sessions need to be restarted
       setNotificationOpen(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating target:', err);
       setError(`Failed to update target: ${err.message}`);
     } finally {
       setEditInProgress(false);
     }
   };
+
+  const [notificationOpen, setNotificationOpen] = useState<boolean>(false);
 
   const handleNotificationClose = () => {
     setNotificationOpen(false);
@@ -433,7 +446,7 @@ const TargetList = () => {
                     >
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {target.name || `Target ${target.id.substring(0, 8)}`}
+                          {target.name || `Target ${String(target.id).substring(0, 8)}`}
                           {target.is_archived && (
                             <Tooltip title="Archived">
                               <Chip label="Archived" size="small" color="default" sx={{ ml: 1 }} />
@@ -475,7 +488,12 @@ const TargetList = () => {
                           <Chip
                             icon={<HourglassEmptyIcon />}
                             label={target.queued_tasks_count}
-                            color={target.queued_tasks_count > 0 ? 'warning' : 'default'}
+                            color={
+                              typeof target.queued_tasks_count === 'number' &&
+                              target.queued_tasks_count > 0
+                                ? 'warning'
+                                : 'default'
+                            }
                             size="small"
                           />
                         )}

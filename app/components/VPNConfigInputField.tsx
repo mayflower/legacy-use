@@ -12,7 +12,7 @@ const VPNConfigInputField = ({ targetData, validationErrors, loading, handleChan
       reader.readAsDataURL(file);
       reader.onload = () => {
         // Remove data:*/*;base64, prefix to get pure base64
-        const base64 = reader.result.split(',')[1];
+        const base64 = (reader.result as string).split(',')[1];
         resolve(base64);
       };
       reader.onerror = error => reject(error);
