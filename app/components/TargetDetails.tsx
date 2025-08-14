@@ -7,13 +7,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
 import type { Job, Session, Target } from '@/gen/endpoints';
 import { SessionContext } from '../App';
-import {
-  deleteSession,
-  getJobs,
-  getSession,
-  getSessions,
-  getTarget,
-} from '../services/apiService';
+import { deleteSession, getJobs, getSession, getSessions, getTarget } from '../services/apiService';
 import DeleteSessionDialog from './DeleteSessionDialog';
 import JobsSection from './JobsSection';
 import SessionDetailsCard from './SessionDetailsCard';
@@ -171,9 +165,7 @@ const TargetDetails = () => {
       const running = jobsData.find(job => job.status === 'running') || null;
       const queued = jobsData.filter(job => job.status === 'queued');
       const blockingIds = new Set(blocking.map(job => job.id));
-      const executed = jobsData.filter(
-        job => job.status !== 'queued' && !blockingIds.has(job.id),
-      );
+      const executed = jobsData.filter(job => job.status !== 'queued' && !blockingIds.has(job.id));
 
       setRunningJob(running);
       setQueuedJobs(queued);
