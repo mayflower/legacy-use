@@ -65,9 +65,4 @@ def get_handler(
         **kwargs,
     }
 
-    # Remove provider from kwargs if the handler doesn't expect it
-    if handler_class != AnthropicHandler:
-        handler_kwargs.pop('provider', None)
-
-    # Note: We return the protocol type for better static typing on handler methods
     return handler_class(**handler_kwargs)  # type: ignore[return-value]
