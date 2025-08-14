@@ -3,7 +3,10 @@ import logging
 from typing import Literal, cast, Dict, Any
 
 import httpx
-from anthropic.types.beta import BetaToolUnionParam
+from anthropic.types.beta import (
+    BetaToolComputerUse20241022Param,
+    BetaToolComputerUse20250124Param,
+)
 
 from .base import BaseAnthropicTool, ToolError, ToolResult
 
@@ -55,12 +58,27 @@ class BaseComputerTool(BaseAnthropicTool):
             'display_number': self.display_num,
         }
 
-    def to_params(self) -> BetaToolUnionParam:
-        # Base reports the concrete api_type as union-compatible
-        return cast(
-            BetaToolUnionParam,
-            {'name': self.name, 'type': self.api_type, **self.options},
-        )
+    def to_params(
+        self,
+    ) -> BetaToolComputerUse20241022Param | BetaToolComputerUse20250124Param:
+        # redundant return type to satisfy type checker :(
+        if self.api_type == 'computer_20241022':
+            return BetaToolComputerUse20241022Param(
+                name=self.name,
+                type=self.api_type,
+                display_width_px=self.width,
+                display_height_px=self.height,
+                display_number=self.display_num,
+            )
+        elif self.api_type == 'computer_20250124':
+            return BetaToolComputerUse20250124Param(
+                name=self.name,
+                type=self.api_type,
+                display_width_px=self.width,
+                display_height_px=self.height,
+                display_number=self.display_num,
+            )
+        raise ValueError(f'Invalid API type: {self.api_type}')
 
     def internal_spec(self) -> dict:
         return {
@@ -349,20 +367,26 @@ class BaseComputerTool(BaseAnthropicTool):
 class ComputerTool20241022(BaseComputerTool, BaseAnthropicTool):
     api_type = 'computer_20241022'
 
-    def to_params(self) -> BetaToolUnionParam:
-        return cast(
-            BetaToolUnionParam,
-            {'name': self.name, 'type': self.api_type, **self.options},
+    def to_params(self) -> BetaToolComputerUse20241022Param:
+        return BetaToolComputerUse20241022Param(
+            name=self.name,
+            type=cast(Literal['computer_20241022'], self.api_type),
+            display_width_px=self.width,
+            display_height_px=self.height,
+            display_number=self.display_num,
         )
 
 
 class ComputerTool20250124(BaseComputerTool, BaseAnthropicTool):
     api_type = 'computer_20250124'
 
-    def to_params(self) -> BetaToolUnionParam:
-        return cast(
-            BetaToolUnionParam,
-            {'name': self.name, 'type': self.api_type, **self.options},
+    def to_params(self) -> BetaToolComputerUse20250124Param:
+        return BetaToolComputerUse20250124Param(
+            name=self.name,
+            type=cast(Literal['computer_20250124'], self.api_type),
+            display_width_px=self.width,
+            display_height_px=self.height,
+            display_number=self.display_num,
         )
 
     async def __call__(
