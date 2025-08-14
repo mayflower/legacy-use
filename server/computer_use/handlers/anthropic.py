@@ -5,7 +5,7 @@ This handler manages all Anthropic-specific logic including Claude models
 via direct API, Bedrock, and Vertex AI.
 """
 
-from typing import Iterable, Optional, cast
+from typing import Any, Dict, Iterable, Optional, cast
 
 import httpx
 from anthropic import (
@@ -14,6 +14,7 @@ from anthropic import (
     AsyncAnthropicVertex,
 )
 from anthropic.types.beta import (
+    BetaCacheControlEphemeralParam,
     BetaContentBlockParam,
     BetaMessageParam,
     BetaTextBlockParam,
@@ -23,7 +24,7 @@ from anthropic.types.beta import (
 import instructor
 
 from server.computer_use.client import LegacyUseClient
-from server.computer_use.config import APIProvider
+from server.computer_use.config import APIProvider, PROMPT_CACHING_BETA_FLAG
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
 from server.computer_use.tools.collection import ToolCollection
@@ -36,6 +37,30 @@ from server.settings import settings
 AnthropicClient = (
     AsyncAnthropic | AsyncAnthropicBedrock | AsyncAnthropicVertex | LegacyUseClient
 )
+
+
+def _inject_prompt_caching(
+    messages: list[BetaMessageParam],
+):
+    """
+    Set cache breakpoints for the 3 most recent turns
+    one cache breakpoint is left for tools/system prompt, to be shared across sessions
+    """
+
+    breakpoints_remaining = 3
+    for message in reversed(messages):
+        if message['role'] == 'user' and isinstance(
+            content := message['content'], list
+        ):
+            if breakpoints_remaining:
+                breakpoints_remaining -= 1
+                cast(Dict[str, Any], content[-1])['cache_control'] = (
+                    BetaCacheControlEphemeralParam({'type': 'ephemeral'})
+                )
+            else:
+                cast(Dict[str, Any], content[-1]).pop('cache_control', None)
+                # we'll only every have one extra turn per loop
+                break
 
 
 class AnthropicHandler(BaseProviderHandler):
@@ -63,13 +88,8 @@ class AnthropicHandler(BaseProviderHandler):
             only_n_most_recent_images: Number of recent images to keep
             **kwargs: Additional provider-specific parameters
         """
-        # Enable prompt caching for direct Anthropic API
-        enable_prompt_caching = provider == APIProvider.ANTHROPIC
-
         super().__init__(
-            token_efficient_tools_beta=token_efficient_tools_beta,
             only_n_most_recent_images=only_n_most_recent_images,
-            enable_prompt_caching=enable_prompt_caching,
             tenant_schema=tenant_schema,
             max_retries=max_retries,
             **kwargs,
@@ -79,6 +99,8 @@ class AnthropicHandler(BaseProviderHandler):
         self.model = model
         self.tool_beta_flag = tool_beta_flag
         self.image_truncation_threshold = 1
+        self.enable_prompt_caching = provider == APIProvider.ANTHROPIC
+        self.token_efficient_tools_beta = token_efficient_tools_beta
 
     async def initialize_client(
         self, api_key: str, **kwargs
@@ -156,10 +178,16 @@ class AnthropicHandler(BaseProviderHandler):
         For Anthropic, messages are already in the correct format.
         Apply caching and image filtering if configured.
         """
-        # Apply common preprocessing (prompt caching + image filtering)
-        return self.preprocess_messages(
+        # Apply common preprocessing (image filtering only)
+        messages = self.preprocess_messages(
             messages, image_truncation_threshold=self.image_truncation_threshold
         )
+
+        # Apply Anthropic-specific prompt caching
+        if self.enable_prompt_caching:
+            _inject_prompt_caching(messages)
+
+        return messages
 
     def prepare_tools(
         self, tool_collection: ToolCollection
@@ -169,10 +197,14 @@ class AnthropicHandler(BaseProviderHandler):
         return tool_collection.to_params()
 
     def get_betas(self) -> list[str]:
-        """Get list of beta flags including tool-specific ones."""
-        betas = super().get_betas()
+        """Get list of Anthropic-specific beta flags."""
+        betas = []
+        if self.token_efficient_tools_beta:
+            betas.append('token-efficient-tools-2025-02-19')
         if self.tool_beta_flag:
             betas.append(self.tool_beta_flag)
+        if self.enable_prompt_caching:
+            betas.append(PROMPT_CACHING_BETA_FLAG)
         return betas
 
     async def make_ai_request(

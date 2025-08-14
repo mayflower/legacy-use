@@ -18,7 +18,6 @@ import instructor
 from server.computer_use.tools import ToolCollection
 from server.settings_tenant import get_tenant_setting as _get_tenant_setting
 from server.computer_use.utils import (
-    _inject_prompt_caching,
     _maybe_filter_to_n_most_recent_images,
 )
 
@@ -146,9 +145,7 @@ class BaseProviderHandler(ABC):
     def __init__(
         self,
         tenant_schema: str,
-        token_efficient_tools_beta: bool = False,
         only_n_most_recent_images: Optional[int] = None,
-        enable_prompt_caching: bool = False,
         max_retries: int = 2,
         **kwargs,
     ):
@@ -156,28 +153,14 @@ class BaseProviderHandler(ABC):
         Initialize the handler with common parameters.
 
         Args:
-            token_efficient_tools_beta: Whether to use token-efficient tools
+            tenant_schema: Tenant schema
             only_n_most_recent_images: Number of recent images to keep
-            enable_prompt_caching: Whether to enable prompt caching
             **kwargs: Additional provider-specific parameters
         """
-        self.token_efficient_tools_beta = token_efficient_tools_beta
         self.only_n_most_recent_images = only_n_most_recent_images
-        self.enable_prompt_caching = enable_prompt_caching
         self.tenant_schema = tenant_schema
         self.max_retries = max_retries
         self.extra_params = kwargs
-
-    def get_betas(self) -> list[str]:
-        """Get list of beta flags for the provider."""
-        betas = []
-        if self.token_efficient_tools_beta:
-            betas.append('token-efficient-tools-2025-02-19')
-        if self.enable_prompt_caching:
-            from server.computer_use.config import PROMPT_CACHING_BETA_FLAG
-
-            betas.append(PROMPT_CACHING_BETA_FLAG)
-        return betas
 
     def tenant_setting(self, key: str) -> Optional[str]:
         """Convenience accessor for tenant-specific settings."""
@@ -189,15 +172,11 @@ class BaseProviderHandler(ABC):
         *,
         image_truncation_threshold: int = 1,
     ) -> list[BetaMessageParam]:
-        """Apply common preprocessing such as prompt caching and image trimming.
+        """Apply common preprocessing such as image trimming.
 
         This returns the same list object with modifications applied in-place
         where appropriate, and also returns it for convenience.
         """
-        # Prompt caching markers
-        if self.enable_prompt_caching:
-            _inject_prompt_caching(messages)
-
         # Optional image trimming
         if self.only_n_most_recent_images:
             _maybe_filter_to_n_most_recent_images(

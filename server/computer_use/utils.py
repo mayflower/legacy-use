@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import Any, Dict, cast
 
 from anthropic.types.beta import (
-    BetaCacheControlEphemeralParam,
     BetaContentBlockParam,
     BetaImageBlockParam,
     BetaMessage,
@@ -78,30 +77,6 @@ def _response_to_params(
             # Handle tool use blocks normally
             res.append(cast(BetaToolUseBlockParam, block.model_dump()))
     return res
-
-
-def _inject_prompt_caching(
-    messages: list[BetaMessageParam],
-):
-    """
-    Set cache breakpoints for the 3 most recent turns
-    one cache breakpoint is left for tools/system prompt, to be shared across sessions
-    """
-
-    breakpoints_remaining = 3
-    for message in reversed(messages):
-        if message['role'] == 'user' and isinstance(
-            content := message['content'], list
-        ):
-            if breakpoints_remaining:
-                breakpoints_remaining -= 1
-                cast(Dict[str, Any], content[-1])['cache_control'] = (
-                    BetaCacheControlEphemeralParam({'type': 'ephemeral'})
-                )
-            else:
-                cast(Dict[str, Any], content[-1]).pop('cache_control', None)
-                # we'll only every have one extra turn per loop
-                break
 
 
 def _maybe_filter_to_n_most_recent_images(
