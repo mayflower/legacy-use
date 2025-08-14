@@ -100,6 +100,8 @@ class Settings(BaseSettings):
 
     # Graceful shutdown configuration
     SHUTDOWN_GRACE_PERIOD_SECONDS: int = 300
+    # Total number of concurrent jobs this process can run across all tenants
+    JOB_WORKERS: int = 2
 
     model_config = SettingsConfigDict(
         env_file=get_setting_env_file(),
