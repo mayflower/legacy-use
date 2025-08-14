@@ -83,7 +83,7 @@ class ProviderHandler(Protocol):
         ...
 
     @abstractmethod
-    async def call_api(
+    async def make_ai_request(
         self,
         client: Any,
         messages: list[Any],

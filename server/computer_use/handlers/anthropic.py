@@ -175,7 +175,7 @@ class AnthropicHandler(BaseProviderHandler):
             betas.append(self.tool_beta_flag)
         return betas
 
-    async def call_api(
+    async def make_ai_request(
         self,
         client: instructor.AsyncInstructor,
         messages: list[BetaMessageParam],
@@ -232,7 +232,7 @@ class AnthropicHandler(BaseProviderHandler):
         messages_formatted = self.convert_to_provider_messages(messages)
 
         # Call the raw API
-        parsed_response, request, raw_response = await self.call_api(
+        parsed_response, request, raw_response = await self.make_ai_request(
             client=client,
             messages=messages_formatted,
             system=system_formatted,
