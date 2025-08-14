@@ -5,7 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
-import type { Job, Session, Target } from '@/gen/endpoints';
+import type { Job, Session, Target, TargetBlockingJobsAnyOfItem } from '@/gen/endpoints';
 import { SessionContext } from '../App';
 import { deleteSession, getJobs, getSession, getSessions, getTarget } from '../services/apiService';
 import DeleteSessionDialog from './DeleteSessionDialog';
@@ -30,7 +30,7 @@ const TargetDetails = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [queuedJobs, setQueuedJobs] = useState<Job[]>([]);
   const [executedJobs, setExecutedJobs] = useState<Job[]>([]);
-  const [blockingJobs, setBlockingJobs] = useState<Job[]>([]);
+  const [blockingJobs, setBlockingJobs] = useState<TargetBlockingJobsAnyOfItem[]>([]);
   const [runningJob, setRunningJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
