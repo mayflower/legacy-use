@@ -145,10 +145,10 @@ class BaseProviderHandler(ABC):
 
     def __init__(
         self,
+        tenant_schema: str,
         token_efficient_tools_beta: bool = False,
         only_n_most_recent_images: Optional[int] = None,
         enable_prompt_caching: bool = False,
-        tenant_schema: Optional[str] = None,
         max_retries: int = 2,
         **kwargs,
     ):
@@ -181,8 +181,6 @@ class BaseProviderHandler(ABC):
 
     def tenant_setting(self, key: str) -> Optional[str]:
         """Convenience accessor for tenant-specific settings."""
-        if not self.tenant_schema:
-            return None
         return _get_tenant_setting(self.tenant_schema, key)
 
     def preprocess_messages(

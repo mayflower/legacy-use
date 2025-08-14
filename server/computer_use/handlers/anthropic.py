@@ -45,10 +45,10 @@ class AnthropicHandler(BaseProviderHandler):
         self,
         provider: APIProvider,
         model: str,
+        tenant_schema: str,
         tool_beta_flag: Optional[str] = None,
         token_efficient_tools_beta: bool = False,
         only_n_most_recent_images: Optional[int] = None,
-        tenant_schema: Optional[str] = None,
         max_retries: int = 2,
         **kwargs,
     ):
