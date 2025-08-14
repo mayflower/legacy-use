@@ -20,5 +20,3 @@ export const getJobStatusChipColor = (status?: string): JobStatusColor => {
 };
 
 export default getJobStatusChipColor;
-
-
