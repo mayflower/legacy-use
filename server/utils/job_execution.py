@@ -10,7 +10,7 @@ import asyncio
 import logging
 import traceback
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 from uuid import UUID
 import os
 import socket
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 running_job_tasks: Dict[str, asyncio.Task] = {}
-tenant_worker_tasks: Dict[str, asyncio.Task] = {}
+tenant_worker_tasks: Dict[str, List[asyncio.Task]] = {}
 tenant_worker_lock = asyncio.Lock()
 WORKER_ID = f'{socket.gethostname()}:{os.getpid()}'
 
@@ -68,12 +68,23 @@ async def start_workers_for_all_tenants():
 
 async def start_worker_for_tenant(tenant_schema: str):
     async with tenant_worker_lock:
-        task = tenant_worker_tasks.get(tenant_schema)
-        if task is None or task.done():
-            logger.info(f'Starting worker loop for tenant {tenant_schema}')
-            tenant_worker_tasks[tenant_schema] = asyncio.create_task(
-                worker_loop_for_tenant(tenant_schema)
+        existing_tasks = tenant_worker_tasks.get(tenant_schema, [])
+        # Prune finished tasks
+        existing_tasks = [t for t in existing_tasks if not t.done()]
+
+        desired_concurrency = max(1, getattr(settings, 'JOB_WORKERS_PER_TENANT', 1))
+        missing = desired_concurrency - len(existing_tasks)
+        if missing > 0:
+            logger.info(
+                f'Starting {missing} worker loop(s) for tenant {tenant_schema} (target={desired_concurrency})'
             )
+            new_tasks = [
+                asyncio.create_task(worker_loop_for_tenant(tenant_schema))
+                for _ in range(missing)
+            ]
+            existing_tasks.extend(new_tasks)
+
+        tenant_worker_tasks[tenant_schema] = existing_tasks
 
 
 async def worker_loop_for_tenant(tenant_schema: str):
@@ -131,7 +142,11 @@ async def initiate_graceful_shutdown(timeout_seconds: int = 300) -> None:
         logger.info('Drain mode already active')
 
     # Snapshot tasks to await
-    tasks_to_await = [t for t in tenant_worker_tasks.values() if t is not None]
+    all_tasks: List[asyncio.Task] = []
+    for task_list in tenant_worker_tasks.values():
+        if task_list:
+            all_tasks.extend(task_list)
+    tasks_to_await = [t for t in all_tasks if t is not None]
     if not tasks_to_await:
         logger.info('No tenant worker tasks running; shutdown can proceed immediately')
         return
