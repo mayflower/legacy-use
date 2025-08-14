@@ -18,7 +18,6 @@ import {
   getJobLogsTargetsTargetIdJobsJobIdLogsGet,
   getJobTargetsTargetIdJobsJobIdGet,
   getProvidersSettingsProvidersGet,
-  getQueueStatusJobsQueueStatusGet,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
   getSessionSessionsSessionIdGet,
   getTargetTargetsTargetIdGet,

@@ -73,7 +73,7 @@ class Settings(BaseSettings):
 
     # Database connection pooling settings
     DATABASE_POOL_SIZE: int = 5
-    DATABASE_MAX_OVERFLOW: int = 2
+    DATABASE_MAX_OVERFLOW: int = 4
     DATABASE_POOL_TIMEOUT: int = 10
     DATABASE_POOL_RECYCLE: int = 3600
     DATABASE_POOL_PRE_PING: bool = True
