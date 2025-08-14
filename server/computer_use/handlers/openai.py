@@ -1,8 +1,8 @@
 """
 OpenAI provider handler implementation.
 
-This handler demonstrates how to add support for a new provider (OpenAI)
-by mapping between OpenAI's format and the Anthropic format used for DB storage.
+This handler manages all OpenAI-specific logic and mapping between OpenAI's format
+and the Anthropic format used for DB storage.
 """
 
 import json
@@ -43,9 +43,6 @@ from openai.types.chat import (
 class OpenAIHandler(BaseProviderHandler):
     """
     Handler for OpenAI API provider.
-
-    This is an example implementation showing how to map between OpenAI's
-    message format and the Anthropic format used for database storage.
     """
 
     # Computer tool action names exposed as individual functions
@@ -112,8 +109,8 @@ class OpenAIHandler(BaseProviderHandler):
 
     def __init__(
         self,
-        model: str = 'gpt-4o',
-        token_efficient_tools_beta: bool = False,
+        model: str,
+        tenant_schema: str,
         only_n_most_recent_images: Optional[int] = None,
         **kwargs,
     ):
@@ -127,9 +124,8 @@ class OpenAIHandler(BaseProviderHandler):
             **kwargs: Additional provider-specific parameters
         """
         super().__init__(
-            token_efficient_tools_beta=token_efficient_tools_beta,
+            tenant_schema=tenant_schema,
             only_n_most_recent_images=only_n_most_recent_images,
-            enable_prompt_caching=False,  # OpenAI doesn't support prompt caching
             **kwargs,
         )
         self.model = model
@@ -216,21 +212,15 @@ class OpenAIHandler(BaseProviderHandler):
             OpenAI message parameter
         """
         if role == 'user':
-            return cast(
-                ChatCompletionUserMessageParam,
-                {
-                    'role': 'user',
-                    'content': content,
-                },
-            )
+            return {
+                'role': 'user',
+                'content': content,
+            }
         else:
-            return cast(
-                ChatCompletionAssistantMessageParam,
-                {
-                    'role': 'assistant',
-                    'content': content,
-                },
-            )
+            return {
+                'role': 'assistant',
+                'content': content,
+            }
 
     def _process_tool_result_block(self, block: dict) -> tuple[str, str, Optional[str]]:
         """
@@ -295,20 +285,12 @@ class OpenAIHandler(BaseProviderHandler):
 
         for text, img_data in images:
             if text:
-                user_parts.append(
-                    cast(
-                        ChatCompletionContentPartTextParam,
-                        {'type': 'text', 'text': text},
-                    )
-                )
+                user_parts.append({'type': 'text', 'text': text})
             user_parts.append(
-                cast(
-                    ChatCompletionContentPartImageParam,
-                    {
-                        'type': 'image_url',
-                        'image_url': {'url': f'data:image/png;base64,{img_data}'},
-                    },
-                )
+                {
+                    'type': 'image_url',
+                    'image_url': {'url': f'data:image/png;base64,{img_data}'},
+                }
             )
 
         return {
@@ -553,7 +535,7 @@ class OpenAIHandler(BaseProviderHandler):
         )
         return tools
 
-    async def call_api(
+    async def make_ai_request(
         self,
         client: instructor.AsyncInstructor,
         messages: list[ChatCompletionMessageParam],
@@ -607,18 +589,13 @@ class OpenAIHandler(BaseProviderHandler):
         temperature: float = 0.0,
         **kwargs,
     ) -> tuple[list[BetaContentBlockParam], str, httpx.Request, httpx.Response]:
-        """
-        Make API call to OpenAI and return standardized response format.
-
-        This is the public interface that calls the raw API and converts the response.
-        Now handles conversions internally for a cleaner interface.
-        """
+        """Make API call to OpenAI and return standardized response format."""
         # Convert inputs to provider format
         openai_messages = self.convert_to_provider_messages(messages)
         system_str = self.prepare_system(system)
         openai_tools = self.prepare_tools(tools)
 
-        parsed_response, request, raw_response = await self.call_api(
+        parsed_response, request, raw_response = await self.make_ai_request(
             client=client,
             messages=openai_messages,
             system=system_str,
