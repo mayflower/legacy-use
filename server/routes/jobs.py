@@ -35,7 +35,6 @@ from server.utils.job_execution import (
     add_job_log,
     enqueue_job,
     create_and_enqueue_job,
-    start_worker_for_tenant,
 )
 from server.utils.job_utils import compute_job_metrics
 from server.utils.telemetry import (
@@ -551,66 +550,6 @@ async def resolve_job(
     capture_job_resolved(request, updated_job, manual_resolution=True)
 
     return updated_job
-
-
-@job_router.post('/jobs/queue/resync', include_in_schema=False)
-async def resync_queue(
-    db_tenant: Session = Depends(get_tenant_db),
-    tenant: dict = Depends(get_tenant_from_request),
-):
-    """Manually resynchronize the job queue with the database for the current tenant.
-
-    This is useful for troubleshooting situations where jobs are in the database
-    but not being processed by the in-memory queue.
-    """
-    from server.utils.job_execution import (
-        tenant_job_queues,
-        tenant_processor_tasks,
-        tenant_resources_lock,
-    )
-
-    # Get current queue size before resync for current tenant
-    async with tenant_resources_lock:
-        old_queue_size = len(tenant_job_queues.get(tenant['schema'], []))
-
-    # Count jobs with QUEUED status in the database before resync
-    all_jobs = db_tenant.list_jobs(limit=1000)
-    db_queued_count_before = sum(
-        1 for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
-    )
-
-    # Check if there's an inconsistency
-    if old_queue_size != db_queued_count_before:
-        logger.warning(
-            f'Queue inconsistency detected for tenant {tenant["schema"]}: {old_queue_size} jobs in memory vs {db_queued_count_before} in database'
-        )
-
-    # Ensure worker is running for this tenant
-    await start_worker_for_tenant(tenant['schema'])
-
-    # Get updated queue status after resync
-    async with tenant_resources_lock:
-        new_queue_size = len(tenant_job_queues.get(tenant['schema'], []))
-        is_processor_running = (
-            tenant['schema'] in tenant_processor_tasks
-            and tenant_processor_tasks[tenant['schema']] is not None
-            and not tenant_processor_tasks[tenant['schema']].done()
-        )
-
-    # Count jobs with QUEUED status in the database after resync
-    all_jobs = db_tenant.list_jobs(limit=1000)
-    db_queued_count_after = sum(
-        1 for job in all_jobs if job.get('status') == JobStatus.QUEUED.value
-    )
-
-    return {
-        'message': f'Queue resynchronized with database for tenant {tenant["schema"]}',
-        'previous_queue_size': old_queue_size,
-        'current_queue_size': new_queue_size,
-        'queued_in_db_before': db_queued_count_before,
-        'queued_in_db_after': db_queued_count_after,
-        'is_processor_running': is_processor_running,
-    }
 
 
 @job_router.post(
