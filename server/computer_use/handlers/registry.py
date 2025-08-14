@@ -9,22 +9,16 @@ from typing import Dict, Optional, Type
 
 from server.computer_use.config import APIProvider
 from server.computer_use.handlers.base import BaseProviderHandler, ProviderHandler
-from server.computer_use.logging import logger
+
+from server.computer_use.handlers.anthropic import AnthropicHandler
 
 # Registry mapping providers to handler classes
-HANDLER_REGISTRY: Dict[APIProvider, Type[BaseProviderHandler]] = {}
-
-
-def register_handler(provider: APIProvider, handler_class: Type[BaseProviderHandler]):
-    """
-    Register a handler class for a specific provider.
-
-    Args:
-        provider: The API provider enum value
-        handler_class: The handler class to register
-    """
-    HANDLER_REGISTRY[provider] = handler_class
-    logger.info(f'Registered handler {handler_class.__name__} for provider {provider}')
+HANDLER_REGISTRY: Dict[APIProvider, Type[BaseProviderHandler]] = {
+    APIProvider.ANTHROPIC: AnthropicHandler,
+    APIProvider.BEDROCK: AnthropicHandler,
+    APIProvider.VERTEX: AnthropicHandler,
+    APIProvider.LEGACYUSE_PROXY: AnthropicHandler,
+}
 
 
 def get_handler(
@@ -52,16 +46,6 @@ def get_handler(
     Raises:
         ValueError: If no handler is registered for the provider
     """
-    # Lazy import to avoid circular dependency
-    from server.computer_use.handlers.anthropic import AnthropicHandler
-
-    # Register handlers if not already done
-    if not HANDLER_REGISTRY:
-        # Register Anthropic handler for all Anthropic-based providers
-        register_handler(APIProvider.ANTHROPIC, AnthropicHandler)
-        register_handler(APIProvider.BEDROCK, AnthropicHandler)
-        register_handler(APIProvider.VERTEX, AnthropicHandler)
-        register_handler(APIProvider.LEGACYUSE_PROXY, AnthropicHandler)
 
     handler_class = HANDLER_REGISTRY.get(provider)
 
