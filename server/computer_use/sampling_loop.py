@@ -67,7 +67,7 @@ async def sampling_loop(
     token_efficient_tools_beta: bool = False,
     api_key: str = '',
     only_n_most_recent_images: Optional[int] = None,
-    session_id: Optional[str] = None,
+    session_id: str,
     tenant_schema: str,
     # Remove job_id from here as it's now a primary parameter
     # job_id: Optional[str] = None,
@@ -339,7 +339,7 @@ async def sampling_loop(
                 result = await tool_collection.run(
                     name=content_block['name'],
                     tool_input=cast(dict[str, Any], content_block['input']),
-                    session_id=session_id or '',
+                    session_id=session_id,
                     session=session_obj,
                 )
 
