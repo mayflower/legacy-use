@@ -24,8 +24,8 @@ from anthropic.types.beta import (
 )
 
 from server.computer_use.config import APIProvider
+from server.computer_use.handlers.registry import get_handler
 from server.computer_use.logging import logger
-from server.computer_use.handlers import get_handler
 from server.computer_use.tools import (
     TOOL_GROUPS_BY_VERSION,
     ToolCollection,
@@ -45,6 +45,10 @@ from server.database.service import DatabaseService
 # Import the centralized health check function
 from server.utils.docker_manager import check_target_container_health
 
+ApiResponseCallback = Callable[
+    [httpx.Request, httpx.Response | object | None, Exception | None], None
+]
+
 
 async def sampling_loop(
     *,
@@ -57,17 +61,13 @@ async def sampling_loop(
     messages: list[BetaMessageParam],  # Keep for initial messages
     output_callback: Callable[[BetaContentBlockParam], None],
     tool_output_callback: Callable[[ToolResult, str], None],
-    api_response_callback: Optional[
-        Callable[
-            [httpx.Request, httpx.Response | object | None, Exception | None], None
-        ]
-    ] = None,
+    api_response_callback: Optional[ApiResponseCallback] = None,
     max_tokens: int = 4096,
     tool_version: ToolVersion,
     token_efficient_tools_beta: bool = False,
     api_key: str = '',
     only_n_most_recent_images: Optional[int] = None,
-    session_id: Optional[str] = None,
+    session_id: str,
     tenant_schema: str,
     # Remove job_id from here as it's now a primary parameter
     # job_id: Optional[str] = None,
@@ -339,7 +339,7 @@ async def sampling_loop(
                 result = await tool_collection.run(
                     name=content_block['name'],
                     tool_input=cast(dict[str, Any], content_block['input']),
-                    session_id=session_id or '',
+                    session_id=session_id,
                     session=session_obj,
                 )
 
