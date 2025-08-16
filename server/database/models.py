@@ -160,6 +160,11 @@ class Job(Base):
     completed_at = Column(DateTime, nullable=True)
     total_input_tokens = Column(Integer, nullable=True)
     total_output_tokens = Column(Integer, nullable=True)
+    # Lease fields for resilient workers
+    lease_owner = Column(String, nullable=True)
+    lease_expires_at = Column(DateTime, nullable=True)
+    # Cooperative cancellation across workers
+    cancel_requested = Column(Boolean, nullable=False, default=False)
 
     target = relationship('Target', back_populates='jobs')
     session = relationship('Session', back_populates='jobs')

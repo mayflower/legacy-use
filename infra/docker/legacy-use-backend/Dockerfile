@@ -63,8 +63,17 @@ if [ "${LEGACY_USE_DEBUG:-0}" = "1" ]; then\n\
     echo "Debug mode enabled: Using hot reload"\n\
     exec uv run uvicorn server.server:app --host 0.0.0.0 --port $FASTAPI_SERVER_PORT --reload --reload-dir server\n\
 else\n\
-    echo "Production mode: Using workers without reload"\n\
-    exec uv run gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker server.server:app --threads 4 --bind 0.0.0.0:$FASTAPI_SERVER_PORT\n\
+    echo "Production mode: Determining worker count"\n\
+    if command -v nproc >/dev/null 2>&1; then\n\
+        CPU_COUNT=$(nproc)\n\
+    elif command -v getconf >/dev/null 2>&1; then\n\
+        CPU_COUNT=$(getconf _NPROCESSORS_ONLN)\n\
+    else\n\
+        CPU_COUNT=1\n\
+    fi\n\
+    WORKERS="${GUNICORN_WORKERS:-$CPU_COUNT}"\n\
+    echo "Using $WORKERS workers"\n\
+    exec uv run gunicorn -w $WORKERS -k uvicorn.workers.UvicornWorker server.server:app --threads 1 --bind 0.0.0.0:$FASTAPI_SERVER_PORT\n\
 fi' > $HOME/entrypoint.sh && \
     chmod +x $HOME/entrypoint.sh
 

@@ -3,8 +3,10 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from sqlalchemy import Integer, cast, func
+from sqlalchemy import Integer, cast, func, or_
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import text
+import sqlalchemy as sa
 
 
 from .models import (
@@ -248,6 +250,147 @@ class DatabaseService:
         finally:
             session.close()
 
+    def claim_next_job(
+        self,
+        lease_owner: str,
+        lease_seconds: int = 60,
+        tenant_schema: str | None = None,
+    ):
+        """Atomically claim the next runnable job for execution.
+
+        Picks the oldest QUEUED job such that the target has no RUNNING job and
+        no PAUSED/ERROR jobs. Uses row locks and an advisory xact lock to
+        guarantee only one claim per target across workers. Sets status to RUNNING
+        and assigns a short lease to the claiming worker.
+
+        Returns a job dict or None if nothing claimable.
+        """
+        session = self.Session()
+        try:
+            now = datetime.utcnow()
+            lease_exp = now + timedelta(seconds=lease_seconds)
+
+            trans = session.begin()
+            try:
+                JobAlias = sa.orm.aliased(Job)
+                JobBlock = sa.orm.aliased(Job)
+
+                exists_running = sa.exists(
+                    sa.select(1).where(
+                        JobAlias.target_id == Job.target_id,
+                        JobAlias.status == 'RUNNING',
+                    )
+                )
+                exists_blocking = sa.exists(
+                    sa.select(1).where(
+                        JobBlock.target_id == Job.target_id,
+                        JobBlock.status.in_(['PAUSED', 'ERROR']),
+                    )
+                )
+
+                candidate = (
+                    session.query(Job)
+                    .filter(Job.status == 'QUEUED')
+                    .filter(~exists_running)
+                    .filter(~exists_blocking)
+                    .order_by(Job.created_at)
+                    .with_for_update(skip_locked=True)
+                    .first()
+                )
+
+                if not candidate:
+                    trans.commit()
+                    return None
+
+                target_id = str(candidate.target_id)
+                # Per-tenant advisory lock on target
+                locked = session.execute(
+                    text(
+                        'SELECT pg_try_advisory_xact_lock(hashtextextended(:key, 42))'
+                    ),
+                    {'key': (tenant_schema or '') + ':' + target_id},
+                ).scalar()
+
+                if not locked:
+                    trans.rollback()
+                    return None
+
+                # Transition to RUNNING with lease, clear any stale cancel requests
+                candidate.status = 'RUNNING'
+                candidate.updated_at = now
+                candidate.lease_owner = lease_owner
+                candidate.lease_expires_at = lease_exp
+                candidate.cancel_requested = False
+
+                session.commit()
+                result = self._to_dict(candidate)
+                return result
+            except Exception:
+                trans.rollback()
+                raise
+        finally:
+            session.close()
+
+    def expire_stale_running_jobs(self) -> list[dict]:
+        """Mark RUNNING jobs with expired or missing leases as ERROR.
+
+        Returns a list of affected job dicts.
+        """
+        session = self.Session()
+        try:
+            now = datetime.utcnow()
+            stale_jobs = (
+                session.query(Job)
+                .filter(
+                    Job.status == 'RUNNING',
+                    or_(Job.lease_expires_at.is_(None), Job.lease_expires_at < now),
+                )
+                .all()
+            )
+            affected = []
+            for job in stale_jobs:
+                job.status = 'ERROR'
+                job.error = 'Lease expired; worker likely terminated'
+                job.completed_at = now
+                job.updated_at = now
+                job.lease_owner = None
+                job.lease_expires_at = None
+                affected.append(self._to_dict(job))
+            # Always finalize the transaction to avoid leaving an open txn when
+            # this method is used alongside other operations on the same Session
+            # (e.g., claim_next_job starts its own explicit transaction).
+            # Committing with no changes is a no-op and safely ends the transaction.
+            session.commit()
+            return affected
+        finally:
+            session.close()
+
+    def renew_job_lease(
+        self, job_id: UUID, lease_owner: str, lease_seconds: int = 60
+    ) -> bool:
+        """Extend the lease for a RUNNING job if owned by this worker."""
+        session = self.Session()
+        try:
+            now = datetime.utcnow()
+            lease_exp = now + timedelta(seconds=lease_seconds)
+            job = (
+                session.query(Job)
+                .filter(
+                    Job.id == job_id,
+                    Job.status == 'RUNNING',
+                    Job.lease_owner == lease_owner,
+                )
+                .first()
+            )
+            if not job:
+                return False
+            job.lease_expires_at = lease_exp
+            job.updated_at = now
+            session.commit()
+            return True
+        finally:
+            session.close()
+
     def get_job(self, job_id):
         session = self.Session()
         try:
@@ -459,6 +602,30 @@ class DatabaseService:
 
     def update_job_status(self, job_id, status):
         return self.update_job(job_id, {'status': status})
+
+    def request_job_cancel(self, job_id: UUID) -> bool:
+        """Set cancel_requested=true for a job regardless of which worker owns it."""
+        session = self.Session()
+        try:
+            job = session.query(Job).filter(Job.id == job_id).first()
+            if not job:
+                return False
+            job.cancel_requested = True
+            job.updated_at = datetime.utcnow()
+            session.commit()
+            return True
+        finally:
+            session.close()
+
+    def is_job_cancel_requested(self, job_id: UUID) -> bool:
+        session = self.Session()
+        try:
+            value = (
+                session.query(Job.cancel_requested).filter(Job.id == job_id).scalar()
+            )
+            return bool(value)
+        finally:
+            session.close()
 
     # Job Log methods
     def create_job_log(self, log_data):

@@ -73,7 +73,7 @@ class Settings(BaseSettings):
 
     # Database connection pooling settings
     DATABASE_POOL_SIZE: int = 5
-    DATABASE_MAX_OVERFLOW: int = 2
+    DATABASE_MAX_OVERFLOW: int = 4
     DATABASE_POOL_TIMEOUT: int = 10
     DATABASE_POOL_RECYCLE: int = 3600
     DATABASE_POOL_PRE_PING: bool = True
@@ -97,6 +97,11 @@ class Settings(BaseSettings):
     SHOW_DOCS: bool = True
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False
     API_SLUG_PREFIX: str = '/api'  # Slug prefix for all API routes, e.g. '/slug'. Default is empty (no prefix)
+
+    # Graceful shutdown configuration
+    SHUTDOWN_GRACE_PERIOD_SECONDS: int = 300
+    # Total number of concurrent jobs this process can run across all tenants
+    JOB_WORKERS: int = 2
 
     model_config = SettingsConfigDict(
         env_file=get_setting_env_file(),

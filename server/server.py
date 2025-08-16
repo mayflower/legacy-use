@@ -21,15 +21,19 @@ from server.routes import (
     target_router,
     teaching_mode_router,
 )
-from server.routes.diagnostics import diagnostics_router
 from server.routes.sessions import session_router, websocket_router
 from server.routes.settings import settings_router
 from server.utils.api_prefix import api_prefix
 from server.utils.auth import get_api_key
 from server.utils.tenant_utils import get_tenant_from_request
-from server.utils.job_execution import job_queue_initializer
+from server.utils.job_execution import start_shared_workers
+from server.utils.job_execution import initiate_graceful_shutdown
 from server.utils.log_pruning import scheduled_log_pruning
 from server.utils.session_monitor import start_session_monitor
+from server.utils.maintenance_leader import (
+    acquire_maintenance_leadership,
+    release_maintenance_leadership,
+)
 from server.utils.telemetry import posthog_middleware
 from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
 
@@ -274,12 +278,6 @@ app.include_router(job_router, prefix=api_prefix)
 # Include WebSocket router
 app.include_router(websocket_router, prefix=api_prefix)
 
-# Include diagnostics router
-app.include_router(
-    diagnostics_router,
-    prefix=api_prefix,
-    include_in_schema=not settings.HIDE_INTERNAL_API_ENDPOINTS_IN_DOC,
-)
 
 # Include settings router
 app.include_router(settings_router, prefix=api_prefix)
@@ -318,20 +316,39 @@ For more information, please refer to the migration documentation.
         logger.error(error_message)
         raise SystemExit(1)
 
-    # Start background tasks
-    asyncio.create_task(scheduled_log_pruning())
-    logger.info('Started background task for pruning old logs')
+    # Start background maintenance tasks only if we are the leader
+    leader_key = 'legacy_use_maintenance_v1'
+    if acquire_maintenance_leadership(leader_key):
+        asyncio.create_task(scheduled_log_pruning())
+        logger.info('Started background task for pruning old logs (leader)')
 
-    # Start session monitor
-    start_session_monitor()
-    logger.info('Started session state monitor')
+        start_session_monitor()
+        logger.info('Started session state monitor (leader)')
+    else:
+        logger.info('Another process holds maintenance leadership; skipping monitors')
 
     # No need to load API definitions on startup anymore
     # They will be loaded on demand when needed
 
-    # Initialize job queue from database
-    await job_queue_initializer()
-    logger.info('Initialized job queue from database')
+    # Start shared worker loops so any existing queued jobs are processed on boot
+    await start_shared_workers()
+    logger.info('Started shared worker loops')
+
+
+@app.on_event('shutdown')
+async def shutdown_event():
+    """Gracefully drain workers on shutdown (SIGTERM)."""
+    try:
+        timeout = getattr(settings, 'SHUTDOWN_GRACE_PERIOD_SECONDS', 300)
+        await initiate_graceful_shutdown(timeout_seconds=timeout)
+    except Exception as e:
+        logger.error(f'Error during graceful shutdown: {e}')
+    finally:
+        # Release leadership if held
+        try:
+            release_maintenance_leadership('legacy_use_maintenance_v1')
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
