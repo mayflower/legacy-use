@@ -3,6 +3,7 @@ Docker container management utilities for session management.
 """
 
 import logging
+import re
 import time
 from subprocess import CalledProcessError
 from typing import Dict, Optional, Tuple
@@ -81,17 +82,19 @@ def get_container_ip(container_id: str) -> Optional[str]:
 
 def get_docker_network_mode() -> Optional[str]:
     """Check if we are running in docker and get network info."""
-    try:
-        container = docker.containers.get('legacy-use-backend')
-        networks = container.attrs['NetworkSettings']['Networks']
+    # Find container by regex pattern - handles both legacy-use-backend and app-backend-\d+
+    containers = docker.containers.list()
+    for container in containers:
+        if re.search(r'(legacy-use-backend|app-backend-\d+)', container.name):
+            networks = container.attrs['NetworkSettings']['Networks']
+            for network_name in networks.keys():
+                if network_name != 'bridge':
+                    logger.info(
+                        f'Found backend container {container.name}, connecting target container to network: {network_name}'
+                    )
+                    return network_name
 
-        # If we're on a custom network (not just 'bridge'), join the target container to it
-        for network_name in networks.keys():
-            if network_name != 'bridge':
-                logger.info(f'Connecting target container to network: {network_name}')
-                return network_name
-    except Exception as e:
-        logger.warning(f'Could not determine network configuration, using default: {e}')
+    return None
 
 
 def launch_container(
