@@ -74,7 +74,7 @@ else\n\
     fi\n\
     WORKERS="${GUNICORN_WORKERS:-$CPU_COUNT}"\n\
     echo "Using $WORKERS workers"\n\
-    exec uv run gunicorn -w $WORKERS -k uvicorn.workers.UvicornWorker server.server:app --threads 1 --bind 0.0.0.0:$FASTAPI_SERVER_PORT\n\
+    exec uv run gunicorn -w $WORKERS -k uvicorn.workers.UvicornWorker server.server:app --threads 1 --bind 0.0.0.0:$FASTAPI_SERVER_PORT --timeout 300 --graceful-timeout 300\n\
 fi' > $HOME/entrypoint.sh && \
     chmod +x $HOME/entrypoint.sh
 
