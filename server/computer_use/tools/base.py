@@ -19,7 +19,7 @@ class BaseAnthropicTool(metaclass=ABCMeta):
     ) -> BetaToolUnionParam:
         raise NotImplementedError
 
-    def internal_spec(self) -> dict:
+    def internal_spec(self) -> dict[str, Any]:
         """Provider-agnostic spec for this tool (actions, params, docs).
 
         Default implementation derives a minimal spec from to_params().

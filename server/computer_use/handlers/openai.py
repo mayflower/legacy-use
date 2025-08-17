@@ -6,7 +6,7 @@ and the Anthropic format used for DB storage.
 """
 
 import json
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import httpx
 from anthropic.types.beta import (
@@ -118,7 +118,7 @@ class OpenAIHandler(BaseProviderHandler):
         Initialize the OpenAI handler.
 
         Args:
-            model: Model identifier (e.g., 'gpt-4o', 'gpt-4-turbo')
+            model: Model identifier
             token_efficient_tools_beta: Not used for OpenAI
             only_n_most_recent_images: Number of recent images to keep
             **kwargs: Additional provider-specific parameters
@@ -222,7 +222,9 @@ class OpenAIHandler(BaseProviderHandler):
                 'content': content,
             }
 
-    def _process_tool_result_block(self, block: dict) -> tuple[str, str, Optional[str]]:
+    def _process_tool_result_block(
+        self, block: BetaContentBlockParam
+    ) -> tuple[str, str, Optional[str]]:
         """
         Process a single tool result block.
 
@@ -246,7 +248,7 @@ class OpenAIHandler(BaseProviderHandler):
                     elif content_item.get('type') == 'image':
                         source = content_item.get('source', {})
                         if source.get('type') == 'base64':
-                            image_data = source.get('data')
+                            image_data = str(source.get('data'))
 
         return str(tool_call_id or 'tool_call'), text_content, image_data
 
@@ -299,7 +301,7 @@ class OpenAIHandler(BaseProviderHandler):
         }
 
     def _convert_content_block(
-        self, block: dict
+        self, block: BetaContentBlockParam
     ) -> tuple[
         Optional[ChatCompletionContentPartParam],
         Optional[ChatCompletionMessageToolCallParam],
@@ -386,9 +388,8 @@ class OpenAIHandler(BaseProviderHandler):
                 if isinstance(block, dict) and block.get('type') == 'tool_result':
                     has_tool_result = True
                     # Cast to dict for type checker
-                    block_dict = cast(dict, block)
                     tool_call_id, text_content, image_data = (
-                        self._process_tool_result_block(block_dict)
+                        self._process_tool_result_block(block)
                     )
 
                     # Create tool message
@@ -474,11 +475,7 @@ class OpenAIHandler(BaseProviderHandler):
 
                     for block in content:
                         if isinstance(block, dict):
-                            # Cast to dict for type checker
-                            block_dict = cast(dict, block)
-                            content_part, tool_call = self._convert_content_block(
-                                block_dict
-                            )
+                            content_part, tool_call = self._convert_content_block(block)
                             if content_part:
                                 content_parts.append(content_part)
                             if tool_call:
@@ -517,7 +514,7 @@ class OpenAIHandler(BaseProviderHandler):
 
                     msg_idx += 1
 
-        logger.info(f'Converted to {len(openai_messages)} OpenAI messages')
+        logger.debug(f'Converted to {len(openai_messages)} OpenAI messages')
         logger.debug(f'Message types: {[m["role"] for m in openai_messages]}')
 
         return openai_messages
@@ -558,19 +555,26 @@ class OpenAIHandler(BaseProviderHandler):
         full_messages.extend(messages)
 
         # Log debug information
-        logger.info(f'Messages: {self._truncate_for_debug(full_messages)}')
+        logger.debug(f'Messages: {self._truncate_for_debug(full_messages)}')
 
         # Make API call
-        response = await client.beta.chat.completions.with_raw_response.create(
+        # Use max_completion_tokens for gpt-5, else max_tokens
+        params: dict[str, Any] = dict(
             model=model,
             messages=full_messages,
             tools=tools,
-            max_tokens=max_tokens,
-            temperature=temperature,
         )
+        if model.lower().startswith('gpt-5'):
+            params['max_completion_tokens'] = max_tokens
+            # gpt-5 doesn't support temperature yet
+        else:
+            params['max_tokens'] = max_tokens
+            params['temperature'] = temperature
+
+        response = await client.beta.chat.completions.with_raw_response.create(**params)
 
         parsed_response = response.parse()
-        logger.info(f'Parsed response: {parsed_response}')
+        logger.debug(f'Parsed response: {parsed_response}')
 
         return (
             parsed_response,
@@ -659,7 +663,7 @@ class OpenAIHandler(BaseProviderHandler):
         Returns:
             Processed tool input with proper data structure
         """
-        logger.info(f'Processing extraction tool - original input: {tool_input}')
+        logger.debug(f'Processing extraction tool - original input: {tool_input}')
 
         # OpenAI sends {name: ..., result: ...} directly based on our simplified schema
         # But our extraction tool expects {data: {name: ..., result: ...}}
@@ -673,7 +677,7 @@ class OpenAIHandler(BaseProviderHandler):
                         'result': tool_input['result'],
                     }
                 }
-                logger.info(
+                logger.debug(
                     f'Wrapped extraction data - from: {original_input} to: {tool_input}'
                 )
             else:
@@ -683,7 +687,7 @@ class OpenAIHandler(BaseProviderHandler):
         else:
             # data field already exists, validate its structure
             extraction_data = tool_input['data']
-            logger.info(f"Extraction tool already has 'data' field: {extraction_data}")
+            logger.debug(f"Extraction tool already has 'data' field: {extraction_data}")
             if not isinstance(extraction_data, dict):
                 logger.warning(
                     f'Extraction data is not a dict: {type(extraction_data)}'
@@ -711,15 +715,14 @@ class OpenAIHandler(BaseProviderHandler):
             tool_name = tool_call.function.name
 
             # Log the raw tool input for debugging
-            logger.info(f'Processing tool call: {tool_name} (id: {tool_call.id})')
-            logger.debug(f'Raw arguments: {tool_call.function.arguments}')
+            logger.debug(f'Processing tool call: {tool_name} (id: {tool_call.id})')
 
             # Special handling for computer tool or any of its action functions
             if tool_name == 'computer' or tool_name in self.COMPUTER_ACTIONS:
                 tool_input = self._process_computer_tool(tool_name, tool_input)
                 # Always emit a single Anthropic tool_use for 'computer'
                 tool_name = 'computer'
-                logger.info(
+                logger.debug(
                     f'Added computer tool_use from action {tool_call.function.name} - id: {tool_call.id}'
                 )
 
@@ -763,14 +766,14 @@ class OpenAIHandler(BaseProviderHandler):
 
         # Extract message from OpenAI response
         message = response.choices[0].message
-        logger.info(
+        logger.debug(
             f'OpenAI message extracted - content: {message.content is not None}, tool_calls: {len(message.tool_calls) if message.tool_calls else 0}'
         )
 
         # Log tool calls if present
         if message.tool_calls:
             for tc in message.tool_calls:
-                logger.info(f'OpenAI tool call: {tc.function.name} (id: {tc.id})')
+                logger.debug(f'OpenAI tool call: {tc.function.name} (id: {tc.id})')
 
         # Convert content
         if message.content:
@@ -778,31 +781,18 @@ class OpenAIHandler(BaseProviderHandler):
 
         # Convert tool calls
         if message.tool_calls:
-            logger.info(
+            logger.debug(
                 f'Converting {len(message.tool_calls)} tool calls from OpenAI response'
             )
             for tool_call in message.tool_calls:
                 block = self._convert_tool_call(tool_call)
                 content_blocks.append(block)
-                logger.info(
+                logger.debug(
                     f'Added to content blocks - tool: {tool_call.function.name}, id: {tool_call.id}'
                 )
 
         # Map finish reason
         finish_reason = response.choices[0].finish_reason
         stop_reason = self.STOP_REASON_MAP.get(finish_reason, 'end_turn')
-
-        # Final logging
-        logger.info('=== OpenAI Response Conversion Complete ===')
-        logger.info(f'Total content blocks created: {len(content_blocks)}')
-        for i, block in enumerate(content_blocks):
-            if block.get('type') == 'tool_use':
-                logger.info(
-                    f'  Block {i}: tool_use - {block.get("name")} (id: {block.get("id")})'
-                )
-            else:
-                logger.info(f'  Block {i}: {block.get("type")}')
-        logger.info(f'Stop reason: {stop_reason}')
-        logger.info('==========================================')
 
         return content_blocks, stop_reason

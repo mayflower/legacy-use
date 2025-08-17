@@ -151,6 +151,10 @@ class ProviderHandler(Protocol):
 class BaseProviderHandler(ABC):
     """Base class with common functionality for provider handlers."""
 
+    # Debug message constants for logging
+    DEBUG_MESSAGE_MAX_LENGTH = 10000
+    DEBUG_MESSAGE_TRUNCATE_LENGTH = 7
+
     def __init__(
         self,
         tenant_schema: str,
@@ -195,10 +199,6 @@ class BaseProviderHandler(ABC):
             )
 
         return messages
-
-    # Debug message constants for logging
-    DEBUG_MESSAGE_MAX_LENGTH = 10000
-    DEBUG_MESSAGE_TRUNCATE_LENGTH = 7
 
     def _truncate_for_debug(self, obj):
         """Recursively truncate long strings in objects for debug logging."""
