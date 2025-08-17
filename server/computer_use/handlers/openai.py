@@ -641,16 +641,36 @@ class OpenAIHandler(BaseProviderHandler):
         if tool_input.get('action') == 'click':
             tool_input['action'] = 'left_click'
 
-        # Normalize key combos and key/text field for key-like actions
         action = tool_input.get('action')
-        if action in {'key', 'hold_key', 'scroll'}:
+
+        # Normalize key combos and key/text field for key-like actions
+        if action in {'key', 'hold_key'}:
             if 'text' not in tool_input and 'key' in tool_input:
                 # Remap key -> text
                 tool_input['text'] = tool_input.pop('key')
-            # Normalize combo naming for xdotool compatibility
             if 'text' in tool_input and isinstance(tool_input['text'], str):
                 tool_input['text'] = self._normalize_key_combo(tool_input['text'])
 
+        # Special handling for scroll: ensure scroll_amount is int and direction is valid
+        if action == 'scroll':
+            # scroll_amount should be int (wheel notches)
+            if 'scroll_amount' in tool_input:
+                try:
+                    tool_input['scroll_amount'] = int(tool_input['scroll_amount'])
+                except Exception:
+                    logger.warning(
+                        f'scroll_amount could not be converted to int: {tool_input.get("scroll_amount")}'
+                    )
+            # scroll_direction should be one of the allowed values
+            allowed_directions = {'up', 'down', 'left', 'right'}
+            if 'scroll_direction' in tool_input:
+                direction = str(tool_input['scroll_direction']).lower()
+                if direction not in allowed_directions:
+                    logger.warning(f'Invalid scroll_direction: {direction}')
+                tool_input['scroll_direction'] = direction
+
+        # make sure api_type is 20250124
+        tool_input['api_type'] = 'computer_20250124'
         return tool_input
 
     def _process_extraction_tool(self, tool_input: dict) -> dict:
