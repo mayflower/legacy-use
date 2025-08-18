@@ -64,40 +64,27 @@ class OpenAIHandler(BaseProviderHandler):
         'wait',
     }
 
-    # Key normalization mappings for computer tool
+    # Key normalization mappings
     KEY_ALIASES = {
-        'esc': 'Escape',
-        'escape': 'Escape',
-        'enter': 'Return',
-        'return': 'Return',
-        'win': 'Super_L',
-        'windows': 'Super_L',
-        'super': 'Super_L',
-        'meta': 'Super_L',
-        'cmd': 'Super_L',
-        'backspace': 'BackSpace',
-        'del': 'Delete',
-        'delete': 'Delete',
-        'tab': 'Tab',
-        'space': 'space',
-        'pageup': 'Page_Up',
-        'pagedown': 'Page_Down',
-        'home': 'Home',
-        'end': 'End',
-        'up': 'Up',
-        'down': 'Down',
-        'left': 'Left',
-        'right': 'Right',
-        'printscreen': 'Print',
-        'prtsc': 'Print',
-    }
-
-    # Modifier key normalization
-    MODIFIER_KEYS = {
+        'Escape': {'esc', 'escape'},
+        'Return': {'enter', 'return'},
+        'Super_L': {'win', 'windows', 'super', 'meta', 'cmd', 'super_l', 'super_r'},
+        'BackSpace': {'backspace'},
+        'Delete': {'del', 'delete'},
+        'Tab': {'tab'},
+        'space': {'space'},
+        'Page_Up': {'pageup'},
+        'Page_Down': {'pagedown'},
+        'Home': {'home'},
+        'End': {'end'},
+        'Up': {'up'},
+        'Down': {'down'},
+        'Left': {'left'},
+        'Right': {'right'},
+        'Print': {'printscreen', 'prtsc'},
         'ctrl': {'ctrl', 'control', 'ctrl_l', 'ctrl_r'},
         'shift': {'shift', 'shift_l', 'shift_r'},
         'alt': {'alt', 'alt_l', 'alt_r', 'option'},
-        'Super_L': {'super_l', 'super_r'},
     }
 
     # OpenAI finish reason to Anthropic stop reason mapping
@@ -179,14 +166,10 @@ class OpenAIHandler(BaseProviderHandler):
         """
         low = part.lower()
 
-        # Check modifier keys
-        for normalized, variants in self.MODIFIER_KEYS.items():
-            if low in variants:
-                return normalized
-
-        # Check key aliases
-        if low in self.KEY_ALIASES:
-            return self.KEY_ALIASES[low]
+        # Check key aliases - find canonical form for any alias
+        for canonical, aliases in self.KEY_ALIASES.items():
+            if low in aliases:
+                return canonical
 
         # Function keys
         if low.startswith('f') and low[1:].isdigit():
