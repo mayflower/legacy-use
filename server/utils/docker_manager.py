@@ -3,6 +3,7 @@ Docker container management utilities for session management.
 """
 
 import logging
+import re
 import time
 from subprocess import CalledProcessError
 from typing import Dict, Optional, Tuple
@@ -81,7 +82,6 @@ def get_container_ip(container_id: str) -> Optional[str]:
 
 def get_docker_network_mode() -> Optional[str]:
     """Check if we are running in docker and get network info."""
-    import re
 
     # Find container by regex pattern - handles both legacy-use-backend and app-backend-\d+
     try:
