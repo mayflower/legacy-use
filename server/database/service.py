@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import Integer, cast, func, or_
@@ -478,7 +478,7 @@ class DatabaseService:
             session.close()
 
     def list_session_jobs(
-        self, session_id, limit: int = 10, offset: int = 0, status: str = None
+        self, session_id, limit: int = 10, offset: int = 0, status: Optional[str] = None
     ):
         """
         List jobs for a session with optional status filtering.
