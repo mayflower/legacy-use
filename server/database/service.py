@@ -503,9 +503,10 @@ class DatabaseService:
             if status:
                 query = query.filter(Job.status == status.value)
 
-            jobs = (
-                query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
-            )
+            # Sort by created_at descending and apply pagination
+            query = query.order_by(Job.created_at.desc()).offset(offset).limit(limit)
+
+            jobs = query.all()
             job_dicts = []
             for job in jobs:
                 job_dict = self._to_dict(job)
