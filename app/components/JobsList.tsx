@@ -27,7 +27,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { APIDefinition, Job, Target } from '@/gen/endpoints';
 import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
@@ -41,6 +41,7 @@ const JobsList = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const statusFilterId = useId();
 
   // Filter states
   const [filters, setFilters] = useState<{ status: string; target_id: string; api_name: string }>({
@@ -219,9 +220,9 @@ const JobsList = () => {
             }}
           >
             <FormControl fullWidth size="small">
-              <InputLabel id="status-filter-label">Status</InputLabel>
+              <InputLabel id={`${statusFilterId}-label`}>Status</InputLabel>
               <Select
-                labelId="status-filter-label"
+                labelId={`${statusFilterId}-label`}
                 name="status"
                 value={filters.status}
                 label="Status"
