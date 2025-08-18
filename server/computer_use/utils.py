@@ -37,7 +37,7 @@ def _load_system_prompt(system_prompt_suffix: str = '') -> str:
 2. First step: take a screenshot. Use only one tool per step.
 3. Click button centers; to type Windows key use `Super_L`.
 4. Before typing, ensure the field is focused—if not, stop and call:
-   <ui_not_as_expected tool>{{"reason": "field not focused"}}</ui_not_as_expected tool>
+   <ui_not_as_expected tool>{{"reasoning": "field not focused"}}</ui_not_as_expected tool>
 5. After each action, verify the screenshot matches expectations.  
    If UI is different or unexpected, stop and call `ui_not_as_expected`.  
    Do not try to fix it yourself unless instructed.
