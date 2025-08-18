@@ -16,6 +16,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  type SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -26,10 +27,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 import type { APIDefinition, Job, Target } from '@/gen/endpoints';
+import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const JobsList = () => {
@@ -116,16 +117,15 @@ const JobsList = () => {
     fetchFilterOptions();
   }, []);
 
-  const handleChangePage = (_event: any, newPage: number) => {
+  const handleChangePage = (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) =>
     setPage(newPage);
-  };
 
-  const handleChangeRowsPerPage = (event: any) => {
+  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleFilterChange = (event: any) => {
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
     const { name, value } = event.target as { name: keyof typeof filters; value: string };
     setFilters(prev => ({
       ...prev,
