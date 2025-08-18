@@ -84,10 +84,10 @@ class ProviderHandler(Protocol):
     @abstractmethod
     async def make_ai_request(
         self,
-        client: Any,
-        messages: list[Any],
-        system: Any,
-        tools: Any,
+        client: instructor.AsyncInstructor,
+        messages: list[BetaMessageParam],
+        system: str,
+        tools: ToolCollection,
         model: str,
         max_tokens: int,
         temperature: float = 0.0,
@@ -138,9 +138,22 @@ class ProviderHandler(Protocol):
         """
         ...
 
+    @abstractmethod
+    def convert_from_provider_response(
+        self, response: Any
+    ) -> tuple[list[BetaContentBlockParam], str]:
+        """
+        Convert provider-specific response to content blocks and stop reason.
+        """
+        ...
+
 
 class BaseProviderHandler(ABC):
     """Base class with common functionality for provider handlers."""
+
+    # Debug message constants for logging
+    DEBUG_MESSAGE_MAX_LENGTH = 10000
+    DEBUG_MESSAGE_TRUNCATE_LENGTH = 7
 
     def __init__(
         self,
@@ -186,3 +199,18 @@ class BaseProviderHandler(ABC):
             )
 
         return messages
+
+    def _truncate_for_debug(self, obj):
+        """Recursively truncate long strings in objects for debug logging."""
+        if isinstance(obj, list):
+            return [self._truncate_for_debug(m) for m in obj]
+        elif isinstance(obj, dict):
+            return {
+                self._truncate_for_debug(k): self._truncate_for_debug(v)
+                for k, v in obj.items()
+            }
+        elif isinstance(obj, str):
+            if len(obj) > self.DEBUG_MESSAGE_MAX_LENGTH:
+                return obj[: self.DEBUG_MESSAGE_TRUNCATE_LENGTH] + '...'
+            return obj
+        return obj
