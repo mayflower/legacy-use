@@ -36,17 +36,14 @@ def _load_system_prompt(system_prompt_suffix: str = '') -> str:
 1. Always prioritize tool calls over text. Keep text replies short, clear, and concise.
 2. First step: take a screenshot. Use only one tool per step.
 3. Click button centers; to type Windows key use `Super_L`.
-4. Before typing, ensure the field is focused—if not, stop and call:
-   <ui_not_as_expected tool>{{"reasoning": "field not focused"}}</ui_not_as_expected tool>
-5. After each action, verify the screenshot matches expectations.  
+4. After each action, verify the screenshot matches expectations.
    If UI is different or unexpected, stop and call `ui_not_as_expected`.  
    Do not try to fix it yourself unless instructed.
-6. If a tool fails, check the error. Retry once; if it still fails after 2 turns, call `ui_not_as_expected`.
-7. Always return found information via the extraction tool:
-   <extraction tool>{{"name": "API_NAME", "result": {{...}}}}</extraction tool>  
+5. If a tool fails, check the error. Retry once; if it still fails after 2 turns, call `ui_not_as_expected`.
+6. Always return found information via the extraction tool:
+   <extraction>{{"data": {{...}}}}</extraction>
    Never output JSON directly in text.
-8. Chain related actions in one tool call when possible to save time.
-
+7. Chain related actions in one tool call when possible to save time.
 </SYSTEM_CAPABILITY>"""
 
     # Format the prompt with current values
