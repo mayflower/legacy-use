@@ -153,11 +153,10 @@ async def auth_middleware(request: Request, call_next):
             return await call_next(request)
 
     try:
-        api_key = await get_api_key(request)
-
-        # Get tenant by host header
+        # We check for tenant first, so the web-app can redirect if no tenant is found
         tenant = get_tenant_from_request(request)
         tenant_schema = tenant['schema']
+        api_key = await get_api_key(request)
 
         # Check if API key matches tenant-specific API key
         tenant_api_key = get_tenant_setting(tenant_schema, 'API_KEY')
@@ -174,10 +173,23 @@ async def auth_middleware(request: Request, call_next):
             status_code=e.status_code,
             content={'detail': e.detail},
         )
-    except (TenantNotFoundError, TenantInactiveError) as e:
+    except TenantNotFoundError as e:
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'detail': str(e)},
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                'detail': 'Tenant not found',
+                'error_type': 'tenant_not_found',
+                'message': str(e),
+            },
+        )
+    except TenantInactiveError as e:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                'detail': 'Tenant is inactive',
+                'error_type': 'tenant_inactive',
+                'message': str(e),
+            },
         )
 
 
