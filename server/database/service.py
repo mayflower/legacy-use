@@ -3,13 +3,12 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
+import sqlalchemy as sa
 from sqlalchemy import Integer, cast, func, or_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
-import sqlalchemy as sa
 
 from server.models.base import JobStatus, JobTerminalStates
-
 
 from .models import (
     APIDefinition,
@@ -31,8 +30,10 @@ class DatabaseService:
         `server.database.engine` to avoid multiple connection pools.
         """
         from server.database.engine import (
-            engine as shared_engine,
             SessionLocal as shared_session_factory,
+        )
+        from server.database.engine import (
+            engine as shared_engine,
         )
 
         self.engine = shared_engine

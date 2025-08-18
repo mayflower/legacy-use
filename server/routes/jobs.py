@@ -22,7 +22,7 @@ from datetime import datetime
 from typing import Annotated, Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Body, HTTPException, Request, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -30,11 +30,10 @@ from server.core import APIGatewayCore
 from server.models.base import Job, JobCreate, JobStatus, JobTerminalStates
 from server.settings import settings
 from server.utils.db_dependencies import get_tenant_db
-from server.utils.tenant_utils import get_tenant_from_request
 from server.utils.job_execution import (
     add_job_log,
-    enqueue_job,
     create_and_enqueue_job,
+    enqueue_job,
 )
 from server.utils.job_utils import compute_job_metrics
 from server.utils.telemetry import (
@@ -44,6 +43,7 @@ from server.utils.telemetry import (
     capture_job_resolved,
     capture_job_resumed,
 )
+from server.utils.tenant_utils import get_tenant_from_request
 
 # Set up logging
 logger = logging.getLogger(__name__)

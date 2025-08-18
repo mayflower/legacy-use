@@ -6,10 +6,10 @@ Revises: a899d3a8acb6_add_rdp_params
 Create Date: 2025-08-12 00:00:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
-from server.migrations.tenant import for_each_tenant_schema
+from alembic import op
 
+from server.migrations.tenant import for_each_tenant_schema
 
 # revision identifiers, used by Alembic.
 revision = 'f9f9b9e0f1a3'
