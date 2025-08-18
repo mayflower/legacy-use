@@ -16,6 +16,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  type SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -26,10 +27,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 import type { APIDefinition, Job, Target } from '@/gen/endpoints';
+import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const JobsList = () => {
@@ -40,6 +41,9 @@ const JobsList = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const statusFilterId = useId();
+  const targetFilterId = useId();
+  const apiFilterId = useId();
 
   // Filter states
   const [filters, setFilters] = useState<{ status: string; target_id: string; api_name: string }>({
@@ -116,16 +120,15 @@ const JobsList = () => {
     fetchFilterOptions();
   }, []);
 
-  const handleChangePage = (_event: any, newPage: number) => {
+  const handleChangePage = (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) =>
     setPage(newPage);
-  };
 
-  const handleChangeRowsPerPage = (event: any) => {
+  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleFilterChange = (event: any) => {
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
     const { name, value } = event.target as { name: keyof typeof filters; value: string };
     setFilters(prev => ({
       ...prev,
@@ -219,9 +222,9 @@ const JobsList = () => {
             }}
           >
             <FormControl fullWidth size="small">
-              <InputLabel id="status-filter-label">Status</InputLabel>
+              <InputLabel id={`${statusFilterId}-label`}>Status</InputLabel>
               <Select
-                labelId="status-filter-label"
+                labelId={`${statusFilterId}-label`}
                 name="status"
                 value={filters.status}
                 label="Status"
@@ -246,9 +249,9 @@ const JobsList = () => {
             }}
           >
             <FormControl fullWidth size="small">
-              <InputLabel id="target-filter-label">Target</InputLabel>
+              <InputLabel id={targetFilterId}>Target</InputLabel>
               <Select
-                labelId="target-filter-label"
+                labelId={targetFilterId}
                 name="target_id"
                 value={filters.target_id}
                 label="Target"
@@ -274,9 +277,9 @@ const JobsList = () => {
             }}
           >
             <FormControl fullWidth size="small">
-              <InputLabel id="api-filter-label">API</InputLabel>
+              <InputLabel id={apiFilterId}>API</InputLabel>
               <Select
-                labelId="api-filter-label"
+                labelId={apiFilterId}
                 name="api_name"
                 value={filters.api_name}
                 label="API"
