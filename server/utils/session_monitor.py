@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 
 from server.database.multi_tenancy import with_db
+from server.models.base import JobStatus
 from server.utils.docker_manager import (
     check_target_container_health,
     get_container_status,
@@ -88,7 +89,7 @@ async def monitor_sessions_for_tenant(tenant_schema: str):
                     ):
                         # Check if there are any running jobs on this session
                         running_jobs = db_service.list_session_jobs(
-                            session_id, status='running'
+                            session_id, status=JobStatus.RUNNING
                         )
 
                         if running_jobs:
@@ -140,7 +141,7 @@ async def monitor_sessions_for_tenant(tenant_schema: str):
                 if not is_running and current_state not in ['destroying', 'destroyed']:
                     # Check if there are any running jobs on this session
                     running_jobs = db_service.list_session_jobs(
-                        session_id, status='running'
+                        session_id, status=JobStatus.RUNNING
                     )
 
                     if running_jobs:

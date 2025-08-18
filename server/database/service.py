@@ -8,6 +8,8 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
 import sqlalchemy as sa
 
+from server.models.base import JobStatus
+
 
 from .models import (
     APIDefinition,
@@ -478,7 +480,11 @@ class DatabaseService:
             session.close()
 
     def list_session_jobs(
-        self, session_id, limit: int = 10, offset: int = 0, status: Optional[str] = None
+        self,
+        session_id,
+        limit: int = 10,
+        offset: int = 0,
+        status: Optional[JobStatus] = None,
     ):
         """
         List jobs for a session with optional status filtering.
