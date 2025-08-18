@@ -84,7 +84,7 @@ export const setApiKeyHeader = (apiKey: string | null) => {
 // Add a request interceptor to ensure API key is set for every request
 apiClient.interceptors.request.use(
   config => {
-    const apiKey = localStorage.getItem('apiKey')
+    const apiKey = localStorage.getItem('apiKey');
     if (!config.headers['X-API-Key']) {
       config.headers['X-API-Key'] = apiKey;
     }
