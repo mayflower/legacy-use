@@ -84,8 +84,7 @@ export const setApiKeyHeader = (apiKey: string | null) => {
 // Add a request interceptor to ensure API key is set for every request
 apiClient.interceptors.request.use(
   config => {
-    // Always set an API key header - use stored key or fallback to 'no-api-key'
-    const apiKey = localStorage.getItem('apiKey') || 'no-api-key';
+    const apiKey = localStorage.getItem('apiKey')
     if (!config.headers['X-API-Key']) {
       config.headers['X-API-Key'] = apiKey;
     }
@@ -99,9 +98,7 @@ apiClient.interceptors.request.use(
 
 // Add a response interceptor to handle tenant not found errors
 apiClient.interceptors.response.use(
-  response => {
-    return response;
-  },
+  response => response,
   error => {
     // Check if the error is a tenant not found error
     if (error.response?.status === 403 && error.response?.data?.error_type === 'tenant_not_found') {

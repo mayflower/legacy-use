@@ -153,11 +153,10 @@ async def auth_middleware(request: Request, call_next):
             return await call_next(request)
 
     try:
-        api_key = await get_api_key(request)
-
-        # Get tenant by host header
+        # We check for tenant first, so the web-app can redirect if no tenant is found
         tenant = get_tenant_from_request(request)
         tenant_schema = tenant['schema']
+        api_key = await get_api_key(request)
 
         # Check if API key matches tenant-specific API key
         tenant_api_key = get_tenant_setting(tenant_schema, 'API_KEY')
