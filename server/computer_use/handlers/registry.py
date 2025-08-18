@@ -8,9 +8,8 @@ the appropriate handler based on the API provider.
 from typing import Dict, Optional, Type
 
 from server.computer_use.config import APIProvider
-from server.computer_use.handlers.base import BaseProviderHandler, ProviderHandler
-
 from server.computer_use.handlers.anthropic import AnthropicHandler
+from server.computer_use.handlers.base import BaseProviderHandler, ProviderHandler
 
 # Registry mapping providers to handler classes
 HANDLER_REGISTRY: Dict[APIProvider, Type[BaseProviderHandler]] = {

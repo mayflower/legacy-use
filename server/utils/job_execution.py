@@ -8,26 +8,25 @@ Queue Pause Logic:
 
 import asyncio
 import logging
+import os
+import socket
+import time
 import traceback
 from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
-import os
-import socket
-import time
-
 
 # Remove direct import of APIGatewayCore
-from server.models.base import Job, JobStatus, JobCreate
+from server.models.base import Job, JobCreate, JobStatus
 from server.settings import settings
 from server.utils.db_dependencies import TenantAwareDatabaseService
-from server.utils.telemetry import capture_job_resolved
 from server.utils.job_logging import (
-    add_job_log,
     _create_api_response_callback,
-    _create_tool_callback,
     _create_output_callback,
+    _create_tool_callback,
+    add_job_log,
 )
+from server.utils.telemetry import capture_job_resolved
 
 # Add import for session management functions
 
@@ -560,8 +559,8 @@ async def create_and_enqueue_job(
     target_id: UUID, job_create: JobCreate, tenant_schema: str
 ) -> Job:
     """Create a job for target and enqueue it. Handles session and API version."""
-    from server.database.multi_tenancy import with_db
     from server.core import APIGatewayCore
+    from server.database.multi_tenancy import with_db
 
     # Build initial job data
     job_data = job_create.model_dump()
