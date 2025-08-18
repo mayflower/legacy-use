@@ -96,8 +96,6 @@ def get_docker_network_mode() -> Optional[str]:
 
     return None
 
-    return None
-
 
 def launch_container(
     target_type: str,
