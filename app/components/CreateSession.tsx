@@ -12,10 +12,11 @@ import {
   Select,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { createSession, getTargets } from '../services/apiService';
 import type { Target } from '@/gen/endpoints';
+import { createSession, getTargets } from '../services/apiService';
 
 // Add browser globals
 const { URLSearchParams } = globalThis;
