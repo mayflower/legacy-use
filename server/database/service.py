@@ -612,7 +612,6 @@ class DatabaseService:
             job_data: Dictionary of job fields to update
             update_session: Whether to update session's last_job_time for terminal states (default: True)
         """
-        from server.models.base import JobStatus
 
         session = self.Session()
         try:
