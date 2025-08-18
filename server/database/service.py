@@ -501,7 +501,7 @@ class DatabaseService:
 
             # Apply status filter if provided
             if status:
-                query = query.filter(Job.status == status)
+                query = query.filter(Job.status == status.value)
 
             jobs = (
                 query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
