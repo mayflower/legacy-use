@@ -42,6 +42,8 @@ const JobsList = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [totalCount, setTotalCount] = useState<number>(0);
   const statusFilterId = useId();
+  const targetFilterId = useId();
+  const apiFilterId = useId();
 
   // Filter states
   const [filters, setFilters] = useState<{ status: string; target_id: string; api_name: string }>({
@@ -247,9 +249,9 @@ const JobsList = () => {
             }}
           >
             <FormControl fullWidth size="small">
-              <InputLabel id="target-filter-label">Target</InputLabel>
+              <InputLabel id={targetFilterId}>Target</InputLabel>
               <Select
-                labelId="target-filter-label"
+                labelId={targetFilterId}
                 name="target_id"
                 value={filters.target_id}
                 label="Target"
@@ -275,9 +277,9 @@ const JobsList = () => {
             }}
           >
             <FormControl fullWidth size="small">
-              <InputLabel id="api-filter-label">API</InputLabel>
+              <InputLabel id={apiFilterId}>API</InputLabel>
               <Select
-                labelId="api-filter-label"
+                labelId={apiFilterId}
                 name="api_name"
                 value={filters.api_name}
                 label="API"
