@@ -1,12 +1,14 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import Integer, cast, func, or_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
 import sqlalchemy as sa
+
+from server.models.base import JobStatus, JobTerminalStates
 
 
 from .models import (
@@ -478,7 +480,11 @@ class DatabaseService:
             session.close()
 
     def list_session_jobs(
-        self, session_id, limit: int = 10, offset: int = 0, status: str = None
+        self,
+        session_id,
+        limit: int = 10,
+        offset: int = 0,
+        status: Optional[JobStatus] = None,
     ):
         """
         List jobs for a session with optional status filtering.
@@ -495,11 +501,12 @@ class DatabaseService:
 
             # Apply status filter if provided
             if status:
-                query = query.filter(Job.status == status)
+                query = query.filter(Job.status == status.value)
 
-            jobs = (
-                query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
-            )
+            # Sort by created_at descending and apply pagination
+            query = query.order_by(Job.created_at.desc()).offset(offset).limit(limit)
+
+            jobs = query.all()
             job_dicts = []
             for job in jobs:
                 job_dict = self._to_dict(job)
@@ -605,7 +612,6 @@ class DatabaseService:
             job_data: Dictionary of job fields to update
             update_session: Whether to update session's last_job_time for terminal states (default: True)
         """
-        from server.models.base import JobStatus
 
         session = self.Session()
         try:
@@ -623,17 +629,11 @@ class DatabaseService:
             # If update_session is True and this is a terminal state, update session's last_job_time
             if update_session and job_dict and job_dict.get('session_id'):
                 status = job_data.get('status')
-                if status:
-                    terminal_states = [
-                        JobStatus.SUCCESS,
-                        JobStatus.ERROR,
-                        JobStatus.CANCELED,
-                    ]
-                    if status in terminal_states:
-                        self.update_session(
-                            job_dict['session_id'],
-                            {'last_job_time': datetime.now()},
-                        )
+                if status and status in JobTerminalStates:
+                    self.update_session(
+                        job_dict['session_id'],
+                        {'last_job_time': datetime.now()},
+                    )
 
             return job_dict
         finally:

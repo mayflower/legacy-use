@@ -19,6 +19,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from server.config.default_ports import DEFAULT_PORTS
 from server.models.base import (
+    JobStatus,
     RecordingRequest,
     RecordingResultResponse,
     RecordingStatusResponse,
@@ -250,7 +251,7 @@ async def delete_session(
         raise HTTPException(status_code=404, detail='Session not found')
 
     # Check if there are running jobs on this session and log a warning
-    running_jobs = db_tenant.list_session_jobs(session_id, status='running')
+    running_jobs = db_tenant.list_session_jobs(session_id, status=JobStatus.RUNNING)
     if running_jobs:
         logger.warning(
             f'User is archiving session {session_id} which has {len(running_jobs)} running job(s)'
@@ -290,7 +291,7 @@ async def hard_delete_session(
         raise HTTPException(status_code=404, detail='Session not found')
 
     # Check if there are running jobs on this session and log a warning
-    running_jobs = db_tenant.list_session_jobs(session_id, status='running')
+    running_jobs = db_tenant.list_session_jobs(session_id, status=JobStatus.RUNNING)
     if running_jobs:
         logger.warning(
             f'User is hard deleting session {session_id} which has {len(running_jobs)} running job(s)'
