@@ -131,7 +131,7 @@ async def get_providers(request: Request, db_tenant=Depends(get_tenant_db)):
         },
         APIProvider.OPENAI: {
             'name': 'OpenAI',
-            'description': 'OpenAI GPT-4 models via direct API',
+            'description': 'OpenAI GPT models via direct API',
             'available': bool(get_tenant_setting(tenant_schema, 'OPENAI_API_KEY')),
             'credentials': {
                 'api_key': obscure_api_key(
