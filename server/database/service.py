@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
 import sqlalchemy as sa
 
-from server.models.base import JobStatus
+from server.models.base import JobStatus, JobTerminalStates
 
 
 from .models import (
@@ -629,17 +629,11 @@ class DatabaseService:
             # If update_session is True and this is a terminal state, update session's last_job_time
             if update_session and job_dict and job_dict.get('session_id'):
                 status = job_data.get('status')
-                if status:
-                    terminal_states = [
-                        JobStatus.SUCCESS,
-                        JobStatus.ERROR,
-                        JobStatus.CANCELED,
-                    ]
-                    if status in terminal_states:
-                        self.update_session(
-                            job_dict['session_id'],
-                            {'last_job_time': datetime.now()},
-                        )
+                if status and status in JobTerminalStates:
+                    self.update_session(
+                        job_dict['session_id'],
+                        {'last_job_time': datetime.now()},
+                    )
 
             return job_dict
         finally:
