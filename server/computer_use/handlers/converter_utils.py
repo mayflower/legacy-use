@@ -35,16 +35,18 @@ def expand_computer_to_openai_chat_functions(
     for action in actions:
         aname = str(action.get('name') or '')
         params = action.get('params') or {}
+        required = action.get('required') or []
+        description = action.get('description') or f'Computer action: {aname}'
         funcs.append(
             {
                 'type': 'function',
                 'function': {
                     'name': aname,
-                    'description': f'Computer action: {aname}',
+                    'description': description,
                     'parameters': {
                         'type': 'object',
                         'properties': params,
-                        'required': [],
+                        'required': required,
                     },
                 },
             }
