@@ -38,8 +38,8 @@ async def launch_session_for_target(
 
         # Launch session using the existing route function with proper dependencies
         # to avoid duplicating logic here.
-        from server.routes.sessions import create_session
         from server.database.multi_tenancy import with_db
+        from server.routes.sessions import create_session
         from server.utils.db_dependencies import TenantAwareDatabaseService
 
         # Create a tenant-aware DB service and pass it explicitly, along with the tenant dict

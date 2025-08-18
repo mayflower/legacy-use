@@ -9,10 +9,10 @@ from typing import Any, Callable, Optional
 from anthropic.types.beta import BetaMessageParam
 
 from server.computer_use import (
+    ApiResponseCallback,
     get_default_model_name,
     get_tool_version,
     sampling_loop,
-    ApiResponseCallback,
 )
 from server.computer_use.tools import ToolResult
 from server.models.base import (

@@ -8,6 +8,7 @@ via direct API, Bedrock, and Vertex AI.
 from typing import Any, Dict, Iterable, Optional, cast
 
 import httpx
+import instructor
 from anthropic import (
     AsyncAnthropic,
     AsyncAnthropicBedrock,
@@ -16,15 +17,14 @@ from anthropic import (
 from anthropic.types.beta import (
     BetaCacheControlEphemeralParam,
     BetaContentBlockParam,
+    BetaMessage,
     BetaMessageParam,
     BetaTextBlockParam,
     BetaToolUnionParam,
-    BetaMessage,
 )
-import instructor
 
 from server.computer_use.client import LegacyUseClient
-from server.computer_use.config import APIProvider, PROMPT_CACHING_BETA_FLAG
+from server.computer_use.config import PROMPT_CACHING_BETA_FLAG, APIProvider
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
 from server.computer_use.tools.collection import ToolCollection
@@ -32,7 +32,6 @@ from server.computer_use.utils import (
     _response_to_params,
 )
 from server.settings import settings
-
 
 AnthropicClient = (
     AsyncAnthropic | AsyncAnthropicBedrock | AsyncAnthropicVertex | LegacyUseClient

@@ -9,17 +9,17 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional, Protocol, runtime_checkable
 
 import httpx
+import instructor
 from anthropic.types.beta import (
     BetaContentBlockParam,
     BetaMessageParam,
 )
-import instructor
 
 from server.computer_use.tools import ToolCollection
-from server.settings_tenant import get_tenant_setting as _get_tenant_setting
 from server.computer_use.utils import (
     _maybe_filter_to_n_most_recent_images,
 )
+from server.settings_tenant import get_tenant_setting as _get_tenant_setting
 
 
 @runtime_checkable

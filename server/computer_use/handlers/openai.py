@@ -9,35 +9,34 @@ import json
 from typing import Any, Optional, cast
 
 import httpx
+import instructor
 from anthropic.types.beta import (
     BetaContentBlockParam,
     BetaMessageParam,
     BetaTextBlockParam,
     BetaToolUseBlockParam,
 )
-import instructor
+from openai import AsyncOpenAI
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionAssistantMessageParam,
+    ChatCompletionContentPartImageParam,
+    ChatCompletionContentPartParam,
+    ChatCompletionContentPartTextParam,
+    ChatCompletionMessageParam,
+    ChatCompletionMessageToolCallParam,
+    ChatCompletionSystemMessageParam,
+    ChatCompletionToolMessageParam,
+    ChatCompletionToolParam,
+    ChatCompletionUserMessageParam,
+)
 
 from server.computer_use.handlers.base import BaseProviderHandler
-from server.computer_use.logging import logger
-from server.computer_use.tools import ToolCollection
 from server.computer_use.handlers.converter_utils import (
     internal_specs_to_openai_chat_functions,
 )
-
-from openai import AsyncOpenAI
-from openai.types.chat import (
-    ChatCompletionMessageParam,
-    ChatCompletionToolParam,
-    ChatCompletion,
-    ChatCompletionUserMessageParam,
-    ChatCompletionAssistantMessageParam,
-    ChatCompletionSystemMessageParam,
-    ChatCompletionToolMessageParam,
-    ChatCompletionContentPartParam,
-    ChatCompletionContentPartTextParam,
-    ChatCompletionContentPartImageParam,
-    ChatCompletionMessageToolCallParam,
-)
+from server.computer_use.logging import logger
+from server.computer_use.tools import ToolCollection
 
 
 class OpenAIHandler(BaseProviderHandler):

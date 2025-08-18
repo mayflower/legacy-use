@@ -23,22 +23,21 @@ from server.routes import (
 )
 from server.routes.sessions import session_router, websocket_router
 from server.routes.settings import settings_router
+from server.settings_tenant import get_tenant_setting
 from server.utils.api_prefix import api_prefix
 from server.utils.auth import get_api_key
-from server.utils.tenant_utils import get_tenant_from_request
-from server.utils.job_execution import start_shared_workers
-from server.utils.job_execution import initiate_graceful_shutdown
+from server.utils.exceptions import TenantInactiveError, TenantNotFoundError
+from server.utils.job_execution import initiate_graceful_shutdown, start_shared_workers
 from server.utils.log_pruning import scheduled_log_pruning
-from server.utils.session_monitor import start_session_monitor
 from server.utils.maintenance_leader import (
     acquire_maintenance_leadership,
     release_maintenance_leadership,
 )
+from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
-from server.utils.exceptions import TenantNotFoundError, TenantInactiveError
+from server.utils.tenant_utils import get_tenant_from_request
 
 from .settings import settings
-from server.settings_tenant import get_tenant_setting
 
 # Set up logging
 logging.basicConfig(
@@ -153,11 +152,10 @@ async def auth_middleware(request: Request, call_next):
             return await call_next(request)
 
     try:
-        api_key = await get_api_key(request)
-
-        # Get tenant by host header
+        # We check for tenant first, so the web-app can redirect if no tenant is found
         tenant = get_tenant_from_request(request)
         tenant_schema = tenant['schema']
+        api_key = await get_api_key(request)
 
         # Check if API key matches tenant-specific API key
         tenant_api_key = get_tenant_setting(tenant_schema, 'API_KEY')
@@ -174,10 +172,23 @@ async def auth_middleware(request: Request, call_next):
             status_code=e.status_code,
             content={'detail': e.detail},
         )
-    except (TenantNotFoundError, TenantInactiveError) as e:
+    except TenantNotFoundError as e:
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'detail': str(e)},
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                'detail': 'Tenant not found',
+                'error_type': 'tenant_not_found',
+                'message': str(e),
+            },
+        )
+    except TenantInactiveError as e:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                'detail': 'Tenant is inactive',
+                'error_type': 'tenant_inactive',
+                'message': str(e),
+            },
         )
 
 

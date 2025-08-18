@@ -33,8 +33,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { APIDefinition, Target } from '@/gen/endpoints';
 import { SessionContext } from '../App';
 import {
   archiveApiDefinition,
@@ -47,7 +48,6 @@ import {
 } from '../services/apiService';
 import AddApiDialog from './AddApiDialog';
 import DuplicateApiDialog from './DuplicateApiDialog';
-import type { APIDefinition, Target } from '@/gen/endpoints';
 
 const ApiList = () => {
   const navigate = useNavigate();
@@ -57,6 +57,8 @@ const ApiList = () => {
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const targetSelectLabelId = useId();
+  const targetSelectId = useId();
   const [paramValues, setParamValues] = useState<Record<string, Record<string, unknown>>>({});
   const [executingApi, setExecutingApi] = useState<string | null>(null);
   const [executionResult, setExecutionResult] = useState<Record<string, any>>({});
@@ -532,10 +534,10 @@ const ApiList = () => {
       {/* Target selector */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <FormControl fullWidth variant="outlined">
-          <InputLabel id="target-select-label">Select Target</InputLabel>
+          <InputLabel id={targetSelectLabelId}>Select Target</InputLabel>
           <Select
-            labelId="target-select-label"
-            id="target-select"
+            labelId={targetSelectLabelId}
+            id={targetSelectId}
             value={selectedTarget}
             label="Select Target"
             onChange={handleTargetChange}

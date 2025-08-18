@@ -8,26 +8,25 @@ Queue Pause Logic:
 
 import asyncio
 import logging
+import os
+import socket
+import time
 import traceback
 from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
-import os
-import socket
-import time
-
 
 # Remove direct import of APIGatewayCore
-from server.models.base import Job, JobStatus, JobCreate
+from server.models.base import Job, JobCreate, JobStatus
 from server.settings import settings
 from server.utils.db_dependencies import TenantAwareDatabaseService
-from server.utils.telemetry import capture_job_resolved
 from server.utils.job_logging import (
-    add_job_log,
     _create_api_response_callback,
-    _create_tool_callback,
     _create_output_callback,
+    _create_tool_callback,
+    add_job_log,
 )
+from server.utils.telemetry import capture_job_resolved
 
 # Add import for session management functions
 
@@ -361,6 +360,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
             # Update job with result and API exchanges using tenant-aware database service
             with with_db(tenant_schema) as db_session:
                 db_service = TenantAwareDatabaseService(db_session)
+
+                # Use the session-aware update method for all job updates
                 updated_job = db_service.update_job(
                     job.id,
                     {
@@ -369,6 +370,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                         'completed_at': datetime.now(),
                         'updated_at': datetime.now(),
                     },
+                    update_session=True,
                 )
 
             # Check if the job status is paused or error, which will implicitly pause the target's queue
@@ -446,6 +448,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                     if user_interrupted
                     else 'Job was automatically terminated: exceeded token limit'
                 )
+
+                # Use the session-aware update method for all job updates
                 db_service.update_job(
                     job.id,
                     {
@@ -459,6 +463,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                         'total_output_tokens': running_token_total
                         // 2,  # Rough estimate
                     },
+                    update_session=True,
                 )
 
             # Re-raise to be caught by the outer try-except
@@ -501,6 +506,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
         # Update job with error using tenant-aware database service
         with with_db(tenant_schema) as db_session:
             db_service = TenantAwareDatabaseService(db_session)
+            # Use the session-aware update method
             db_service.update_job(
                 job.id,
                 {
@@ -509,6 +515,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                     'completed_at': datetime.now(),
                     'updated_at': datetime.now(),
                 },
+                update_session=True,
             )
 
         # Log that the target queue will be paused
@@ -552,8 +559,8 @@ async def create_and_enqueue_job(
     target_id: UUID, job_create: JobCreate, tenant_schema: str
 ) -> Job:
     """Create a job for target and enqueue it. Handles session and API version."""
-    from server.database.multi_tenancy import with_db
     from server.core import APIGatewayCore
+    from server.database.multi_tenancy import with_db
 
     # Build initial job data
     job_data = job_create.model_dump()

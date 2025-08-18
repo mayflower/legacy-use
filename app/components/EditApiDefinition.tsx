@@ -20,7 +20,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   getApiDefinitionDetails,
@@ -54,6 +54,7 @@ const EditApiDefinition = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const versionId = queryParams.get('version') || '';
+  const versionSelectLabelId = useId();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -433,14 +434,14 @@ const EditApiDefinition = () => {
         <Box sx={{ flexGrow: 1 }} />
 
         <FormControl sx={{ minWidth: 250 }}>
-          <InputLabel id="version-select-label">
+          <InputLabel id={versionSelectLabelId}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <HistoryIcon sx={{ mr: 1 }} />
               Select Version
             </Box>
           </InputLabel>
           <Select
-            labelId="version-select-label"
+            labelId={versionSelectLabelId}
             value={selectedVersionId}
             onChange={handleVersionChange}
             label="Select Version"

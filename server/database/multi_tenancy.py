@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from server.database.models import Base, Tenant
 from server.database.service import DatabaseService
 
-
 # Single default DatabaseService (engine + pool) reused across tenant sessions
 db_session = DatabaseService()
 
@@ -57,7 +56,7 @@ def tenant_create(name: str, schema: str, host: str) -> None:
     """Create a new tenant with its schema and tables."""
 
     # Check schema name against blacklist
-    blacklisted_names = {'cloud', 'www', 'admin', 'local', 'api'}
+    blacklisted_names = {'cloud', 'www', 'admin', 'local', 'api', 'signup'}
     if schema.lower() in blacklisted_names:
         raise ValueError(f'Schema name "{schema}" is not allowed (blacklisted)')
 

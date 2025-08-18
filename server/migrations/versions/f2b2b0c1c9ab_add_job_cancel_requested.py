@@ -6,10 +6,10 @@ Revises: f9f9b9e0f1a3
 Create Date: 2025-08-12 00:00:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
-from server.migrations.tenant import for_each_tenant_schema
+from alembic import op
 
+from server.migrations.tenant import for_each_tenant_schema
 
 revision = 'f2b2b0c1c9ab'
 down_revision = 'f9f9b9e0f1a3'

@@ -13,7 +13,6 @@ import logging
 
 from server.database.engine import engine
 
-
 logger = logging.getLogger(__name__)
 
 # Module-level handle to keep the DB session open while holding the lock.
