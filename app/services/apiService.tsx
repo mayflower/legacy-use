@@ -113,13 +113,13 @@ apiClient.interceptors.response.use(
         const domain = currentHost.split('.').slice(1).join('.');
         const protocol = window.location.protocol;
         const port = window.location.port ? `:${window.location.port}` : '';
-        
+
         const signupUrl = `${protocol}//signup.${domain}${port}`;
         window.location.href = signupUrl;
       }
       return Promise.reject(error);
     }
-    
+
     return Promise.reject(error);
   },
 );
