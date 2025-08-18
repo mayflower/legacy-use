@@ -10,7 +10,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
-    gnupg  && \
+    gnupg \
+    procps && \
     # Install Docker CLI
     install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/debian/gpg | tee /etc/apt/keyrings/docker.asc > /dev/null && \
@@ -73,7 +74,7 @@ else\n\
     fi\n\
     WORKERS="${GUNICORN_WORKERS:-$CPU_COUNT}"\n\
     echo "Using $WORKERS workers"\n\
-    exec uv run gunicorn -w $WORKERS -k uvicorn.workers.UvicornWorker server.server:app --threads 1 --bind 0.0.0.0:$FASTAPI_SERVER_PORT\n\
+    exec uv run gunicorn -w $WORKERS -k uvicorn.workers.UvicornWorker server.server:app --threads 1 --bind 0.0.0.0:$FASTAPI_SERVER_PORT --timeout 300 --graceful-timeout 300\n\
 fi' > $HOME/entrypoint.sh && \
     chmod +x $HOME/entrypoint.sh
 

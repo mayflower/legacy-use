@@ -10,7 +10,7 @@ import {
   Paper,
   Popper,
 } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   type RecordingRequest,
   type RecordingResultResponse,
@@ -44,6 +44,7 @@ export default function RecordingButton({
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuListId = useId();
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -147,7 +148,7 @@ export default function RecordingButton({
               >
                 <Paper>
                   <ClickAwayListener onClickAway={handleClose}>
-                    <MenuList id="split-button-menu" autoFocusItem>
+                    <MenuList id={menuListId} autoFocusItem>
                       <MenuItem onClick={handleVideoUpload}>
                         <UploadIcon sx={{ mr: 1 }} />
                         Upload Video

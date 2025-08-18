@@ -54,7 +54,7 @@ const AddApiDialog = ({ open, onClose, onApiAdded }) => {
 
       // Redirect to edit page
       navigate(`/apis/${name.trim()}/edit`);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating API:', err);
       setError(err.response?.data?.detail || 'Failed to create API');
     } finally {

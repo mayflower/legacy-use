@@ -59,7 +59,7 @@ const DuplicateApiDialog = ({ open, onClose, onApiDuplicated, apiName }) => {
 
       // Redirect to edit page for the new API
       navigate(`/apis/${newName.trim()}/edit`);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error duplicating API:', err);
       setError(err.response?.data?.detail || 'Failed to duplicate API');
     } finally {

@@ -221,6 +221,9 @@ class JobStatus(str, Enum):
     CANCELED = 'canceled'
 
 
+JobTerminalStates = [JobStatus.SUCCESS, JobStatus.ERROR, JobStatus.CANCELED]
+
+
 class APIResponse(BaseModel):
     """Model for API execution response."""
 
