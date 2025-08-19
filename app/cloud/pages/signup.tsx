@@ -52,6 +52,7 @@ export default function SignupPage() {
                   height: 100,
                   width: 'auto',
                   filter: 'brightness(0.1)',
+                  alignSelf: 'flex-start',
                 }}
               />
               <Typography variant="h2">Hello, legacy-use</Typography>
