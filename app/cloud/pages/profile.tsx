@@ -118,10 +118,14 @@ export default function ProfilePage() {
                   </Box>
                 )}
 
+                <Typography variant="body1">
+                  You're all set, we will send you an email with your credentials shortly.
+                </Typography>
+
                 {/* Description */}
-                <Typography variant="body1" color="text.secondary">
-                  You're all set! Start automating work in your desktop applications and expose
-                  workflows as modern APIs with our reliable AI agents.
+                <Typography variant="body2" color="text.secondary">
+                  Start automating work in your desktop applications and expose workflows as modern
+                  APIs with our reliable AI agents.
                 </Typography>
               </Stack>
             </CardContent>
