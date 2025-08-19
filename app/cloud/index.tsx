@@ -1,11 +1,7 @@
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from '@clerk/clerk-react';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
+import ProfilePage from './pages/profile';
+import SignupPage from './pages/signup';
+import ThemeProvider from './providers/theme';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -15,17 +11,15 @@ if (!PUBLISHABLE_KEY) {
 
 export default function CloudApp() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <div>
-        <h1>Cloud</h1>
-        <SignedOut>
-          <SignInButton />
-          <SignUpButton />
-        </SignedOut>
+    <ThemeProvider>
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
         <SignedIn>
-          <UserButton />
+          <ProfilePage />
         </SignedIn>
-      </div>
-    </ClerkProvider>
+        <SignedOut>
+          <SignupPage />
+        </SignedOut>
+      </ClerkProvider>
+    </ThemeProvider>
   );
 }
