@@ -11,8 +11,7 @@ WORKDIR /web
 COPY package.json pnpm-lock.yaml /web/
 RUN pnpm install --frozen-lockfile
 
-ADD . /web
-# COPY app/ vite.config.js index.html public/ /web/
+COPY . /web
 
 EXPOSE 5173
 

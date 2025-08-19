@@ -1,0 +1,101 @@
+# Exclude backend files from frontend build
+server/
+migrations/
+requirements*.txt
+alembic.ini
+*.py
+
+# Dot files
+/.pytest_cache/
+/.ruff_cache/
+/.swc/
+/.coverage
+
+# Logs
+/logs/
+
+# Infra files
+/infra/
+
+# Docs
+/docs/
+
+# Sample prompts
+/sample_prompts/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Git files
+.git
+.gitignore
+
+# Github
+.github/
+
+# Cursor
+.cursor/
+.cursorrules
+
+# Documentation
+*.md
+TUTORIAL.md
+README.md
+
+# Build artifacts
+build/
+*.zip
+
+# Node modules (will be installed fresh in container)
+node_modules/
+npm-debug.log*
+
+# Python cache
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+secrets/
+
+# Test files
+coverage/
+.nyc_output/
+*.coverage
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+
+# Docker files
+docker-compose.override.yml
+Dockerfile.old
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
