@@ -1,4 +1,11 @@
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/clerk-react';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -13,6 +20,7 @@ export default function CloudApp() {
         <h1>Cloud</h1>
         <SignedOut>
           <SignInButton />
+          <SignUpButton />
         </SignedOut>
         <SignedIn>
           <UserButton />
