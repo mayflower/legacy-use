@@ -376,9 +376,6 @@ class ComputerTool20250124(BaseComputerTool):
         key: str | None = None,
         **kwargs,
     ):
-        print(
-            f'ComputerTool20250124.__call__: {action=}, {text=}, {coordinate=}, {scroll_direction=}, {scroll_amount=}, {duration=}, {key=}, {kwargs=}'
-        )
         if action in ('left_mouse_down', 'left_mouse_up'):
             if coordinate is not None:
                 raise ToolError(f'coordinate is not accepted for {action=}.')
