@@ -2,6 +2,13 @@
 .git
 .gitignore
 
+# Github
+.github/
+
+# Cursor
+.cursor/
+.cursorrules
+
 # Documentation
 *.md
 TUTORIAL.md
@@ -16,6 +23,7 @@ node_modules/
 npm-debug.log*
 
 # Python cache
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -62,10 +70,6 @@ Dockerfile.old
 
 # Notebooks
 notebooks/
-
-# Infrastructure (not needed in app containers)
-infra/
-!infra/docker/
 
 # Scripts that shouldn't be in containers
 *.sh
