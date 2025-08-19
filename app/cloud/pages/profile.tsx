@@ -62,26 +62,24 @@ export default function ProfilePage() {
               borderRadius: 3,
             }}
           >
-            <CardContent sx={{ p: 5, textAlign: 'center' }}>
-              <Stack spacing={2} alignItems="center">
+            <CardContent sx={{ p: 4, textAlign: 'center' }}>
+              <Stack spacing={3} alignItems="center">
                 {/* Logo */}
-                <Box>
-                  <Box
-                    component="img"
-                    src="/logo-white.svg"
-                    alt="legacy-use logo"
-                    sx={{
-                      height: 80,
-                      width: 'auto',
-                      filter: 'brightness(0.1)',
-                    }}
-                  />
+                <Box
+                  component="img"
+                  src="/logo-white.svg"
+                  alt="legacy-use logo"
+                  sx={{
+                    height: 80,
+                    width: 'auto',
+                    filter: 'brightness(0.1)',
+                  }}
+                />
 
-                  {/* Welcome Message */}
-                  <Typography variant="h2" component="h1" gutterBottom>
-                    Hello, legacy-use!
-                  </Typography>
-                </Box>
+                {/* Welcome Message */}
+                <Typography variant="h3" component="h1" gutterBottom>
+                  Hello, legacy-use!
+                </Typography>
 
                 {/* User Information */}
                 {user && (
@@ -97,7 +95,7 @@ export default function ProfilePage() {
                         }}
                       />
 
-                      <Stack spacing={0.5} alignItems="center">
+                      <Stack spacing={1} alignItems="center">
                         {name && <Typography variant="h5">{name}</Typography>}
 
                         {user.primaryEmailAddress && (
@@ -123,7 +121,7 @@ export default function ProfilePage() {
                 </Typography>
 
                 {/* Description */}
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
                   Start automating work in your desktop applications and expose workflows as modern
                   APIs with our reliable AI agents.
                 </Typography>
