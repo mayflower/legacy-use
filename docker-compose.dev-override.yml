@@ -11,11 +11,4 @@ services:
     environment:
       - LEGACY_USE_DEBUG=1
     volumes:
-      - ./app:/web/app
-      - ./package.json:/web/package.json
-      - ./pnpm-lock.yaml:/web/pnpm-lock.yaml
-      - ./vite.config.js:/web/vite.config.js
-      - ./index.html:/web/index.html
-      - ./public:/web/public
-      - ./tsconfig.json:/web/tsconfig.json
-      - ./biome.json:/web/biome.json
+      - .:/web/

@@ -1,13 +1,18 @@
-# Multi-stage build for frontend optimization
-FROM node:20-slim
+FROM node:alpine
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
-COPY package.json pnpm-lock.yaml public/ app/ index.html vite.config.js tsconfig.json biome.json /web
+
 WORKDIR /web
+
+COPY package.json pnpm-lock.yaml /web/
+RUN pnpm install --frozen-lockfile
+
+ADD . /web
+# COPY app/ vite.config.js index.html public/ /web/
 
 EXPOSE 5173
 
