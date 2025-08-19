@@ -12,9 +12,6 @@ WORKDIR /app
 FROM base AS dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-FROM base
-COPY --from=prod-deps /app/node_modules /app/node_modules
-
 
 # Final runtime stage
 FROM base
