@@ -16,6 +16,8 @@ import {
 export default function ProfilePage() {
   const { user, isLoaded } = useUser();
 
+  const name = user?.fullName || user?.username;
+
   if (!isLoaded) {
     return (
       <Box
@@ -95,10 +97,8 @@ export default function ProfilePage() {
                         }}
                       />
 
-                      <Stack spacing={1} alignItems="center">
-                        <Typography variant="h5">
-                          {user.fullName || user.username || 'Welcome'}
-                        </Typography>
+                      <Stack spacing={0.5} alignItems="center">
+                        {name && <Typography variant="h5">{name}</Typography>}
 
                         {user.primaryEmailAddress && (
                           <Typography variant="body1" color="text.secondary">
