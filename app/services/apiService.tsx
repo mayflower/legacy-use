@@ -18,6 +18,7 @@ import {
   getJobLogsTargetsTargetIdJobsJobIdLogsGet,
   getJobTargetsTargetIdJobsJobIdGet,
   getProvidersSettingsProvidersGet,
+  getSessionContainerLogsSessionsSessionIdContainerLogsGet,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
   getSessionSessionsSessionIdGet,
   getTargetTargetsTargetIdGet,
@@ -53,10 +54,9 @@ import {
   updateApiDefinitionApiDefinitionsApiNamePut,
   updateProviderSettingsSettingsProvidersPost,
   updateTargetTargetsTargetIdPut,
-  getSessionContainerLogsSessionsSessionIdContainerLogsGet,
 } from '../gen/endpoints';
-import { forwardDistinctId } from './telemetryService';
 import { API_BASE_URL } from '../utils/apiConstants';
+import { forwardDistinctId } from './telemetryService';
 
 // Create an axios instance with default config
 export const apiClient = axios.create({
