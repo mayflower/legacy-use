@@ -11,11 +11,4 @@ services:
     environment:
       - LEGACY_USE_DEBUG=1
     volumes:
-      - ./app:/home/legacy-use-mgmt/app
-      - ./package.json:/home/legacy-use-mgmt/package.json
-      - ./pnpm-lock.yaml:/home/legacy-use-mgmt/pnpm-lock.yaml
-      - ./vite.config.js:/home/legacy-use-mgmt/vite.config.js
-      - ./index.html:/home/legacy-use-mgmt/index.html
-      - ./public:/home/legacy-use-mgmt/public
-      - ./tsconfig.json:/home/legacy-use-mgmt/tsconfig.json
-      - ./biome.json:/home/legacy-use-mgmt/biome.json
+      - .:/web/

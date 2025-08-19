@@ -1,3 +1,36 @@
+# Exclude backend files from frontend build
+server/
+migrations/
+requirements*.txt
+alembic.ini
+*.py
+
+# Dot files
+/.pytest_cache/
+/.ruff_cache/
+/.swc/
+/.coverage
+
+# Logs
+/logs/
+
+# Infra files
+/infra/
+
+# Docs
+/docs/
+
+# Sample prompts
+/sample_prompts/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
 # Git files
 .git
 .gitignore
@@ -58,7 +91,6 @@ coverage/
 *.log
 logs/
 
-
 # Docker files
 docker-compose.override.yml
 Dockerfile.old
@@ -67,10 +99,3 @@ Dockerfile.old
 *.tmp
 *.temp
 .cache/
-
-# Notebooks
-notebooks/
-
-# Scripts that shouldn't be in containers
-*.sh
-!**/entrypoint.sh
