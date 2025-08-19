@@ -1,9 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
-import { CheckCircle } from '@mui/icons-material';
 import {
   Avatar,
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
