@@ -5,6 +5,10 @@ import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import CloudApp from './cloud';
+
+const isCloudDomain = window.location.host.startsWith('cloud');
+const Main = isCloudDomain ? CloudApp : App;
 
 const options: Partial<PostHogConfig> = {
   api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
@@ -35,7 +39,7 @@ Sentry.init({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <PostHogProvider apiKey={apiKey} options={options}>
-      <App />
+      <Main />
     </PostHogProvider>
   </StrictMode>,
 );

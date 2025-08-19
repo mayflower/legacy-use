@@ -102,17 +102,17 @@ apiClient.interceptors.response.use(
   error => {
     // Check if the error is a tenant not found error
     if (error.response?.status === 403 && error.response?.data?.error_type === 'tenant_not_found') {
-      // Don't redirect if we're already on the signup subdomain to avoid loops
+      // Don't redirect if we're already on the cloud subdomain to avoid loops
       const currentHost = window.location.hostname;
       const currentSubdomain = currentHost.split('.')[0];
-      if (currentSubdomain !== 'signup') {
-        // Redirect to signup subdomain on the same domain, preserving protocol and port
+      if (currentSubdomain !== 'cloud') {
+        // Redirect to cloud subdomain on the same domain, preserving protocol and port
         const domain = currentHost.split('.').slice(1).join('.');
         const protocol = window.location.protocol;
         const port = window.location.port ? `:${window.location.port}` : '';
 
-        const signupUrl = `${protocol}//signup.${domain}${port}`;
-        window.location.href = signupUrl;
+        const cloudUrl = `${protocol}//cloud.${domain}${port}`;
+        window.location.href = cloudUrl;
       }
       return Promise.reject(error);
     }
