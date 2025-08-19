@@ -11,4 +11,9 @@ services:
     environment:
       - LEGACY_USE_DEBUG=1
     volumes:
-      - .:/web/
+      - ./app:/web/app
+      - ./public:/web/public
+      - ./tsconfig.json:/web/tsconfig.json
+      - ./vite.config.js:/web/vite.config.js
+      - ./orval.config.ts:/web/orval.config.ts
+      - ./index.html:/web/index.html
