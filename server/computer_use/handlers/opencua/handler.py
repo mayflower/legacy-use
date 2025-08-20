@@ -247,6 +247,4 @@ class OpenCuaHandler(BaseProviderHandler):
         # the paper does not include it in the message history for L2 reasoning (which has the best performance)
         # can be interesting for the user to be debug, but one needs to be aware that it's reasoning output as the quality of the text is quite low
 
-        print('OpenCua messages', repr(messages), 'stop_reason', stop_reason)
-
         return messages, stop_reason

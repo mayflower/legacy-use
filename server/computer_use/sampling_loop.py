@@ -270,7 +270,6 @@ async def sampling_loop(
         found_tool_use = False
         for content_block in response_params:
             output_callback(content_block)
-            print('content_block', content_block)
             if content_block['type'] == 'tool_use':
                 found_tool_use = True
 
