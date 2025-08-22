@@ -31,10 +31,10 @@ import {
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { ProviderConfiguration } from '@/gen/endpoints';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { getProviders, getTargets, updateProviderSettings } from '../services/apiService';
 import { API_BASE_URL } from '../utils/apiConstants';
-import type { ProviderConfiguration } from '@/gen/endpoints';
 
 const OnboardingWizard = ({ open, onClose, onComplete }) => {
   const navigate = useNavigate();
