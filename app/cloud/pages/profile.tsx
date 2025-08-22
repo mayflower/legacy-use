@@ -129,8 +129,8 @@ export default function ProfilePage() {
 
           {/* Additional Info */}
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-            Check out our <Link href="https://legacy-use.com/docs">documentation</Link> or contact
-            our <Link href="mailto:support@legacy-use.com">support team</Link>.
+            Check out our <Link href="https://legacy-use.github.io/docs/">documentation</Link> or contact
+            our <Link href="mailto:automate@legacy-use.com">support team</Link>.
           </Typography>
         </Box>
       </Container>
