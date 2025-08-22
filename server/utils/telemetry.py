@@ -6,10 +6,10 @@ from uuid import UUID
 from fastapi import Request
 from posthog import Posthog
 
+from server.database.models import Session
 from server.models.base import (
     Job,
     JobStatus,
-    SessionCreate,
     TargetCreate,
     TargetUpdate,
 )
@@ -26,7 +26,7 @@ posthog = Posthog(
 )
 
 
-def capture_event(request: Request | None, event_name, properties):
+def capture_event(request: Request | None, event_name: str, properties: dict):
     """
     Capture an event in Posthog.
 
@@ -42,9 +42,9 @@ def capture_event(request: Request | None, event_name, properties):
         distinct_id = get_distinct_id(request)
 
         posthog.capture(
-            distinct_id,
             event_name,
-            {
+            distinct_id=distinct_id,
+            properties={
                 **properties,
                 '$process_person_profile': 'always',
             },
@@ -213,18 +213,18 @@ def capture_api_deleted(request: Request, api_id: UUID, api_name: str):
 
 
 # Sessions
-def capture_session_created(request: Request | None, session: SessionCreate):
+def capture_session_created(request: Request | None, session: Session):
     try:
         capture_event(
             request,
             'session_created',
             {
-                'session_id': session.get('id', ''),
-                'target_id': session.get('target_id', ''),
-                'name': session.get('name', ''),
-                'description': session.get('description', ''),
-                'status': session.get('status', ''),
-                'container_id': session.get('container_id', ''),
+                'session_id': session.id,
+                'target_id': session.target_id,
+                'name': session.name,
+                'description': session.description,
+                'status': session.status,
+                'container_id': session.container_id,
             },
         )
     except Exception as e:
@@ -252,14 +252,14 @@ def capture_job_created(request: Request, job: Job):
             request,
             'job_created',
             {
-                'job_id': job.get('id', ''),
-                'session_id': job.get('session_id', ''),
-                'target_id': job.get('target_id', ''),
-                'api_name': job.get('api_name', ''),
-                'parameters_count': len(job.get('parameters', {})),
-                'api_definition_version_id': job.get('api_definition_version_id', ''),
-                'status': job.get('status', ''),
-                'created_at': job.get('created_at', ''),
+                'job_id': job.id,
+                'session_id': job.session_id,
+                'target_id': job.target_id,
+                'api_name': job.api_name,
+                'parameters_count': len(job.parameters),
+                'api_definition_version_id': job.api_definition_version_id,
+                'status': job.status,
+                'created_at': job.created_at,
             },
         )
     except Exception as e:
@@ -272,17 +272,17 @@ def capture_job_interrupted(request: Request, job: Job, initial_status: JobStatu
             request,
             'job_interrupted',
             {
-                'job_id': job.get('id', ''),
-                'target_id': job.get('target_id', ''),
-                'api_name': job.get('api_name', ''),
-                'parameters_count': len(job.get('parameters', {})),
-                'api_definition_version_id': job.get('api_definition_version_id', ''),
-                'duration_seconds': job.get('duration_seconds', ''),
-                'total_input_tokens': job.get('total_input_tokens', ''),
-                'total_output_tokens': job.get('total_output_tokens', ''),
+                'job_id': job.id,
+                'target_id': job.target_id,
+                'api_name': job.api_name,
+                'parameters_count': len(job.parameters),
+                'api_definition_version_id': job.api_definition_version_id,
+                'duration_seconds': job.duration_seconds,
+                'total_input_tokens': job.total_input_tokens,
+                'total_output_tokens': job.total_output_tokens,
                 'initial_status': initial_status,
-                'created_at': job.get('created_at', ''),
-                'updated_at': job.get('updated_at', ''),
+                'created_at': job.created_at,
+                'updated_at': job.updated_at,
             },
         )
     except Exception as e:
@@ -292,8 +292,8 @@ def capture_job_interrupted(request: Request, job: Job, initial_status: JobStatu
 def capture_job_canceled(request: Request, job: Job):
     try:
         completion_time_seconds = (
-            (job.get('completed_at') - job.get('created_at')).total_seconds()
-            if job.get('completed_at') and job.get('created_at')
+            (job.completed_at - job.created_at).total_seconds()
+            if job.completed_at and job.created_at
             else 0
         )
         completion_time_seconds = int(completion_time_seconds)
@@ -301,17 +301,17 @@ def capture_job_canceled(request: Request, job: Job):
             request,
             'job_canceled',
             {
-                'job_id': job.get('id', ''),
-                'target_id': job.get('target_id', ''),
-                'api_name': job.get('api_name', ''),
-                'parameters_count': len(job.get('parameters', {})),
-                'api_definition_version_id': job.get('api_definition_version_id', ''),
-                'duration_seconds': job.get('duration_seconds', ''),
-                'total_input_tokens': job.get('total_input_tokens', ''),
-                'total_output_tokens': job.get('total_output_tokens', ''),
-                'created_at': job.get('created_at', ''),
-                'updated_at': job.get('updated_at', ''),
-                'completed_at': job.get('completed_at', ''),
+                'job_id': job.id,
+                'target_id': job.target_id,
+                'api_name': job.api_name,
+                'parameters_count': len(job.parameters),
+                'api_definition_version_id': job.api_definition_version_id,
+                'duration_seconds': job.duration_seconds,
+                'total_input_tokens': job.total_input_tokens,
+                'total_output_tokens': job.total_output_tokens,
+                'created_at': job.created_at,
+                'updated_at': job.updated_at,
+                'completed_at': job.completed_at,
                 'completion_time_seconds': completion_time_seconds,
             },
         )
@@ -321,33 +321,33 @@ def capture_job_canceled(request: Request, job: Job):
 
 def capture_job_resolved(request: Request | None, job: Job, manual_resolution: bool):
     try:
-        completion_time_seconds = (
-            (job.get('completed_at') - job.get('created_at')).total_seconds()
-            if job.get('completed_at') and job.get('created_at')
-            else 0
-        )
+        if job.completed_at:
+            completion_time_seconds = (
+                job.completed_at - job.created_at
+            ).total_seconds()
+        else:
+            completion_time_seconds = -1
+
         completion_time_seconds = int(completion_time_seconds)
         capture_event(
             request,
             'job_resolved',
             {
-                'job_id': job.get('id', ''),
-                'target_id': job.get('target_id', ''),
-                'api_name': job.get('api_name', ''),
-                'parameters_count': len(job.get('parameters', {})),
-                'api_definition_version_id': job.get('api_definition_version_id', ''),
-                'duration_seconds': job.get(
-                    'duration_seconds', '0'
-                ),  # TODO: seems not to be included
-                'total_input_tokens': job.get('total_input_tokens', 0),
-                'total_output_tokens': job.get('total_output_tokens', 0),
-                'result_length': len(job.get('result', {})) if job.get('result') else 0,
-                'created_at': job.get('created_at', ''),
-                'updated_at': job.get('updated_at', ''),
-                'completed_at': job.get('completed_at', ''),
+                'job_id': job.id,
+                'target_id': job.target_id,
+                'api_name': job.api_name,
+                'parameters_count': len(job.parameters),
+                'api_definition_version_id': job.api_definition_version_id,
+                'duration_seconds': job.duration_seconds,
+                'total_input_tokens': job.total_input_tokens,
+                'total_output_tokens': job.total_output_tokens,
+                'result_length': len(job.result) if job.result else -1,
+                'created_at': job.created_at,
+                'updated_at': job.updated_at,
+                'completed_at': job.completed_at,
                 'completion_time_seconds': completion_time_seconds,
                 'manual_resolution': manual_resolution,
-                'status': job.get('status', ''),
+                'status': job.status,
             },
         )
     except Exception as e:
@@ -360,16 +360,16 @@ def capture_job_resumed(request: Request, job: Job):
             request,
             'job_resumed',
             {
-                'job_id': job.get('id', ''),
-                'target_id': job.get('target_id', ''),
-                'api_name': job.get('api_name', ''),
-                'parameters_count': len(job.get('parameters', {})),
-                'api_definition_version_id': job.get('api_definition_version_id', ''),
-                'duration_seconds': job.get('duration_seconds', ''),
-                'total_input_tokens': job.get('total_input_tokens', ''),
-                'total_output_tokens': job.get('total_output_tokens', ''),
-                'created_at': job.get('created_at', ''),
-                'updated_at': job.get('updated_at', ''),
+                'job_id': job.id,
+                'target_id': job.target_id,
+                'api_name': job.api_name,
+                'parameters_count': len(job.parameters),
+                'api_definition_version_id': job.api_definition_version_id,
+                'duration_seconds': job.duration_seconds,
+                'total_input_tokens': job.total_input_tokens,
+                'total_output_tokens': job.total_output_tokens,
+                'created_at': job.created_at,
+                'updated_at': job.updated_at,
             },
         )
     except Exception as e:
