@@ -45,7 +45,7 @@ class OpenCuaHandler(BaseProviderHandler):
 
         self.provider = provider
         self.model = model
-        self.ENDPOINT = model
+        self.endpoint = model
         self.latest_api_definitions: Dict[str, str] = {}
 
     async def initialize_client(self, api_key: str, **kwargs):
@@ -119,7 +119,7 @@ class OpenCuaHandler(BaseProviderHandler):
         }
 
         response = client.invoke_endpoint(
-            EndpointName=self.ENDPOINT,
+            EndpointName=self.endpoint,
             ContentType='application/json',
             Accept='application/json',
             Body=json.dumps(payload).encode('utf-8'),
