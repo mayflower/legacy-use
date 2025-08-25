@@ -44,7 +44,7 @@ def extract_api_definitions_from_user_message(
     return prompt, api_name, api_response_example, api_prompt_cleanup
 
 
-def convert_to_opencua_messages(
+def convert_to_opencua_messages_and_extract_api_definitions(
     messages: list[BetaMessageParam],
 ) -> tuple[list[ChatCompletionMessageParam], Dict[str, str]]:
     """Convert messages to OpenCua format."""

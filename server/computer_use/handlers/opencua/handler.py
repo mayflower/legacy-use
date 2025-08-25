@@ -18,7 +18,7 @@ from server.computer_use.config import APIProvider
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.tools.collection import ToolCollection
 
-from .message_converter import convert_to_opencua_messages
+from .message_converter import convert_to_opencua_messages_and_extract_api_definitions
 from .pyautogui_converter import convert_pyautogui_code_to_tool_use, parse_task
 from .system_prompt import SYSTEM_PROMPT
 
@@ -82,8 +82,8 @@ class OpenCuaHandler(BaseProviderHandler):
 
         messages = self.preprocess_messages(messages)
 
-        converted_messages, latest_api_definitions = convert_to_opencua_messages(
-            messages
+        converted_messages, latest_api_definitions = (
+            convert_to_opencua_messages_and_extract_api_definitions(messages)
         )
         self.latest_api_definitions = latest_api_definitions
 
