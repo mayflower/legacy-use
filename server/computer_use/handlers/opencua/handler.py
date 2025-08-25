@@ -70,6 +70,7 @@ class OpenCuaHandler(BaseProviderHandler):
                 retries={
                     'max_attempts': self.max_retries,
                 },
+                read_timeout=180,
             ),
         )
 
