@@ -69,7 +69,7 @@ class OpenCuaHandler(BaseProviderHandler):
             config=Config(
                 retries={
                     'max_attempts': self.max_retries,
-                }
+                },
             ),
         )
 
