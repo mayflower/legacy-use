@@ -4,6 +4,7 @@ import json
 import logging
 from typing import Any, Dict, Iterable, cast
 
+import anyio
 import boto3
 import httpx
 from anthropic.types.beta import (
@@ -115,19 +116,20 @@ class OpenCuaHandler(BaseProviderHandler):
 
         logger.debug(f'Messages: {self._truncate_for_debug(full_messages)}')
 
-        payload = {
-            'messages': full_messages,
-        }
+        payload = {'messages': full_messages}
 
-        response = client.invoke_endpoint(
-            EndpointName=self.endpoint,
-            ContentType='application/json',
-            Accept='application/json',
-            Body=json.dumps(payload).encode('utf-8'),
-        )
+        def _invoke_and_read():
+            response = client.invoke_endpoint(
+                EndpointName=self.endpoint,
+                ContentType='application/json',
+                Accept='application/json',
+                Body=json.dumps(payload).encode('utf-8'),
+            )
+            body_bytes = response['Body'].read()
+            return response, body_bytes
 
-        result = json.loads(response['Body'].read().decode('utf-8'))['text']
-
+        response, body_bytes = await anyio.to_thread.run_sync(_invoke_and_read)
+        result = json.loads(body_bytes.decode('utf-8'))['text']
         return result, None, response
 
     async def execute(
