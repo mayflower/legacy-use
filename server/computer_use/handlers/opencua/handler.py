@@ -4,8 +4,7 @@ import json
 import logging
 from typing import Any, Dict, Iterable, cast
 
-import anyio
-import boto3
+import aioboto3
 import httpx
 from anthropic.types.beta import (
     BetaContentBlockParam,
@@ -58,7 +57,7 @@ class OpenCuaHandler(BaseProviderHandler):
         aws_secret_key = self.tenant_setting('AWS_SECRET_ACCESS_KEY')
 
         # Create session with explicit credentials
-        session = boto3.Session(
+        session = aioboto3.Session(
             aws_access_key_id=aws_access_key,
             aws_secret_access_key=aws_secret_key,
             region_name=aws_region,
@@ -66,7 +65,6 @@ class OpenCuaHandler(BaseProviderHandler):
 
         client = session.client(
             service_name='sagemaker-runtime',
-            region_name=aws_region,
             config=Config(
                 retries={
                     'max_attempts': self.max_retries,
@@ -118,18 +116,15 @@ class OpenCuaHandler(BaseProviderHandler):
 
         payload = {'messages': full_messages}
 
-        def _invoke_and_read():
-            response = client.invoke_endpoint(
-                EndpointName=self.endpoint,
-                ContentType='application/json',
-                Accept='application/json',
-                Body=json.dumps(payload).encode('utf-8'),
-            )
-            body_bytes = response['Body'].read()
-            return response, body_bytes
-
-        response, body_bytes = await anyio.to_thread.run_sync(_invoke_and_read)
+        response = await client.invoke_endpoint(
+            EndpointName=self.endpoint,
+            ContentType='application/json',
+            Accept='application/json',
+            Body=json.dumps(payload).encode('utf-8'),
+        )
+        body_bytes = await response['Body'].read()
         result = json.loads(body_bytes.decode('utf-8'))['text']
+
         return result, None, response
 
     async def execute(
@@ -157,9 +152,10 @@ class OpenCuaHandler(BaseProviderHandler):
             }
             return [mock_screenshot_tool_use], 'tool_use', None, None
 
-        result, request, response = await self.make_ai_request(
-            client, messages_formatted, system_formatted
-        )
+        async with client as sm_client:
+            result, request, response = await self.make_ai_request(
+                sm_client, messages_formatted, system_formatted
+            )
 
         content_blocks, stop_reason = self.convert_from_provider_response(result)
 
