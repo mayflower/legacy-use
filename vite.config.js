@@ -26,7 +26,7 @@ export default defineConfig({
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
     },
     proxy: {
-      '/api': {
+      '/api/': {
         target: `http://${process.env.VITE_PROXY_TARGET || 'localhost'}:8088`,
         ws: true,
         configure: (proxy, _options) => {
