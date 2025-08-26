@@ -49,7 +49,8 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
                 {
                     '$raw_user_agent': headers.get('User-Agent'),
                     '$referrer': headers.get('Referer'),
-                    '$host': headers.get('Host'),
+                    '$host': headers.get('Host') or request.url.hostname,
+                    '$pathname': request.url.path,
                     '$ip': getattr(request.client, 'host', None),
                     '$browser_language': headers.get('Accept-Language'),
                     'content_type': headers.get('Content-Type'),
@@ -94,6 +95,7 @@ async def posthog_middleware(request: Request, call_next):
 
     response = await call_next(request)
 
+    # This captures any API request to the backend, but it's too noisy for now
     # capture_event(
     #     distinct_id,
     #     'api_request_backend',
