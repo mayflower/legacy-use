@@ -17,7 +17,7 @@ from server.computer_use.handlers.utils.key_mapping_utils import normalize_key_c
 from server.computer_use.logging import logger
 
 
-def _process_computer_tool(tool_name: str, tool_input: dict) -> dict:
+def process_computer_tool(tool_name: str, tool_input: dict) -> dict:
     """
     Process computer tool input, normalizing action names and parameters.
 
@@ -92,7 +92,7 @@ def _process_computer_tool(tool_name: str, tool_input: dict) -> dict:
     return tool_input
 
 
-def _process_extraction_tool(tool_input: dict) -> dict:
+def process_extraction_tool(tool_input: dict) -> dict:
     """
     Process extraction tool input, ensuring proper data structure.
 
@@ -137,7 +137,7 @@ def _process_extraction_tool(tool_input: dict) -> dict:
     return tool_input
 
 
-def _convert_tool_call(tool_call) -> BetaContentBlockParam:
+def convert_tool_call(tool_call) -> BetaContentBlockParam:
     """
     Convert a single OpenAI tool call to Anthropic format.
 
@@ -175,7 +175,7 @@ def _convert_tool_call(tool_call) -> BetaContentBlockParam:
 
         # Special handling for computer tool or any of its action functions
         if tool_name == 'computer' or tool_name in COMPUTER_ACTIONS:
-            tool_input = _process_computer_tool(tool_name, tool_input)
+            tool_input = process_computer_tool(tool_name, tool_input)
             # Always emit a single Anthropic tool_use for 'computer'
             tool_name = 'computer'
             logger.debug(
@@ -184,7 +184,7 @@ def _convert_tool_call(tool_call) -> BetaContentBlockParam:
 
         # Special handling for extraction tool
         elif tool_name == 'extraction':
-            tool_input = _process_extraction_tool(tool_input)
+            tool_input = process_extraction_tool(tool_input)
 
         # Create the tool use block
         return BetaToolUseBlockParam(
@@ -249,7 +249,7 @@ def convert_openai_to_anthropic_response(
             f'Converting {len(message.tool_calls)} tool calls from OpenAI response'
         )
         for tool_call in message.tool_calls:
-            block = _convert_tool_call(tool_call)
+            block = convert_tool_call(tool_call)
             content_blocks.append(block)
             logger.debug(
                 f'Added to content blocks - tool: {tool_call.function.name}, id: {tool_call.id}'

@@ -10,7 +10,7 @@ from typing import Any, Dict, cast
 from anthropic.types.beta import BetaCacheControlEphemeralParam, BetaMessageParam
 
 
-def _inject_prompt_caching(messages: list[BetaMessageParam]):
+def inject_prompt_caching(messages: list[BetaMessageParam]):
     """
     Set cache breakpoints for the 3 most recent turns
     one cache breakpoint is left for tools/system prompt, to be shared across sessions

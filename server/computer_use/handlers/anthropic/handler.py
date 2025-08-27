@@ -29,7 +29,7 @@ from server.computer_use.logging import logger
 from server.computer_use.tools.collection import ToolCollection
 from server.settings import settings
 
-from .message_converter import _inject_prompt_caching
+from .message_converter import inject_prompt_caching
 from .response_converter import convert_from_provider_response
 
 AnthropicClient = (
@@ -159,7 +159,7 @@ class AnthropicHandler(BaseProviderHandler):
 
         # Apply Anthropic-specific prompt caching
         if self.enable_prompt_caching:
-            _inject_prompt_caching(messages)
+            inject_prompt_caching(messages)
 
         return messages
 

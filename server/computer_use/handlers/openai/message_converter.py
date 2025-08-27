@@ -25,7 +25,7 @@ from openai.types.chat import (
 from server.computer_use.logging import logger
 
 
-def _create_text_message(role: str, content: str) -> ChatCompletionMessageParam:
+def create_text_message(role: str, content: str) -> ChatCompletionMessageParam:
     """
     Create a simple text message in OpenAI format.
 
@@ -48,7 +48,7 @@ def _create_text_message(role: str, content: str) -> ChatCompletionMessageParam:
         }
 
 
-def _process_tool_result_block(
+def process_tool_result_block(
     block: BetaContentBlockParam,
 ) -> tuple[str, str, Optional[str]]:
     """
@@ -79,7 +79,7 @@ def _process_tool_result_block(
     return str(tool_call_id or 'tool_call'), text_content, image_data
 
 
-def _create_tool_message(
+def create_tool_message(
     tool_call_id: str, content: str
 ) -> ChatCompletionToolMessageParam:
     """
@@ -99,7 +99,7 @@ def _create_tool_message(
     }
 
 
-def _create_image_message(
+def create_image_message(
     images: list[tuple[str, str]],
 ) -> ChatCompletionUserMessageParam:
     """
@@ -129,7 +129,7 @@ def _create_image_message(
     }
 
 
-def _convert_content_block(
+def convert_content_block(
     block: BetaContentBlockParam,
 ) -> tuple[
     Optional[ChatCompletionContentPartParam],
@@ -187,7 +187,7 @@ def _convert_content_block(
     return None, None
 
 
-def _process_tool_result_messages(
+def process_tool_result_messages(
     messages: list[BetaMessageParam], start_idx: int
 ) -> tuple[list[ChatCompletionMessageParam], int]:
     """
@@ -218,12 +218,12 @@ def _process_tool_result_messages(
             if isinstance(block, dict) and block.get('type') == 'tool_result':
                 has_tool_result = True
                 # Cast to dict for type checker
-                tool_call_id, text_content, image_data = _process_tool_result_block(
+                tool_call_id, text_content, image_data = process_tool_result_block(
                     block
                 )
 
                 # Create tool message
-                tool_messages.append(_create_tool_message(tool_call_id, text_content))
+                tool_messages.append(create_tool_message(tool_call_id, text_content))
 
                 # Accumulate image if present
                 if image_data:
@@ -239,7 +239,7 @@ def _process_tool_result_messages(
 
     # Add accumulated images as a single user message
     if accumulated_images:
-        result_messages.append(_create_image_message(accumulated_images))
+        result_messages.append(create_image_message(accumulated_images))
 
     return result_messages, current_idx
 
@@ -277,7 +277,7 @@ def convert_anthropic_to_openai_messages(
 
         if isinstance(content, str):
             # Simple text message
-            openai_messages.append(_create_text_message(role, content))
+            openai_messages.append(create_text_message(role, content))
             msg_idx += 1
 
         elif isinstance(content, list):
@@ -289,9 +289,7 @@ def convert_anthropic_to_openai_messages(
 
             if has_tool_results and role == 'user':
                 # Process tool result messages
-                tool_messages, msg_idx = _process_tool_result_messages(
-                    messages, msg_idx
-                )
+                tool_messages, msg_idx = process_tool_result_messages(messages, msg_idx)
                 openai_messages.extend(tool_messages)
             else:
                 # Process regular content blocks
@@ -300,7 +298,7 @@ def convert_anthropic_to_openai_messages(
 
                 for block in content:
                     if isinstance(block, dict):
-                        content_part, tool_call = _convert_content_block(block)
+                        content_part, tool_call = convert_content_block(block)
                         if content_part:
                             content_parts.append(content_part)
                         if tool_call:
