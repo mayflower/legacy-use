@@ -26,7 +26,7 @@ from server.computer_use.handlers.utils.converter_utils import (
     internal_specs_to_openai_chat_functions,
 )
 from server.computer_use.logging import logger
-from server.computer_use.tools import ToolCollection
+from server.computer_use.tools.collection import ToolCollection
 
 from .message_converter import convert_anthropic_to_openai_messages
 from .response_converter import convert_openai_to_anthropic_response
