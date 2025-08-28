@@ -64,6 +64,10 @@ class CustomActionTool(BaseAnthropicTool):
                 },
                 {
                     'name': 'computer',
+                    'parameters': {'action': 'key', 'text': 'Return'},
+                },
+                {
+                    'name': 'computer',
                     'parameters': {'action': 'type', 'text': 'helloworld'},
                 },
             ]
