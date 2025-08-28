@@ -5,7 +5,7 @@ This handler manages all Anthropic-specific logic including Claude models
 via direct API, Bedrock, and Vertex AI.
 """
 
-from typing import Any, Dict, Iterable, Optional, cast
+from typing import Iterable, Optional, cast
 
 import httpx
 import instructor
@@ -15,7 +15,6 @@ from anthropic import (
     AsyncAnthropicVertex,
 )
 from anthropic.types.beta import (
-    BetaCacheControlEphemeralParam,
     BetaContentBlockParam,
     BetaMessage,
     BetaMessageParam,
@@ -28,38 +27,14 @@ from server.computer_use.config import PROMPT_CACHING_BETA_FLAG, APIProvider
 from server.computer_use.handlers.base import BaseProviderHandler
 from server.computer_use.logging import logger
 from server.computer_use.tools.collection import ToolCollection
-from server.computer_use.utils import (
-    _response_to_params,
-)
 from server.settings import settings
+
+from .message_converter import inject_prompt_caching
+from .response_converter import convert_from_provider_response
 
 AnthropicClient = (
     AsyncAnthropic | AsyncAnthropicBedrock | AsyncAnthropicVertex | LegacyUseClient
 )
-
-
-def _inject_prompt_caching(
-    messages: list[BetaMessageParam],
-):
-    """
-    Set cache breakpoints for the 3 most recent turns
-    one cache breakpoint is left for tools/system prompt, to be shared across sessions
-    """
-
-    breakpoints_remaining = 3
-    for message in reversed(messages):
-        if message['role'] == 'user' and isinstance(
-            content := message['content'], list
-        ):
-            if breakpoints_remaining:
-                breakpoints_remaining -= 1
-                cast(Dict[str, Any], content[-1])['cache_control'] = (
-                    BetaCacheControlEphemeralParam({'type': 'ephemeral'})
-                )
-            else:
-                cast(Dict[str, Any], content[-1]).pop('cache_control', None)
-                # we'll only every have one extra turn per loop
-                break
 
 
 class AnthropicHandler(BaseProviderHandler):
@@ -184,7 +159,7 @@ class AnthropicHandler(BaseProviderHandler):
 
         # Apply Anthropic-specific prompt caching
         if self.enable_prompt_caching:
-            _inject_prompt_caching(messages)
+            inject_prompt_caching(messages)
 
         return messages
 
@@ -277,9 +252,7 @@ class AnthropicHandler(BaseProviderHandler):
         )
 
         # Convert response to standardized format
-        content_blocks, stop_reason = self.convert_from_provider_response(
-            parsed_response
-        )
+        content_blocks, stop_reason = convert_from_provider_response(parsed_response)
 
         return content_blocks, stop_reason, request, raw_response
 
@@ -290,6 +263,4 @@ class AnthropicHandler(BaseProviderHandler):
         Convert Anthropic response to content blocks and stop reason.
         Response is already in Anthropic format.
         """
-        content_blocks = _response_to_params(response)
-        stop_reason = response.stop_reason or 'end_turn'
-        return content_blocks, stop_reason
+        return convert_from_provider_response(response)
