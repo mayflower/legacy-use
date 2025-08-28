@@ -19,8 +19,8 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getApiDefinitionVersion } from '../services/apiService';
 import { useLocalStorage } from 'usehooks-ts';
+import { getApiDefinitionVersion } from '../services/apiService';
 
 const JobStatusCard = ({
   job,
@@ -78,7 +78,8 @@ const JobStatusCard = ({
   const isResolvable = normalizedJobStatus === 'paused' || normalizedJobStatus === 'error';
 
   const renderDurationAndTokens = () => {
-    const duration = formatDuration(job.created_at, job.completed_at);
+    const duration =
+      job.status !== 'canceled' ? formatDuration(job.created_at, job.completed_at) : '-';
     const tokens = tokenUsage
       ? `${(tokenUsage.input ?? 0).toLocaleString()} in / ${(tokenUsage.output ?? 0).toLocaleString()} out`
       : 'N/A';
