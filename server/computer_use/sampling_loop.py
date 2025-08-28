@@ -341,6 +341,9 @@ async def sampling_loop(
                     # expected to have action_id already in input
                     content_block['input']['api_name'] = job_data['api_name']
                     content_block['input']['parameters'] = job_data['parameters']
+                    content_block['input']['tool_collection'] = (
+                        tool_collection  # TODO: crazy anti-pattern?
+                    )
 
                 result = await tool_collection.run(
                     name=content_block['name'],
