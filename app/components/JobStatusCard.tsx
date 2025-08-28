@@ -20,6 +20,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getApiDefinitionVersion } from '../services/apiService';
+import { useLocalStorage } from 'usehooks-ts';
 
 const JobStatusCard = ({
   job,
@@ -41,7 +42,7 @@ const JobStatusCard = ({
 }) => {
   const [versionInfo, setVersionInfo] = useState<any>(null);
   const [loadingVersion, setLoadingVersion] = useState(false);
-  const [showCosts, setShowCosts] = useState(false);
+  const [showCosts, setShowCosts] = useLocalStorage('showCosts', false);
 
   // Fetch version information if available
   useEffect(() => {
