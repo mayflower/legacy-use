@@ -32,7 +32,7 @@ def compute_job_metrics(
         # PostgreSQL datetimes are timezone-aware, so we need to make datetime.now() aware too
         now = datetime.now(timezone.utc)
 
-    if job['status'] in [JobStatus.SUCCESS, JobStatus.ERROR]:
+    if job['status'] in [JobStatus.SUCCESS, JobStatus.ERROR, JobStatus.CANCELED]:
         # For completed jobs, use completed_at if available, otherwise duration is null
         if job.get('completed_at'):
             completed_at = datetime.fromisoformat(str(job['completed_at']))
