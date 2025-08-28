@@ -344,6 +344,11 @@ async def sampling_loop(
                     content_block['input']['tool_collection'] = (
                         tool_collection  # TODO: crazy anti-pattern?
                     )
+                    print(
+                        'Enriching custom action input with job data, session_id, and session_obj',
+                        session_id,
+                        session_obj,
+                    )
 
                 result = await tool_collection.run(
                     name=content_block['name'],
