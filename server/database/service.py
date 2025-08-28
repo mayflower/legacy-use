@@ -642,7 +642,11 @@ class DatabaseService:
 
     def update_job_status(self, job_id, status):
         """Update job status (convenience method that uses update_job)."""
-        return self.update_job(job_id, {'status': status}, update_session=True)
+        return self.update_job(
+            job_id,
+            {'status': status, 'updated_at': datetime.now()},
+            update_session=True,
+        )
 
     def request_job_cancel(self, job_id: UUID) -> bool:
         """Set cancel_requested=true for a job regardless of which worker owns it."""
