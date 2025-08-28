@@ -377,7 +377,7 @@ const LogViewer = ({ logs }) => {
           case 'cursor_position':
             return 'Getting cursor position';
           case 'wait':
-            return `Waiting ${log.content.input?.seconds}s`;
+            return `Waiting ${log.content.input?.duration}s`;
           case 'open':
             return `Opening: "${log.content.input?.path}"`;
           case 'close':
