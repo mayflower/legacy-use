@@ -23,30 +23,6 @@
       "arrowParentheses": "asNeeded"
     }
   },
-  "overrides": [
-    {
-      "includes": ["**/*.{js,jsx,ts,tsx}"],
-      "javascript": {
-        "globals": [
-          "window",
-          "console",
-          "sessionStorage",
-          "setInterval",
-          "FileReader",
-          "localStorage",
-          "URLSearchParams",
-          "globalThis",
-          "setTimeout",
-          "clearInterval",
-          "Blob",
-          "process",
-          "navigator",
-          "URL",
-          "document"
-        ]
-      }
-    }
-  ],
   "assist": {
     "enabled": true,
     "actions": { "source": { "organizeImports": "on" } }
