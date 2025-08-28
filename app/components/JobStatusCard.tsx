@@ -106,10 +106,12 @@ const JobStatusCard = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body2" color="textSecondary">
             Tokens: {tokens}
-            <span style={{
-              opacity: showCosts ? 1 : 0,
-              marginLeft: '4px'
-            }}>
+            <span
+              style={{
+                opacity: showCosts ? 1 : 0,
+                marginLeft: '4px',
+              }}
+            >
               {costInfo}
             </span>
           </Typography>
