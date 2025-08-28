@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -644,7 +644,7 @@ class DatabaseService:
         """Update job status (convenience method that uses update_job)."""
         return self.update_job(
             job_id,
-            {'status': status, 'updated_at': datetime.now()},
+            {'status': status, 'updated_at': datetime.now(timezone.utc)},
             update_session=True,
         )
 
