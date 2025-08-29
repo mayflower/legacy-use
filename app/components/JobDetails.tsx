@@ -427,8 +427,8 @@ const JobDetails = () => {
 
       setTimeout(() => {
         setInterrupting(false);
-      }, 2000);
-    } catch (err: any) {
+      }, 1000);
+    } catch (err) {
       console.error('Error interrupting job:', err);
       setError(`Failed to interrupt job: ${err.message || 'Unknown error'}`);
       setInterrupting(false);
