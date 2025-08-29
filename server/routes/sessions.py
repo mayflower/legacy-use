@@ -801,9 +801,9 @@ async def execute_computer_tool(
     tool_collection = ToolCollection(*tools)
 
     if action == 'custom_action':
-        tool_request['api_name'] = 'custom_action'
+        tool_request['api_name'] = 'Tool Test but pixel dependent'
         tool_request['tool_collection'] = tool_collection
-        # TODO include session
+        # TODO include session?
         # tool_request['session_id'] = session_id
         # tool_request['session'] = session_obj
 
