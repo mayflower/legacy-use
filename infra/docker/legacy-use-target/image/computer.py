@@ -148,7 +148,7 @@ class BaseComputerTool:
     height: int
     display_num: int | None
 
-    _screenshot_delay = 2.0
+    _screenshot_delay = 1.0
     _scaling_enabled = True
 
     @property
