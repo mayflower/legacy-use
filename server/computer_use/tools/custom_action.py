@@ -30,11 +30,20 @@ class CustomActionTool(BaseAnthropicTool):
             },
         }
 
-    async def __call__(
-        self, action_id: str, api_name: str, tool_collection: ToolCollection, **kwargs
-    ) -> ToolResult:
+    async def __call__(self, **kwargs) -> ToolResult:
         """Process the custom action."""
         try:
+            action_id = kwargs.get('action_id')
+            api_name = kwargs.get('api_name')
+            tool_collection: ToolCollection | None = kwargs.get('tool_collection')
+
+            if not action_id:
+                return ToolResult(error='Missing required parameter: action_id')
+            if not api_name:
+                return ToolResult(error='Missing required parameter: api_name')
+            if tool_collection is None:
+                return ToolResult(error='Missing required parameter: tool_collection')
+
             # Log the reasoning
             logger.info(
                 f'Custom action tool called with action_id: {action_id} api_name: {api_name}'
