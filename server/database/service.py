@@ -1451,15 +1451,8 @@ class DatabaseService:
         finally:
             session.close()
 
-    def validate_custom_actions(self, version_id: str) -> bool:
-        """Validate custom actions for an API definition version without modifying them.
-
-        Args:
-            version_id: The ID of the API definition version
-
-        Returns:
-            True if all actions are valid, False otherwise
-        """
+    def append_custom_action(self, version_id: str, action: CustomAction) -> bool:
+        """Append a custom action to an API definition version."""
         session = self.Session()
         try:
             api_version = (
@@ -1471,12 +1464,10 @@ class DatabaseService:
             if not api_version:
                 return False
 
-            try:
-                actions_data = getattr(api_version, 'custom_actions', None) or {}
-                for action_name, action_data in actions_data.items():
-                    CustomAction(**action_data)
-                return True
-            except Exception:
-                return False
+            actions_data = getattr(api_version, 'custom_actions', None) or {}
+            actions_data[action.name] = action.model_dump()
+            setattr(api_version, 'custom_actions', actions_data)
+            session.commit()
+            return True
         finally:
             session.close()
