@@ -559,3 +559,49 @@ async def add_custom_action(
         'status': 'success',
         'message': f"Custom action '{custom_action.name}' added to API definition '{api_name}'",
     }
+
+
+@api_router.get(
+    '/definitions/{api_name}/custom_actions',
+    response_model=Dict[str, Any],
+    tags=['API Definitions'],
+)
+async def list_custom_actions(api_name: str, db_tenant=Depends(get_tenant_db)):
+    """List custom actions for the latest version of an API definition."""
+    api_definition = await db_tenant.get_api_definition_by_name(api_name)
+
+    if not api_definition:
+        raise HTTPException(
+            status_code=404, detail=f"API definition '{api_name}' not found"
+        )
+
+    version = await db_tenant.get_latest_api_definition_version(api_definition.id)
+    actions = db_tenant.get_custom_actions(version.id)
+    return {'status': 'success', 'actions': actions}
+
+
+@api_router.delete(
+    '/definitions/{api_name}/custom_actions/{action_name}',
+    response_model=Dict[str, str],
+    tags=['API Definitions'],
+)
+async def delete_custom_action(
+    api_name: str, action_name: str, db_tenant=Depends(get_tenant_db)
+):
+    """Delete a custom action by name from the latest version of an API definition."""
+    api_definition = await db_tenant.get_api_definition_by_name(api_name)
+    if not api_definition:
+        raise HTTPException(
+            status_code=404, detail=f"API definition '{api_name}' not found"
+        )
+
+    version = await db_tenant.get_latest_api_definition_version(api_definition.id)
+    actions = db_tenant.get_custom_actions(version.id)
+    if action_name not in actions:
+        raise HTTPException(status_code=404, detail='Custom action not found')
+    # Remove and persist
+    actions.pop(action_name, None)
+    ok = db_tenant.set_custom_actions(version.id, actions)
+    if not ok:
+        raise HTTPException(status_code=500, detail='Failed to update custom actions')
+    return {'status': 'success', 'message': f"Custom action '{action_name}' deleted"}
