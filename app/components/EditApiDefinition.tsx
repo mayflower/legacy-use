@@ -27,6 +27,7 @@ import {
   getApiDefinitionVersions,
   updateApiDefinition,
   getToolsGroup,
+  addCustomActionToApi,
 } from '../services/apiService';
 
 // Local types for editor state (permissive to keep edits minimal)
@@ -112,6 +113,8 @@ const EditApiDefinition = () => {
     { name: string; parameters: Record<string, any> }[]
   >([]);
   const [showAdvancedActions, setShowAdvancedActions] = useState<boolean>(false);
+  const [customActionName, setCustomActionName] = useState<string>('');
+  const [savingCustomAction, setSavingCustomAction] = useState<boolean>(false);
 
   // Load API definition details
   useEffect(() => {
@@ -588,6 +591,42 @@ const EditApiDefinition = () => {
     setCustomActions(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSaveCustomAction = async () => {
+    if (!apiName) return;
+    if (!customActionName.trim()) {
+      setSnackbarMessage('Please provide a name for this custom action');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+    if (customActions.length === 0) {
+      setSnackbarMessage('Add at least one action to save');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+    try {
+      setSavingCustomAction(true);
+      const payload = {
+        name: customActionName.trim(),
+        tools: { actions: customActions },
+      };
+      await addCustomActionToApi(apiName as string, payload);
+      setSnackbarMessage('Custom action saved');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      // Clear local list and name after save
+      setCustomActions([]);
+      setCustomActionName('');
+    } catch (err: any) {
+      setSnackbarMessage(`Failed to save custom action: ${err?.message || 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setSavingCustomAction(false);
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -937,6 +976,27 @@ const EditApiDefinition = () => {
         {/* Current configured actions (frontend only) */}
         <Box sx={{ mt: 3 }}>
           <Typography variant="subtitle1" gutterBottom>Configured Actions</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Custom action name"
+                fullWidth
+                value={customActionName}
+                onChange={e => setCustomActionName(e.target.value)}
+                margin="normal"
+                disabled={apiDefinition.is_archived}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                variant="contained"
+                onClick={handleSaveCustomAction}
+                disabled={apiDefinition.is_archived || savingCustomAction}
+              >
+                {savingCustomAction ? 'Saving…' : 'Save Custom Action'}
+              </Button>
+            </Grid>
+          </Grid>
           {customActions.length === 0 ? (
             <Typography variant="body2" color="textSecondary">No actions added yet</Typography>
           ) : (

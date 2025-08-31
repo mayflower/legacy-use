@@ -551,7 +551,9 @@ async def add_custom_action(
     version = await db_tenant.get_latest_api_definition_version(api_definition.id)
 
     # Add the custom action to the API definition
-    await db_tenant.append_custom_action(version.id, custom_action)
+    success = db_tenant.append_custom_action(version.id, custom_action)
+    if not success:
+        raise HTTPException(status_code=500, detail='Failed to append custom action')
 
     return {
         'status': 'success',
