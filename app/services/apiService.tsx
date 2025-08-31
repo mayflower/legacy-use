@@ -387,3 +387,11 @@ export const getRecordingStatus = async (sessionId: string) => {
 export const getSessionContainerLogs = async (sessionId: string, lines = 1000) => {
   return getSessionContainerLogsSessionsSessionIdContainerLogsGet(sessionId, { lines });
 };
+
+// Tools
+export const getToolsGroup = async (groupName: string) => {
+  // TODO: auto generate this
+  const response = await apiClient.get(`/tools/group/${groupName}`);
+  // Backend returns { status, message: tool_specifications }
+  return response.data?.message ?? [];
+};

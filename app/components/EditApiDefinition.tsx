@@ -26,6 +26,7 @@ import {
   getApiDefinitionDetails,
   getApiDefinitionVersions,
   updateApiDefinition,
+  getToolsGroup,
 } from '../services/apiService';
 
 // Local types for editor state (permissive to keep edits minimal)
@@ -47,6 +48,26 @@ interface ApiDefState {
   response_example: any;
   is_archived: boolean;
 }
+
+// Tool specs for UI
+type ToolActionSpec = {
+  name: string;
+  params?: Record<string, any>;
+  required?: string[];
+};
+
+type ToolSpec = {
+  name: string;
+  description?: string;
+  version?: string;
+  actions?: ToolActionSpec[];
+  input_schema?: {
+    type?: string;
+    properties?: Record<string, any>;
+    required?: string[];
+  };
+  options?: Record<string, any>;
+};
 
 const EditApiDefinition = () => {
   const { apiName } = useParams();
@@ -80,6 +101,18 @@ const EditApiDefinition = () => {
     'success' | 'error' | 'warning' | 'info'
   >('success');
 
+  // Custom Actions state (frontend-only)
+  const [availableTools, setAvailableTools] = useState<ToolSpec[]>([]);
+  const [toolsLoading, setToolsLoading] = useState<boolean>(false);
+  const [toolsError, setToolsError] = useState<string | null>(null);
+  const [selectedToolName, setSelectedToolName] = useState<string>('');
+  const [selectedActionName, setSelectedActionName] = useState<string>('');
+  const [paramValues, setParamValues] = useState<Record<string, any>>({});
+  const [customActions, setCustomActions] = useState<
+    { name: string; parameters: Record<string, any> }[]
+  >([]);
+  const [showAdvancedActions, setShowAdvancedActions] = useState<boolean>(false);
+
   // Load API definition details
   useEffect(() => {
     const fetchApiDefinition = async () => {
@@ -106,6 +139,28 @@ const EditApiDefinition = () => {
 
     fetchApiDefinition();
   }, [apiName]);
+
+  // Load tools for a specific group
+  useEffect(() => {
+    const fetchTools = async () => {
+      try {
+        setToolsLoading(true);
+        const tools = (await getToolsGroup('computer_use_20250124')) as ToolSpec[];
+        // Keep only the computer tools
+        const computerOnly = (tools || []).filter(t => t.name === 'computer');
+        setAvailableTools(computerOnly);
+        if (computerOnly.length > 0) {
+          setSelectedToolName(computerOnly[0].name);
+        }
+        setToolsLoading(false);
+      } catch (err: any) {
+        console.error('Error fetching tools group:', err);
+        setToolsError(`Failed to load tools: ${err?.message || 'Unknown error'}`);
+        setToolsLoading(false);
+      }
+    };
+    fetchTools();
+  }, []);
 
   // Load API definition versions
   useEffect(() => {
@@ -421,6 +476,118 @@ const EditApiDefinition = () => {
     );
   }
 
+  // Derived helpers for selected tool/action
+  const selectedTool: ToolSpec | undefined = availableTools.find(t => t.name === selectedToolName);
+  const selectedAction: ToolActionSpec | undefined = selectedTool?.actions?.find(
+    a => a.name === selectedActionName,
+  );
+
+  // Partition actions into primary vs advanced
+  const primaryActionNames = new Set([
+    'left_click',
+    'type',
+    'key',
+    'scroll',
+    'double_click',
+    'right_click',
+    'wait',
+  ]);
+  const allActions = selectedTool?.actions || [];
+  const primaryActions = allActions.filter(a => primaryActionNames.has(a.name));
+  const advancedActions = allActions.filter(a => !primaryActionNames.has(a.name));
+
+  const currentParamSpec: Record<string, any> =
+    (selectedAction?.params as Record<string, any>) ||
+    (selectedTool?.input_schema?.properties as Record<string, any>) ||
+    {};
+
+  const currentRequired: string[] =
+    (selectedAction?.required as string[]) ||
+    (selectedTool?.input_schema?.required as string[]) ||
+    [];
+
+  // Note: tool/action are chosen implicitly (computer fixed; actions via buttons)
+
+  const handleParamChange = (key: string) => (event: any) => {
+    setParamValues(prev => ({ ...prev, [key]: event.target.value }));
+  };
+
+  const handleCoordinateChange = (axis: 0 | 1) => (event: any) => {
+    const raw = event.target.value;
+    const num = raw === '' ? '' : Number(raw);
+    setParamValues(prev => {
+      const prevArr = Array.isArray(prev.coordinate) ? prev.coordinate : [ '', '' ];
+      const nextArr: any[] = [...prevArr];
+      nextArr[axis] = Number.isNaN(num as any) ? raw : num;
+      return { ...prev, coordinate: nextArr };
+    });
+  };
+
+  const parseParamValue = (schema: any, raw: any) => {
+    if (raw === '' || raw === undefined || raw === null) return undefined;
+    const type = schema?.type;
+    if (type === 'integer' || type === 'number') {
+      const n = Number(raw);
+      return Number.isNaN(n) ? raw : n;
+    }
+    if (type === 'array' || type === 'object') {
+      if (typeof raw === 'string') {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return raw;
+        }
+      }
+      return raw;
+    }
+    return raw;
+  };
+
+  const handleAddConfiguredAction = () => {
+    if (!selectedTool) {
+      setSnackbarMessage('Please select a tool');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+    if (selectedTool.actions && selectedTool.actions.length > 0 && !selectedAction) {
+      setSnackbarMessage('Please select an action');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+    for (const key of currentRequired) {
+      const val = paramValues[key];
+      if (val === undefined || val === '') {
+        setSnackbarMessage(`Missing required parameter: ${key}`);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        return;
+      }
+    }
+    const builtParams: Record<string, any> = {};
+    Object.entries(currentParamSpec).forEach(([key, schema]) => {
+      const raw = paramValues[key];
+      if (raw !== undefined && raw !== '') {
+        builtParams[key] = parseParamValue(schema as any, raw);
+      }
+    });
+    if (selectedAction) {
+      builtParams.action = selectedAction.name;
+    }
+    const newAction = { name: selectedTool.name, parameters: builtParams };
+    setCustomActions(prev => [...prev, newAction]);
+    setParamValues({});
+    setSelectedActionName('');
+    setSnackbarMessage('Action added');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
+  const handleRemoveConfiguredAction = (index: number) => {
+    setCustomActions(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -626,6 +793,174 @@ const EditApiDefinition = () => {
             Add Parameter
           </Button>
         )}
+      </Paper>
+      {/* Custom Actions */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Custom Actions
+        </Typography>
+
+        {toolsLoading && (
+          <Typography variant="body2" color="textSecondary">Loading tools…</Typography>
+        )}
+        {toolsError && (
+          <Alert severity="error" sx={{ mb: 2 }}>{toolsError}</Alert>
+        )}
+
+        <Grid container spacing={2}>
+          {/* Actions as selectable buttons (no dropdown) */}
+          {selectedTool && selectedTool.actions && selectedTool.actions.length > 0 && (
+            <Grid size={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                <Typography variant="subtitle2">Actions</Typography>
+                {advancedActions.length > 0 && (
+                  <Button
+                    size="small"
+                    onClick={() => setShowAdvancedActions(v => !v)}
+                    disabled={apiDefinition.is_archived}
+                  >
+                    {showAdvancedActions ? 'Hide advanced' : 'Show advanced'}
+                  </Button>
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {primaryActions.map(action => (
+                  <Button
+                    key={action.name}
+                    size="small"
+                    variant={selectedActionName === action.name ? 'contained' : 'outlined'}
+                    onClick={() => setSelectedActionName(action.name)}
+                    disabled={apiDefinition.is_archived}
+                  >
+                    {action.name}
+                  </Button>
+                ))}
+                {showAdvancedActions &&
+                  advancedActions.map(action => (
+                    <Button
+                      key={action.name}
+                      size="small"
+                      variant={selectedActionName === action.name ? 'contained' : 'outlined'}
+                      onClick={() => setSelectedActionName(action.name)}
+                      disabled={apiDefinition.is_archived}
+                    >
+                      {action.name}
+                    </Button>
+                  ))}
+              </Box>
+            </Grid>
+          )}
+
+          {/* Dynamic parameter inputs */}
+          {Object.keys(currentParamSpec).length > 0 && (
+            <Grid size={12}>
+              <Card variant="outlined" sx={{ p: 2 }}>
+                <Grid container spacing={2}>
+                  {Object.entries(currentParamSpec).map(([key, schema]) => {
+                    const sch: any = schema as any;
+                    const type = sch?.type;
+                    const isJson = type === 'array' || type === 'object';
+                    const isNumber = type === 'integer' || type === 'number';
+                    const required = currentRequired.includes(key);
+                    const isCoordinateTuple =
+                      key === 'coordinate' && type === 'array' && sch?.minItems === 2 && sch?.maxItems === 2;
+
+                    if (isCoordinateTuple) {
+                      const xVal = Array.isArray(paramValues.coordinate)
+                        ? (paramValues.coordinate[0] ?? '')
+                        : '';
+                      const yVal = Array.isArray(paramValues.coordinate)
+                        ? (paramValues.coordinate[1] ?? '')
+                        : '';
+                      return (
+                        <Grid key={key} size={{ xs: 12 }}>
+                          <Typography variant="subtitle2">{`${key}${required ? ' *' : ''}`}</Typography>
+                          <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                              label="X"
+                              value={xVal}
+                              onChange={handleCoordinateChange(0)}
+                              fullWidth
+                              margin="normal"
+                              type="number"
+                              disabled={apiDefinition.is_archived}
+                            />
+                            <TextField
+                              label="Y"
+                              value={yVal}
+                              onChange={handleCoordinateChange(1)}
+                              fullWidth
+                              margin="normal"
+                              type="number"
+                              disabled={apiDefinition.is_archived}
+                            />
+                          </Box>
+                        </Grid>
+                      );
+                    }
+
+                    return (
+                      <Grid key={key} size={{ xs: 12, md: 4 }}>
+                        <TextField
+                          label={`${key}${required ? ' *' : ''}`}
+                          value={paramValues[key] ?? ''}
+                          onChange={handleParamChange(key)}
+                          fullWidth
+                          margin="normal"
+                          type={isNumber ? 'number' : 'text'}
+                          multiline={isJson}
+                          rows={isJson ? 3 : 1}
+                          helperText={isJson ? 'Enter valid JSON' : (sch?.description || '')}
+                          disabled={apiDefinition.is_archived}
+                        />
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Card>
+            </Grid>
+          )}
+
+          <Grid size={12}>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddConfiguredAction}
+              sx={{ mt: 1 }}
+              disabled={apiDefinition.is_archived}
+            >
+              Add Action To List
+            </Button>
+          </Grid>
+        </Grid>
+
+        {/* Current configured actions (frontend only) */}
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>Configured Actions</Typography>
+          {customActions.length === 0 ? (
+            <Typography variant="body2" color="textSecondary">No actions added yet</Typography>
+          ) : (
+            <Grid container spacing={2}>
+              {customActions.map((act, idx) => (
+                <Grid key={idx} size={12}>
+                  <Card variant="outlined" sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body1">{act.name}</Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                          {JSON.stringify(act.parameters)}
+                        </Typography>
+                      </Box>
+                      {!apiDefinition.is_archived && (
+                        <Button color="error" variant="outlined" onClick={() => handleRemoveConfiguredAction(idx)}>Remove</Button>
+                      )}
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
       </Paper>
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
