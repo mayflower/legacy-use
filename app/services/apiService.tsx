@@ -405,3 +405,13 @@ export const addCustomActionToApi = async (
   const response = await apiClient.post(`/api/definitions/${apiName}/custom_actions`, payload);
   return response.data;
 };
+
+export const listCustomActions = async (apiName: string) => {
+  const response = await apiClient.get(`/api/definitions/${apiName}/custom_actions`);
+  return response.data?.actions ?? {};
+};
+
+export const deleteCustomAction = async (apiName: string, actionName: string) => {
+  const response = await apiClient.delete(`/api/definitions/${apiName}/custom_actions/${encodeURIComponent(actionName)}`);
+  return response.data;
+};

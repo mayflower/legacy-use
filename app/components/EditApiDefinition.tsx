@@ -28,6 +28,8 @@ import {
   updateApiDefinition,
   getToolsGroup,
   addCustomActionToApi,
+  listCustomActions,
+  deleteCustomAction,
 } from '../services/apiService';
 
 // Local types for editor state (permissive to keep edits minimal)
@@ -115,6 +117,8 @@ const EditApiDefinition = () => {
   const [showAdvancedActions, setShowAdvancedActions] = useState<boolean>(false);
   const [customActionName, setCustomActionName] = useState<string>('');
   const [savingCustomAction, setSavingCustomAction] = useState<boolean>(false);
+  const [existingCustomActions, setExistingCustomActions] = useState<Record<string, any>>({});
+  const [loadingExistingActions, setLoadingExistingActions] = useState<boolean>(false);
 
   // Load API definition details
   useEffect(() => {
@@ -164,6 +168,23 @@ const EditApiDefinition = () => {
     };
     fetchTools();
   }, []);
+
+  // Load existing custom actions for this API
+  useEffect(() => {
+    const fetchExisting = async () => {
+      if (!apiName) return;
+      try {
+        setLoadingExistingActions(true);
+        const actions = await listCustomActions(apiName as string);
+        setExistingCustomActions(actions || {});
+      } catch (err: any) {
+        console.error('Error fetching existing custom actions:', err);
+      } finally {
+        setLoadingExistingActions(false);
+      }
+    };
+    fetchExisting();
+  }, [apiName, snackbarOpen]);
 
   // Load API definition versions
   useEffect(() => {
@@ -627,6 +648,25 @@ const EditApiDefinition = () => {
     }
   };
 
+  const handleDeleteExistingCustomAction = async (name: string) => {
+    if (!apiName) return;
+    try {
+      await deleteCustomAction(apiName as string, name);
+      setSnackbarMessage('Custom action deleted');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      setExistingCustomActions(prev => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    } catch (err: any) {
+      setSnackbarMessage(`Failed to delete custom action: ${err?.message || 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -1013,6 +1053,36 @@ const EditApiDefinition = () => {
                       </Box>
                       {!apiDefinition.is_archived && (
                         <Button color="error" variant="outlined" onClick={() => handleRemoveConfiguredAction(idx)}>Remove</Button>
+                      )}
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
+
+        {/* Existing saved custom actions */}
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="subtitle1" gutterBottom>Saved Custom Actions</Typography>
+          {loadingExistingActions ? (
+            <Typography variant="body2" color="textSecondary">Loading…</Typography>
+          ) : Object.keys(existingCustomActions).length === 0 ? (
+            <Typography variant="body2" color="textSecondary">No saved custom actions</Typography>
+          ) : (
+            <Grid container spacing={2}>
+              {Object.entries(existingCustomActions).map(([name, action]) => (
+                <Grid key={name} size={12}>
+                  <Card variant="outlined" sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body1">{name}</Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                          {JSON.stringify(action.tools?.actions ?? action.actions ?? action)}
+                        </Typography>
+                      </Box>
+                      {!apiDefinition.is_archived && (
+                        <Button color="error" variant="outlined" onClick={() => handleDeleteExistingCustomAction(name)}>Delete</Button>
                       )}
                     </Box>
                   </Card>
