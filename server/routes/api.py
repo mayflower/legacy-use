@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from server.core import APIGatewayCore
-from server.models.base import APIDefinition, Parameter
+from server.models.base import APIDefinition, CustomAction, Parameter
 from server.settings import settings
 from server.utils.db_dependencies import get_tenant_db
 from server.utils.telemetry import (
@@ -527,4 +527,33 @@ async def get_api_definition_metadata(api_name: str, db_tenant=Depends(get_tenan
         'created_at': api_definition.created_at.isoformat(),
         'updated_at': api_definition.updated_at.isoformat(),
         'is_archived': api_definition.is_archived,
+    }
+
+
+# function to add a custom action to the api definition
+@api_router.post(
+    '/definitions/{api_name}/custom_actions',
+    response_model=Dict[str, str],
+    tags=['API Definitions'],
+)
+async def add_custom_action(
+    api_name: str, custom_action: CustomAction, db_tenant=Depends(get_tenant_db)
+):
+    """Add a custom action to the API definition"""
+    api_definition = await db_tenant.get_api_definition_by_name(api_name)
+
+    if not api_definition:
+        raise HTTPException(
+            status_code=404, detail=f"API definition '{api_name}' not found"
+        )
+
+    # Get the latest version of the API definition
+    version = await db_tenant.get_latest_api_definition_version(api_definition.id)
+
+    # Add the custom action to the API definition
+    await db_tenant.append_custom_action(version.id, custom_action)
+
+    return {
+        'status': 'success',
+        'message': f"Custom action '{custom_action.name}' added to API definition '{api_name}'",
     }
