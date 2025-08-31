@@ -341,8 +341,9 @@ async def sampling_loop(
                     # expected to have action_id already in input
                     content_block['input']['api_name'] = job_data['api_name']
                     content_block['input']['parameters'] = job_data['parameters']
+                    content_block['input']['db_tenant'] = db_tenant
                     content_block['input']['tool_collection'] = (
-                        tool_collection  # TODO: crazy anti-pattern?
+                        tool_collection  # TODO: crazy anti-pattern?, maybe get inject all available tools into the tool_collection?
                     )
                     print(
                         'Enriching custom action input with job data, session_id, and session_obj',
