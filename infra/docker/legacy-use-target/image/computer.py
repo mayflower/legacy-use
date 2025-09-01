@@ -245,7 +245,10 @@ class BaseComputerTool:
                 results: list[ToolResult] = []
                 for chunk in chunks(text, TYPING_GROUP_SIZE):
                     if chunk == '\n':
-                        command_parts = [self.xdotool, 'key -- Return']
+                        command_parts = [
+                            self.xdotool,
+                            f'key --delay {TYPING_DELAY_MS} -- Return',
+                        ]
                         await self.shell(' '.join(command_parts), take_screenshot=False)
                     else:
                         command_parts = [
