@@ -244,13 +244,19 @@ class BaseComputerTool:
             elif action == 'type':
                 results: list[ToolResult] = []
                 for chunk in chunks(text, TYPING_GROUP_SIZE):
-                    command_parts = [
-                        self.xdotool,
-                        f'type --delay {TYPING_DELAY_MS} -- {shlex.quote(chunk)}',
-                    ]
-                    results.append(
+                    if chunk == '\n':
+                        command_parts = [self.xdotool, 'key -- Return']
                         await self.shell(' '.join(command_parts), take_screenshot=False)
-                    )
+                    else:
+                        command_parts = [
+                            self.xdotool,
+                            f'type --delay {TYPING_DELAY_MS} -- {shlex.quote(chunk)}',
+                        ]
+                        results.append(
+                            await self.shell(
+                                ' '.join(command_parts), take_screenshot=False
+                            )
+                        )
                 # delay to let things settle before taking a screenshot
                 await asyncio.sleep(self._screenshot_delay)
                 screenshot_base64 = (await self.screenshot()).base64_image
