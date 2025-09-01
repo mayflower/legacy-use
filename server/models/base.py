@@ -21,7 +21,9 @@ class CustomAction(BaseModel):
     """A single custom action with name and parameters."""
 
     name: str = Field(..., description="The tool name to execute (e.g., 'computer')")
-    tools: Dict[str, Any] = Field(..., description='The actions to execute')
+    tools: List[Dict[str, Any]] = Field(
+        ..., description='Ordered list of action objects to execute'
+    )
 
 
 class APIDefinition(BaseModel):

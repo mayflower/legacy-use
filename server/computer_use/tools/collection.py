@@ -6,6 +6,7 @@ from typing import Any, Dict
 from anthropic.types.beta import BetaToolUnionParam
 
 from server.computer_use.logging import logger
+from server.computer_use.tools.custom_action import CustomActionTool
 
 from .base import (
     BaseAnthropicTool,
@@ -52,7 +53,9 @@ def validate_tool_input(
 class ToolCollection:
     """A collection of anthropic-defined tools."""
 
-    def __init__(self, *tools: BaseAnthropicTool):
+    def __init__(self, custom_actions: Dict[str, Any], *tools: BaseAnthropicTool):
+        self.custom_actions = custom_actions
+
         self.tools = tools
         self.tool_map = {tool.to_params()['name']: tool for tool in tools}
 
@@ -84,9 +87,9 @@ class ToolCollection:
             )
 
         try:
-            if isinstance(tool, BaseComputerTool):
+            if isinstance(tool, BaseComputerTool) or isinstance(tool, CustomActionTool):
                 return await tool(session_id=session_id, session=session, **tool_input)
             else:
-                return await tool(**tool_input, session_id=session_id, session=session)
+                return await tool(**tool_input)
         except ToolError as e:
             return ToolFailure(error=e.message)

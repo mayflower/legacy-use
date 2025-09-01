@@ -630,7 +630,7 @@ const EditApiDefinition = () => {
       setSavingCustomAction(true);
       const payload = {
         name: customActionName.trim(),
-        tools: { actions: customActions },
+        tools: customActions,
       };
       await addCustomActionToApi(apiName as string, payload);
       setSnackbarMessage('Custom action saved');
@@ -1078,7 +1078,7 @@ const EditApiDefinition = () => {
                       <Box>
                         <Typography variant="body1">{name}</Typography>
                         <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-wrap' }}>
-                          {JSON.stringify(action.tools?.actions ?? action.actions ?? action)}
+                          {JSON.stringify(action.tools ?? action.actions ?? action)}
                         </Typography>
                       </Box>
                       {!apiDefinition.is_archived && (

@@ -105,6 +105,10 @@ async def sampling_loop(
     for ToolCls in tool_group.tools:
         tools.append(ToolCls())
 
+    # get custom actions by db_tenant
+    custom_actions = db_tenant.get_custom_actions(job_data['api_definition_version_id'])
+    print(f'Custom actions: {custom_actions}')
+
     tool_collection = ToolCollection(*tools)
 
     # Initialize handler for the provider
@@ -341,14 +345,8 @@ async def sampling_loop(
                     # expected to have action_id already in input
                     content_block['input']['api_name'] = job_data['api_name']
                     content_block['input']['parameters'] = job_data['parameters']
-                    content_block['input']['db_tenant'] = db_tenant
                     content_block['input']['tool_collection'] = (
                         tool_collection  # TODO: crazy anti-pattern?, maybe get inject all available tools into the tool_collection?
-                    )
-                    print(
-                        'Enriching custom action input with job data, session_id, and session_obj',
-                        session_id,
-                        session_obj,
                     )
 
                 result = await tool_collection.run(

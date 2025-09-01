@@ -399,7 +399,7 @@ export const getToolsGroup = async (groupName: string) => {
 // Custom Actions (append one action entry for an API)
 export const addCustomActionToApi = async (
   apiName: string,
-  payload: { name: string; tools: any },
+  payload: { name: string; tools: any[] },
 ) => {
   // Use the same double /api scheme as other API definition endpoints in this project
   const response = await apiClient.post(`/api/definitions/${apiName}/custom_actions`, payload);

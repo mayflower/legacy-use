@@ -1385,22 +1385,28 @@ class DatabaseService:
             )
 
             if not api_version:
+                print(f'No API version found for version id: {version_id}')
                 return {}
 
             actions_data = getattr(api_version, 'custom_actions', None) or {}
             validated_actions = {}
 
             for action_name, action_data in actions_data.items():
+                print(f'Action data: {action_data}')
                 try:
                     action = CustomAction(**action_data)
+                    print(f'Action: {action}')
                     validated_actions[action_name] = action.model_dump()
                 except Exception as e:
                     # Log validation error but don't fail
                     logging.warning(
                         f"Invalid custom action data for '{action_name}': {action_data}, error: {e}"
                     )
+                    print(
+                        f'Invalid custom action data for {action_name}: {action_data}, error: {e}'
+                    )
                     continue
-
+            print(f'Validated actions: {validated_actions}')
             return validated_actions
         finally:
             session.close()

@@ -3,8 +3,6 @@ from typing import Literal
 
 from anthropic.types.beta import BetaToolUnionParam
 
-from server.computer_use.tools.collection import ToolCollection
-
 from .base import BaseAnthropicTool, ToolResult
 
 logger = logging.getLogger('server')
@@ -35,8 +33,7 @@ class CustomActionTool(BaseAnthropicTool):
         try:
             action_id = kwargs.get('action_id')
             api_name = kwargs.get('api_name')
-            db_tenant = kwargs.get('db_tenant')
-            tool_collection: ToolCollection | None = kwargs.get('tool_collection')
+            tool_collection = kwargs.get('tool_collection')
 
             if not action_id:
                 return ToolResult(error='Missing required parameter: action_id')
@@ -44,8 +41,6 @@ class CustomActionTool(BaseAnthropicTool):
                 return ToolResult(error='Missing required parameter: api_name')
             if tool_collection is None:
                 return ToolResult(error='Missing required parameter: tool_collection')
-            if db_tenant is None:
-                return ToolResult(error='Missing required parameter: db_tenant')
 
             # Log the reasoning
             logger.info(
