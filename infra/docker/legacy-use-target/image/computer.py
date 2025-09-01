@@ -95,23 +95,23 @@ class ComputerToolOptions(TypedDict):
 
 def chunks(s: str, chunk_size: int) -> list[str]:
     result = []
-    parts = s.split('\n')
+    current_chunk = ''
 
-    for i, part in enumerate(parts):
-        # Add the current part (could be empty string)
-        if part:
-            # Apply regular chunking to non-empty parts
-            result.extend(
-                [part[j : j + chunk_size] for j in range(0, len(part), chunk_size)]
-            )
-        elif i == 0 or i == len(parts) - 1:
-            # Handle empty parts at the beginning or end
-            if part == '':
-                result.append(part)
-
-        # Add newline separator (except after the last part)
-        if i < len(parts) - 1:
+    for char in s:
+        if char == '\n':
+            if current_chunk:
+                result.append(current_chunk)
+                current_chunk = ''
             result.append('\n')
+        else:
+            current_chunk += char
+            if len(current_chunk) == chunk_size:
+                result.append(current_chunk)
+                current_chunk = ''
+
+    # Add any remaining chunk
+    if current_chunk:
+        result.append(current_chunk)
 
     return result
 
