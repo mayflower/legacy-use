@@ -52,41 +52,45 @@ class CustomActionTool(BaseAnthropicTool):
             # TODO: handle dynamic parameter input
             # TODO: How to handle sleep times?
 
+            action = tool_collection.custom_actions.get(action_id, None)
+            if not action:
+                return ToolResult(error=f'Custom action {action_id} not found')
+
             # get all actions by api_name and action_id
-            actions = [
-                {
-                    'name': 'computer',
-                    'parameters': {
-                        'action': 'left_click',
-                        'coordinate': [100, 100],
-                    },
-                },
-                {
-                    'name': 'computer',
-                    'parameters': {'action': 'key', 'text': 'Super_L'},
-                },
-                {
-                    'name': 'computer',
-                    'parameters': {'action': 'type', 'text': 'notepad'},
-                },
-                {
-                    'name': 'computer',
-                    'parameters': {'action': 'key', 'text': 'Return'},
-                },
-                {
-                    'name': 'computer',
-                    'parameters': {'action': 'type', 'text': 'helloworld'},
-                },
-            ]
+            # actions = [
+            #     {
+            #         'name': 'computer',
+            #         'parameters': {
+            #             'action': 'left_click',
+            #             'coordinate': [100, 100],
+            #         },
+            #     },
+            #     {
+            #         'name': 'computer',
+            #         'parameters': {'action': 'key', 'text': 'Super_L'},
+            #     },
+            #     {
+            #         'name': 'computer',
+            #         'parameters': {'action': 'type', 'text': 'notepad'},
+            #     },
+            #     {
+            #         'name': 'computer',
+            #         'parameters': {'action': 'key', 'text': 'Return'},
+            #     },
+            #     {
+            #         'name': 'computer',
+            #         'parameters': {'action': 'type', 'text': 'helloworld'},
+            #     },
+            # ]
 
             results = []
 
             # run all actions
-            for action in actions:
-                logger.info(f'Running action: {action}')
+            for tool_action in action['actions']:
+                logger.info(f'Running action: {tool_action}')
                 result = await tool_collection.run(
-                    name=action['name'],
-                    tool_input=action['parameters'],
+                    name=tool_action['name'],
+                    tool_input=tool_action['parameters'],
                     session_id=kwargs.get('session_id', None),
                     session=kwargs.get('session', None),
                 )

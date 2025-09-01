@@ -357,6 +357,7 @@ async def update_api_definition(
 
         # Check if API with this name exists
         existing_api = await db_tenant.get_api_definition_by_name(api_name)
+        print('existing_api:', existing_api)
 
         if not existing_api:
             raise HTTPException(
@@ -382,6 +383,14 @@ async def update_api_definition(
                 existing_api.id, description=api_def.description
             )
 
+        # get all existing custom actions
+        active_version = await db_tenant.get_active_api_definition_version(
+            existing_api.id
+        )
+        print('active_version:', active_version)
+        existing_custom_actions = db_tenant.get_custom_actions(active_version.id)
+        print('existing_custom_actions:', existing_custom_actions)
+
         # Create a new version with the updated fields
         version_number = await db_tenant.get_next_version_number(existing_api.id)
         await db_tenant.create_api_definition_version(
@@ -394,6 +403,7 @@ async def update_api_definition(
             prompt_cleanup=api_def.prompt_cleanup,
             response_example=api_def.response_example,
             is_active=True,  # Make this the active version
+            custom_actions=existing_custom_actions,
         )
 
         # Get tenant schema for APIGatewayCore

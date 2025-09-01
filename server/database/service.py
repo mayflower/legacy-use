@@ -976,9 +976,9 @@ class DatabaseService:
                 prompt_cleanup=prompt_cleanup,
                 response_example=response_example,
                 is_active=is_active,
+                custom_actions=custom_actions,
             )
             # Set custom actions after creation to avoid constructor issues
-            setattr(api_definition_version, 'custom_actions', custom_actions or {})
             session.add(api_definition_version)
             session.commit()
             return self._to_dict(api_definition_version)
