@@ -107,10 +107,10 @@ async def sampling_loop(
         if ToolCls == CustomActionTool:
             # get api_def specific custom actions
             custom_actions = db_tenant.get_custom_actions(
-                job_data['api_definition_version_id']
+                job_data['api_definition_version_id'],
             )
             print(f'Custom actions: {custom_actions}')
-            tools.append(ToolCls(custom_actions))
+            tools.append(ToolCls(custom_actions, job_data['parameters']))
         else:
             tools.append(ToolCls())
 
@@ -348,8 +348,6 @@ async def sampling_loop(
 
                 if content_block['name'] == 'custom_action':
                     # expected to have action_id already in input
-                    content_block['input']['api_name'] = job_data['api_name']
-                    content_block['input']['parameters'] = job_data['parameters']
                     content_block['input']['tool_collection'] = (
                         tool_collection  # TODO: crazy anti-pattern?, maybe get inject all available tools into the tool_collection?
                     )
