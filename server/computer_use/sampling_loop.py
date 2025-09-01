@@ -109,7 +109,6 @@ async def sampling_loop(
             custom_actions = db_tenant.get_custom_actions(
                 job_data['api_definition_version_id'],
             )
-            print(f'Custom actions: {custom_actions}')
             tools.append(ToolCls(custom_actions, job_data['parameters']))
         else:
             tools.append(ToolCls())
@@ -346,11 +345,11 @@ async def sampling_loop(
                     except Exception as e:
                         logger.warning(f'Could not retrieve session {session_id}: {e}')
 
-                if content_block['name'] == 'custom_action':
-                    # expected to have action_id already in input
-                    content_block['input']['tool_collection'] = (
-                        tool_collection  # TODO: crazy anti-pattern?, maybe get inject all available tools into the tool_collection?
-                    )
+                # if content_block['name'] == 'custom_action':
+                #     # expected to have action_id already in input
+                #     content_block['input']['tool_collection'] = (
+                #         tool_collection  # TODO: crazy anti-pattern?, maybe get inject all available tools into the tool_collection?
+                #     )
 
                 result = await tool_collection.run(
                     name=content_block['name'],

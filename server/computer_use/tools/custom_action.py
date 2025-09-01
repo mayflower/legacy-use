@@ -29,7 +29,10 @@ class CustomActionTool(BaseAnthropicTool):
 
     def _inject_input_parameters(self, tool: Dict[str, Any]) -> Dict[str, Any]:
         if not self.input_parameters:
-            raise ValueError('Missing required parameter: input_parameters')
+            logger.info(
+                f'No input parameters found in custom action tool: {self.input_parameters}'
+            )
+            return tool
         if not tool['parameters']:
             logger.info(f'No parameters found in tool: {tool}')
             return tool
@@ -86,8 +89,6 @@ class CustomActionTool(BaseAnthropicTool):
                 return ToolResult(error='Missing required parameter: action_name')
             if not tool_collection:
                 return ToolResult(error='Missing required parameter: tool_collection')
-            if not self.input_parameters:
-                return ToolResult(error='Missing required parameter: parameters')
 
             # Log the reasoning
             logger.info(

@@ -85,7 +85,14 @@ class ToolCollection:
             )
 
         try:
-            if isinstance(tool, BaseComputerTool) or isinstance(tool, CustomActionTool):
+            if isinstance(tool, CustomActionTool):
+                return await tool(
+                    session_id=session_id,
+                    session=session,
+                    tool_collection=self,
+                    **tool_input,
+                )
+            elif isinstance(tool, BaseComputerTool):
                 return await tool(session_id=session_id, session=session, **tool_input)
             else:
                 return await tool(**tool_input)
