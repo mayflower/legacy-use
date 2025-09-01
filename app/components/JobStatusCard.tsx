@@ -4,6 +4,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ReplayIcon from '@mui/icons-material/Replay';
 import StopIcon from '@mui/icons-material/Stop';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import {
   Box,
   Card,
@@ -17,6 +19,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useLocalStorage } from 'usehooks-ts';
 import { getApiDefinitionVersion } from '../services/apiService';
 
 const JobStatusCard = ({
@@ -39,6 +42,7 @@ const JobStatusCard = ({
 }) => {
   const [versionInfo, setVersionInfo] = useState<any>(null);
   const [loadingVersion, setLoadingVersion] = useState(false);
+  const [showCosts, setShowCosts] = useLocalStorage('showCosts', false);
 
   // Fetch version information if available
   useEffect(() => {
@@ -74,7 +78,8 @@ const JobStatusCard = ({
   const isResolvable = normalizedJobStatus === 'paused' || normalizedJobStatus === 'error';
 
   const renderDurationAndTokens = () => {
-    const duration = formatDuration(job.created_at, job.completed_at);
+    const duration =
+      job.status !== 'canceled' ? formatDuration(job.created_at, job.completed_at) : '-';
     const tokens = tokenUsage
       ? `${(tokenUsage.input ?? 0).toLocaleString()} in / ${(tokenUsage.output ?? 0).toLocaleString()} out`
       : 'N/A';
@@ -100,9 +105,34 @@ const JobStatusCard = ({
         <Typography variant="body2" color="textSecondary">
           •
         </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Tokens: {tokens} {costInfo}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" color="textSecondary">
+            Tokens: {tokens}
+            <span
+              style={{
+                opacity: showCosts ? 1 : 0,
+                marginLeft: '4px',
+              }}
+            >
+              {costInfo}
+            </span>
+          </Typography>
+          {costInfo && (
+            <Tooltip title={showCosts ? 'Hide costs' : 'Show costs'}>
+              <IconButton
+                size="small"
+                onClick={() => setShowCosts(!showCosts)}
+                sx={{ p: 0.5, color: 'text.secondary' }}
+              >
+                {showCosts ? (
+                  <VisibilityOffIcon fontSize="small" />
+                ) : (
+                  <VisibilityIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
     );
   };
