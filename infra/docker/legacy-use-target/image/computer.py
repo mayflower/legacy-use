@@ -94,6 +94,7 @@ class ComputerToolOptions(TypedDict):
 
 
 def chunks(s: str, chunk_size: int) -> list[str]:
+    """Split a string into chunks of a given size and extract newlines as individual chunks."""
     result = []
     current_chunk = ''
 
