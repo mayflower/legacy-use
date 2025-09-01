@@ -20,7 +20,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import Autocomplete from '@mui/material/Autocomplete';
 import { useEffect, useId, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -124,7 +123,6 @@ const EditApiDefinition = () => {
 
   // Available keys for key action
   const [availableKeys, setAvailableKeys] = useState<string[]>([]);
-  const [keysLoading, setKeysLoading] = useState<boolean>(false);
   const [keysError, setKeysError] = useState<string | null>(null);
 
   // Load API definition details
@@ -268,7 +266,6 @@ const EditApiDefinition = () => {
     const loadKeys = async () => {
       if (selectedActionName !== 'key' || availableKeys.length > 0) return;
       try {
-        setKeysLoading(true);
         const keys = await getAvailableKeys();
         if (!cancelled) {
           setAvailableKeys(Array.isArray(keys) ? keys : []);
@@ -278,9 +275,7 @@ const EditApiDefinition = () => {
           setKeysError(`Failed to load keys: ${err?.message || 'Unknown error'}`);
         }
       } finally {
-        if (!cancelled) {
-          setKeysLoading(false);
-        }
+        // no-op
       }
     };
     loadKeys();
@@ -1014,36 +1009,47 @@ const EditApiDefinition = () => {
 
                     // Special Autocomplete for key action's text parameter
                     if (selectedAction?.name === 'key' && key === 'text') {
-                      const selectedKeys =
-                        typeof paramValues.text === 'string' && paramValues.text.trim() !== ''
-                          ? String(paramValues.text)
-                              .split('+')
-                              .map(s => s.trim())
-                              .filter(Boolean)
-                          : [];
+                      const currentText = typeof paramValues.text === 'string' ? paramValues.text : '';
+                      const handleAppendKey = (k: string) => {
+                        const base = currentText.trim();
+                        const next = base ? `${base}+${k}` : k;
+                        setParamValues(prev => ({ ...prev, text: next }));
+                      };
                       return (
-                        <Grid key={key} size={{ xs: 12, md: 6 }}>
-                          <Autocomplete
-                            multiple
-                            freeSolo
-                            options={availableKeys}
-                            value={selectedKeys}
-                            onChange={(_e, newValue) => {
-                              const parts = (newValue as string[]).map(v => String(v).trim()).filter(Boolean);
-                              setParamValues(prev => ({ ...prev, text: parts.join('+') }));
-                            }}
-                            renderInput={params => (
+                        <Grid key={key} size={{ xs: 12 }}>
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, md: 8 }}>
                               <TextField
-                                {...params}
                                 label={`${key}${required ? ' *' : ''}`}
-                                helperText={keysError ? keysError : 'Select keys to combine (joined with +), or type freely'}
+                                value={currentText}
+                                onChange={e => setParamValues(prev => ({ ...prev, text: e.target.value }))}
+                                fullWidth
                                 margin="normal"
+                                helperText={keysError ? keysError : 'Type freely (e.g., ctrl+c) or add from the list'}
                                 disabled={apiDefinition.is_archived}
                               />
-                            )}
-                            disabled={apiDefinition.is_archived}
-                            loading={keysLoading}
-                          />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 4 }}>
+                              <FormControl fullWidth margin="normal" disabled={apiDefinition.is_archived}>
+                                <InputLabel id={`available-keys-label-${key}`}>Add key…</InputLabel>
+                                <Select
+                                  labelId={`available-keys-label-${key}`}
+                                  value=""
+                                  label="Add key…"
+                                  displayEmpty
+                                  onChange={e => {
+                                    const v = e.target.value as string;
+                                    if (v) handleAppendKey(v);
+                                  }}
+                                >
+                                  <MenuItem value=""><em>Add key…</em></MenuItem>
+                                  {availableKeys.map(k => (
+                                    <MenuItem key={k} value={k}>{k}</MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </Grid>
                         </Grid>
                       );
                     }
@@ -1253,3 +1259,4 @@ const EditApiDefinition = () => {
 };
 
 export default EditApiDefinition;
+
