@@ -54,6 +54,12 @@ import {
   updateApiDefinitionApiDefinitionsApiNamePut,
   updateProviderSettingsSettingsProvidersPost,
   updateTargetTargetsTargetIdPut,
+  // Generated: Tools & Custom Actions
+  getToolsGroupToolsGroupGroupNameGet,
+  getKeysToolsKeysGet,
+  addCustomActionApiDefinitionsApiNameCustomActionsPost,
+  listCustomActionsApiDefinitionsApiNameCustomActionsGet,
+  deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete,
 } from '../gen/endpoints';
 import { API_BASE_URL } from '../utils/apiConstants';
 import { forwardDistinctId } from './telemetryService';
@@ -390,16 +396,15 @@ export const getSessionContainerLogs = async (sessionId: string, lines = 1000) =
 
 // Tools
 export const getToolsGroup = async (groupName: string) => {
-  // TODO: auto generate this
-  const response = await apiClient.get(`/tools/group/${groupName}`);
+  const response = (await getToolsGroupToolsGroupGroupNameGet(groupName)) as any;
   // Backend returns { status, message: tool_specifications }
-  return response.data?.message ?? [];
+  return response?.message ?? [];
 };
 
 // Available keys for computer use key action
 export const getAvailableKeys = async (): Promise<string[]> => {
-  const response = await apiClient.get(`/tools/keys`);
-  return response.data?.message ?? [];
+  const response = (await getKeysToolsKeysGet()) as any;
+  return response?.message ?? [];
 };
 
 // Custom Actions (append one action entry for an API)
@@ -407,19 +412,17 @@ export const addCustomActionToApi = async (
   apiName: string,
   payload: { name: string; tools: any[] },
 ) => {
-  // Use the same double /api scheme as other API definition endpoints in this project
-  const response = await apiClient.post(`/api/definitions/${apiName}/custom_actions`, payload);
-  return response.data;
+  return addCustomActionApiDefinitionsApiNameCustomActionsPost(apiName, payload);
 };
 
 export const listCustomActions = async (apiName: string) => {
-  const response = await apiClient.get(`/api/definitions/${apiName}/custom_actions`);
-  return response.data?.actions ?? {};
+  const response = (await listCustomActionsApiDefinitionsApiNameCustomActionsGet(apiName)) as any;
+  return response?.actions ?? {};
 };
 
 export const deleteCustomAction = async (apiName: string, actionName: string) => {
-  const response = await apiClient.delete(
-    `/api/definitions/${apiName}/custom_actions/${encodeURIComponent(actionName)}`,
+  return deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete(
+    apiName,
+    actionName,
   );
-  return response.data;
 };
