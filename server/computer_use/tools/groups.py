@@ -15,7 +15,7 @@ BetaFlag = Literal['computer-use-2024-10-22', 'computer-use-2025-01-24']
 @dataclass(frozen=True, kw_only=True)
 class ToolGroup:
     version: ToolVersion
-    tools: list[type[BaseAnthropicTool]]
+    tools: list[type[BaseAnthropicTool | CustomActionTool]]
     beta_flag: BetaFlag | None = None
 
 

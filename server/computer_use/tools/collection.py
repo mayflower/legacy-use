@@ -53,9 +53,7 @@ def validate_tool_input(
 class ToolCollection:
     """A collection of anthropic-defined tools."""
 
-    def __init__(self, custom_actions: Dict[str, Any], *tools: BaseAnthropicTool):
-        self.custom_actions = custom_actions
-
+    def __init__(self, *tools: BaseAnthropicTool):
         self.tools = tools
         self.tool_map = {tool.to_params()['name']: tool for tool in tools}
 

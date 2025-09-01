@@ -32,6 +32,7 @@ from server.computer_use.tools import (
     ToolResult,
     ToolVersion,
 )
+from server.computer_use.tools.custom_action import CustomActionTool
 from server.computer_use.utils import (
     _beta_message_param_to_job_message_content,
     _job_message_to_beta_message_param,
@@ -103,11 +104,15 @@ async def sampling_loop(
     # Create tools (no longer need database service)
     tools = []
     for ToolCls in tool_group.tools:
-        tools.append(ToolCls())
-
-    # get custom actions by db_tenant
-    custom_actions = db_tenant.get_custom_actions(job_data['api_definition_version_id'])
-    print(f'Custom actions: {custom_actions}')
+        if ToolCls == CustomActionTool:
+            # get api_def specific custom actions
+            custom_actions = db_tenant.get_custom_actions(
+                job_data['api_definition_version_id']
+            )
+            print(f'Custom actions: {custom_actions}')
+            tools.append(ToolCls(custom_actions))
+        else:
+            tools.append(ToolCls())
 
     tool_collection = ToolCollection(*tools)
 

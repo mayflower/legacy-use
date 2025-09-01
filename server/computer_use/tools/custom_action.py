@@ -1,5 +1,5 @@
 import logging
-from typing import Literal
+from typing import Any, Dict, Literal
 
 from anthropic.types.beta import BetaToolUnionParam
 
@@ -10,6 +10,15 @@ logger = logging.getLogger('server')
 
 class CustomActionTool(BaseAnthropicTool):
     name: Literal['custom_action'] = 'custom_action'
+    custom_actions: Dict[str, Any]
+
+    def __init__(self, custom_actions: Dict[str, Any]):
+        super().__init__()
+        print(f'Custom actions: {custom_actions}')
+        self.custom_actions = custom_actions
+
+    def _get_action(self, action_name: str) -> Dict[str, Any]:
+        return self.custom_actions.get(action_name, None)
 
     def to_params(self) -> BetaToolUnionParam:
         return {
@@ -46,13 +55,14 @@ class CustomActionTool(BaseAnthropicTool):
             logger.info(
                 f'Custom action tool called with action_id: {action_id} api_name: {api_name}'
             )
-            logger.info(f'Session: {kwargs.get("session", None)}')
-            logger.info(f'Session ID: {kwargs.get("session_id", None)}')
+            # logger.info(f'Session: {kwargs.get("session", None)}')
+            # logger.info(f'Session ID: {kwargs.get("session_id", None)}')
 
             # TODO: handle dynamic parameter input
             # TODO: How to handle sleep times?
 
-            action = tool_collection.custom_actions.get(action_id, None)
+            action = self._get_action(action_id)
+            print(f'Action: {action}')
             if not action:
                 return ToolResult(error=f'Custom action {action_id} not found')
 
@@ -86,7 +96,7 @@ class CustomActionTool(BaseAnthropicTool):
             results = []
 
             # run all actions
-            for tool_action in action['actions']:
+            for tool_action in action['tools']:
                 logger.info(f'Running action: {tool_action}')
                 result = await tool_collection.run(
                     name=tool_action['name'],
@@ -102,6 +112,6 @@ class CustomActionTool(BaseAnthropicTool):
             # if all went fine return success (and screenshot?)
             return ToolResult(output='Success')
         except Exception as e:
-            error_msg = f'Error processing UI not as expected tool: {str(e)}'
+            error_msg = f'Error processing custom action tool: {str(e)}'
             logger.error(error_msg)
             return ToolResult(error=error_msg)
