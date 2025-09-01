@@ -396,6 +396,12 @@ export const getToolsGroup = async (groupName: string) => {
   return response.data?.message ?? [];
 };
 
+// Available keys for computer use key action
+export const getAvailableKeys = async (): Promise<string[]> => {
+  const response = await apiClient.get(`/tools/keys`);
+  return response.data?.message ?? [];
+};
+
 // Custom Actions (append one action entry for an API)
 export const addCustomActionToApi = async (
   apiName: string,

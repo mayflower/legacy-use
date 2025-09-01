@@ -20,6 +20,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import { useEffect, useId, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -30,6 +31,7 @@ import {
   addCustomActionToApi,
   listCustomActions,
   deleteCustomAction,
+  getAvailableKeys,
 } from '../services/apiService';
 
 // Local types for editor state (permissive to keep edits minimal)
@@ -119,6 +121,11 @@ const EditApiDefinition = () => {
   const [savingCustomAction, setSavingCustomAction] = useState<boolean>(false);
   const [existingCustomActions, setExistingCustomActions] = useState<Record<string, any>>({});
   const [loadingExistingActions, setLoadingExistingActions] = useState<boolean>(false);
+
+  // Available keys for key action
+  const [availableKeys, setAvailableKeys] = useState<string[]>([]);
+  const [keysLoading, setKeysLoading] = useState<boolean>(false);
+  const [keysError, setKeysError] = useState<string | null>(null);
 
   // Load API definition details
   useEffect(() => {
@@ -254,6 +261,33 @@ const EditApiDefinition = () => {
       setIsVersionModified(isModified);
     }
   }, [apiDefinition, originalApiDefinition]);
+
+  // Load available keys for the "key" action
+  useEffect(() => {
+    let cancelled = false;
+    const loadKeys = async () => {
+      if (selectedActionName !== 'key' || availableKeys.length > 0) return;
+      try {
+        setKeysLoading(true);
+        const keys = await getAvailableKeys();
+        if (!cancelled) {
+          setAvailableKeys(Array.isArray(keys) ? keys : []);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setKeysError(`Failed to load keys: ${err?.message || 'Unknown error'}`);
+        }
+      } finally {
+        if (!cancelled) {
+          setKeysLoading(false);
+        }
+      }
+    };
+    loadKeys();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedActionName, availableKeys.length]);
 
   // Handle form field changes
   const handleChange = (field: keyof ApiDefState) => (event: any) => {
@@ -974,6 +1008,42 @@ const EditApiDefinition = () => {
                               disabled={apiDefinition.is_archived}
                             />
                           </Box>
+                        </Grid>
+                      );
+                    }
+
+                    // Special Autocomplete for key action's text parameter
+                    if (selectedAction?.name === 'key' && key === 'text') {
+                      const selectedKeys =
+                        typeof paramValues.text === 'string' && paramValues.text.trim() !== ''
+                          ? String(paramValues.text)
+                              .split('+')
+                              .map(s => s.trim())
+                              .filter(Boolean)
+                          : [];
+                      return (
+                        <Grid key={key} size={{ xs: 12, md: 6 }}>
+                          <Autocomplete
+                            multiple
+                            freeSolo
+                            options={availableKeys}
+                            value={selectedKeys}
+                            onChange={(_e, newValue) => {
+                              const parts = (newValue as string[]).map(v => String(v).trim()).filter(Boolean);
+                              setParamValues(prev => ({ ...prev, text: parts.join('+') }));
+                            }}
+                            renderInput={params => (
+                              <TextField
+                                {...params}
+                                label={`${key}${required ? ' *' : ''}`}
+                                helperText={keysError ? keysError : 'Select keys to combine (joined with +), or type freely'}
+                                margin="normal"
+                                disabled={apiDefinition.is_archived}
+                              />
+                            )}
+                            disabled={apiDefinition.is_archived}
+                            loading={keysLoading}
+                          />
                         </Grid>
                       );
                     }
