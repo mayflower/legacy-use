@@ -49,8 +49,6 @@ interface ApiDefState {
   is_archived: boolean;
 }
 
-// Custom Actions UI moved to ApiCustomActions component
-
 const EditApiDefinition = () => {
   const { apiName } = useParams();
   const navigate = useNavigate();
@@ -83,8 +81,6 @@ const EditApiDefinition = () => {
     'success' | 'error' | 'warning' | 'info'
   >('success');
 
-  // Custom Actions moved to ApiCustomActions component
-
   // Load API definition details
   useEffect(() => {
     const fetchApiDefinition = async () => {
@@ -111,10 +107,6 @@ const EditApiDefinition = () => {
 
     fetchApiDefinition();
   }, [apiName]);
-
-  // Custom Actions tools/effects handled in ApiCustomActions
-
-  // Custom Actions fetching handled in ApiCustomActions
 
   // Load API definition versions
   useEffect(() => {
@@ -184,8 +176,6 @@ const EditApiDefinition = () => {
       setIsVersionModified(isModified);
     }
   }, [apiDefinition, originalApiDefinition]);
-
-  // Custom Actions keys handled in ApiCustomActions
 
   // Handle form field changes
   const handleChange = (field: keyof ApiDefState) => (event: any) => {
@@ -431,8 +421,6 @@ const EditApiDefinition = () => {
       </Alert>
     );
   }
-
-  // Custom Actions logic handled in ApiCustomActions
 
   return (
     <Box>
