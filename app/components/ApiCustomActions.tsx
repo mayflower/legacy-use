@@ -542,7 +542,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
         ) : (
           <Grid container spacing={2}>
             {customActions.map((act, idx) => (
-              <Grid key={idx} size={12}>
+              <Grid key={act.name} size={12}>
                 <Card variant="outlined" sx={{ p: 2 }}>
                   <Box
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
