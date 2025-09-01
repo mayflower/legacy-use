@@ -60,8 +60,6 @@ class CustomActionTool(BaseAnthropicTool):
             if not action:
                 return ToolResult(error=f'Custom action {action_name} not found')
 
-            results = []
-
             # run all actions
             for tool_action in action['tools']:
                 logger.info(f'Running action: {tool_action}')
@@ -71,13 +69,19 @@ class CustomActionTool(BaseAnthropicTool):
                     session_id=kwargs.get('session_id', None),
                     session=kwargs.get('session', None),
                 )
-                logger.info('Action result')
-                results.append(result)
                 if result.error:
                     return ToolResult(error=result.error)
 
+            # screenshot tool to return screenshot as final result
+            return await tool_collection.run(
+                name='computer',
+                tool_input={'action': 'screenshot'},
+                session_id=kwargs.get('session_id', None),
+                session=kwargs.get('session', None),
+            )
+
             # if all went fine return success (and screenshot?)
-            return ToolResult(output='Success')
+            # return ToolResult(output='Success', base64_image=result.base64_image)
         except Exception as e:
             error_msg = f'Error processing custom action tool: {str(e)}'
             logger.error(error_msg)
