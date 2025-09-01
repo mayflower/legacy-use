@@ -16,9 +16,11 @@ class CustomActionTool(BaseAnthropicTool):
         super().__init__()
         print(f'Custom actions: {custom_actions}')
         self.custom_actions = custom_actions or {}
+        # all custom action names to lowercase # TODO: move this to the database service
+        self.custom_actions = {k.lower(): v for k, v in self.custom_actions.items()}
 
     def _get_action(self, action_name: str) -> Dict[str, Any]:
-        return self.custom_actions.get(action_name, None)
+        return self.custom_actions.get(action_name.lower(), None)
 
     def to_params(self) -> BetaToolUnionParam:
         return {
