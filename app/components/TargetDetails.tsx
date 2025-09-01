@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
 import type { Job, Session, Target, TargetBlockingJobsAnyOfItem } from '@/gen/endpoints';
 import { SessionContext } from '../App';
-import { apiClient, deleteSession, getJobs, getSession, getSessions, getTarget } from '../services/apiService';
+import { deleteSession, getJobs, getSession, getSessions, getTarget } from '../services/apiService';
 import { getJobStatusChipColor } from '../utils/jobStatus';
 import DeleteSessionDialog from './DeleteSessionDialog';
 import JobsSection from './JobsSection';
@@ -370,15 +370,6 @@ const TargetDetails = () => {
     setCopySnackbarOpen(false);
   };
 
-  const handleTriggerTool = async () => {
-    console.log('Triggering tool');
-    const response = await apiClient.post(`/sessions/${selectedSession?.id}/tools/custom_action`, {
-      action_id: '123',
-      api_name: 'custom_action',
-    });
-    console.log('Response:', response);
-  };
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -419,11 +410,6 @@ const TargetDetails = () => {
           </Box>
 
           <TargetInfoCard target={target} formatDate={formatDate} />
-
-          {/* Custom trigger for custom action tool */}
-          <Button variant="contained" color="primary" onClick={handleTriggerTool}>
-            Trigger Tool
-          </Button>
 
           <JobsSection
             jobs={jobs}

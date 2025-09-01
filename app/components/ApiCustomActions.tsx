@@ -51,7 +51,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
   // UI state (local to this component)
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'warning' | 'info'
+  >('success');
 
   const [availableTools, setAvailableTools] = useState<ToolSpec[]>([]);
   const [toolsLoading, setToolsLoading] = useState<boolean>(false);
@@ -134,7 +136,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
 
   // Derived helpers for selected tool/action
   const selectedTool: ToolSpec | undefined = availableTools.find(t => t.name === selectedToolName);
-  const selectedAction: ToolActionSpec | undefined = selectedTool?.actions?.find(a => a.name === selectedActionName);
+  const selectedAction: ToolActionSpec | undefined = selectedTool?.actions?.find(
+    a => a.name === selectedActionName,
+  );
 
   // Partition actions into primary vs advanced
   const primaryActionNames = new Set([
@@ -156,7 +160,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
     {};
 
   const currentRequired: string[] =
-    (selectedAction?.required as string[]) || (selectedTool?.input_schema?.required as string[]) || [];
+    (selectedAction?.required as string[]) ||
+    (selectedTool?.input_schema?.required as string[]) ||
+    [];
 
   const handleParamChange = (key: string) => (event: any) => {
     setParamValues(prev => ({ ...prev, [key]: event.target.value }));
@@ -294,7 +300,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
-  const selectedToolHasActions = Boolean(selectedTool && selectedTool.actions && selectedTool.actions.length > 0);
+  const selectedToolHasActions = Boolean(
+    selectedTool && selectedTool.actions && selectedTool.actions.length > 0,
+  );
 
   return (
     <Box>
@@ -303,10 +311,14 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
       </Typography>
 
       {toolsLoading && (
-        <Typography variant="body2" color="textSecondary">Loading tools…</Typography>
+        <Typography variant="body2" color="textSecondary">
+          Loading tools…
+        </Typography>
       )}
       {toolsError && (
-        <Alert severity="error" sx={{ mb: 2 }}>{toolsError}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {toolsError}
+        </Alert>
       )}
 
       <Grid container spacing={2}>
@@ -365,7 +377,10 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                   const isNumber = type === 'integer' || type === 'number';
                   const required = currentRequired.includes(key);
                   const isCoordinateTuple =
-                    key === 'coordinate' && type === 'array' && sch?.minItems === 2 && sch?.maxItems === 2;
+                    key === 'coordinate' &&
+                    type === 'array' &&
+                    sch?.minItems === 2 &&
+                    sch?.maxItems === 2;
 
                   if (isCoordinateTuple) {
                     const xVal = Array.isArray(paramValues.coordinate)
@@ -403,7 +418,8 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
 
                   // Special Autocomplete for key action's text parameter
                   if (selectedAction?.name === 'key' && key === 'text') {
-                    const currentText = typeof paramValues.text === 'string' ? paramValues.text : '';
+                    const currentText =
+                      typeof paramValues.text === 'string' ? paramValues.text : '';
                     const handleAppendKey = (k: string) => {
                       const base = currentText.trim();
                       const next = base ? `${base}+${k}` : k;
@@ -416,10 +432,16 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                             <TextField
                               label={`${key}${required ? ' *' : ''}`}
                               value={currentText}
-                              onChange={e => setParamValues(prev => ({ ...prev, text: e.target.value }))}
+                              onChange={e =>
+                                setParamValues(prev => ({ ...prev, text: e.target.value }))
+                              }
                               fullWidth
                               margin="normal"
-                              helperText={keysError ? keysError : 'Type freely (e.g., ctrl+c) or add from the list'}
+                              helperText={
+                                keysError
+                                  ? keysError
+                                  : 'Type freely (e.g., ctrl+c) or add from the list'
+                              }
                               disabled={isArchived}
                             />
                           </Grid>
@@ -436,9 +458,13 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                                   if (v) handleAppendKey(v);
                                 }}
                               >
-                                <MenuItem value=""><em>Add key…</em></MenuItem>
+                                <MenuItem value="">
+                                  <em>Add key…</em>
+                                </MenuItem>
                                 {availableKeys.map(k => (
-                                  <MenuItem key={k} value={k}>{k}</MenuItem>
+                                  <MenuItem key={k} value={k}>
+                                    {k}
+                                  </MenuItem>
                                 ))}
                               </Select>
                             </FormControl>
@@ -459,7 +485,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                         type={isNumber ? 'number' : 'text'}
                         multiline={isJson}
                         rows={isJson ? 3 : 1}
-                        helperText={isJson ? 'Enter valid JSON' : (sch?.description || '')}
+                        helperText={isJson ? 'Enter valid JSON' : sch?.description || ''}
                         disabled={isArchived}
                       />
                     </Grid>
@@ -485,7 +511,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
 
       {/* Current configured actions (frontend only) */}
       <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1" gutterBottom>Configured Actions</Typography>
+        <Typography variant="subtitle1" gutterBottom>
+          Configured Actions
+        </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
@@ -508,21 +536,35 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
           </Grid>
         </Grid>
         {customActions.length === 0 ? (
-          <Typography variant="body2" color="textSecondary">No actions added yet</Typography>
+          <Typography variant="body2" color="textSecondary">
+            No actions added yet
+          </Typography>
         ) : (
           <Grid container spacing={2}>
             {customActions.map((act, idx) => (
               <Grid key={idx} size={12}>
                 <Card variant="outlined" sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Box>
                       <Typography variant="body1">{act.name}</Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{ whiteSpace: 'pre-wrap' }}
+                      >
                         {JSON.stringify(act.parameters)}
                       </Typography>
                     </Box>
                     {!isArchived && (
-                      <Button color="error" variant="outlined" onClick={() => handleRemoveConfiguredAction(idx)}>Remove</Button>
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => handleRemoveConfiguredAction(idx)}
+                      >
+                        Remove
+                      </Button>
                     )}
                   </Box>
                 </Card>
@@ -534,25 +576,43 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
 
       {/* Existing saved custom actions */}
       <Box sx={{ mt: 4 }}>
-        <Typography variant="subtitle1" gutterBottom>Saved Custom Actions</Typography>
+        <Typography variant="subtitle1" gutterBottom>
+          Saved Custom Actions
+        </Typography>
         {loadingExistingActions ? (
-          <Typography variant="body2" color="textSecondary">Loading…</Typography>
+          <Typography variant="body2" color="textSecondary">
+            Loading…
+          </Typography>
         ) : Object.keys(existingCustomActions).length === 0 ? (
-          <Typography variant="body2" color="textSecondary">No saved custom actions</Typography>
+          <Typography variant="body2" color="textSecondary">
+            No saved custom actions
+          </Typography>
         ) : (
           <Grid container spacing={2}>
             {Object.entries(existingCustomActions).map(([name, action]) => (
               <Grid key={name} size={12}>
                 <Card variant="outlined" sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Box>
                       <Typography variant="body1">{name}</Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{ whiteSpace: 'pre-wrap' }}
+                      >
                         {JSON.stringify((action as any).tools ?? (action as any).actions ?? action)}
                       </Typography>
                     </Box>
                     {!isArchived && (
-                      <Button color="error" variant="outlined" onClick={() => handleDeleteExistingCustomAction(name)}>Delete</Button>
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => handleDeleteExistingCustomAction(name)}
+                      >
+                        Delete
+                      </Button>
                     )}
                   </Box>
                 </Card>
@@ -577,5 +637,3 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
 };
 
 export default ApiCustomActions;
-
-

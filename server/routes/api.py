@@ -357,7 +357,6 @@ async def update_api_definition(
 
         # Check if API with this name exists
         existing_api = await db_tenant.get_api_definition_by_name(api_name)
-        print('existing_api:', existing_api)
 
         if not existing_api:
             raise HTTPException(

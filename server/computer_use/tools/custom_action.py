@@ -18,7 +18,6 @@ class CustomActionTool(BaseAnthropicTool):
         input_parameters: Dict[str, Any] | None = None,
     ):
         super().__init__()
-        print(f'Custom actions: {custom_actions}')
         self.custom_actions = custom_actions or {}
         # all custom action names to lowercase # TODO: move this to the database service
         self.custom_actions = {k.lower(): v for k, v in self.custom_actions.items()}
@@ -47,7 +46,6 @@ class CustomActionTool(BaseAnthropicTool):
 
         for param_name, param_value in self.input_parameters.items():
             placeholder_patterns = '{{' + param_name + '}}'  # {{param_name}
-            logger.info(f'Placeholder patterns: {placeholder_patterns}')
             if placeholder_patterns in tool['parameters'].get('text'):
                 logger.info(
                     f'Replacing placeholder: {placeholder_patterns} with {param_value}'
@@ -106,7 +104,6 @@ class CustomActionTool(BaseAnthropicTool):
             for tool_action in action['tools']:
                 logger.info(f'Running action: {tool_action}')
                 tool_action = self._inject_input_parameters(tool_action)
-                logger.info(f'Action with input parameters: {tool_action}')
                 result = await tool_collection.run(
                     name=tool_action['name'],
                     tool_input=tool_action['parameters'],

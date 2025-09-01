@@ -982,7 +982,6 @@ class DatabaseService:
                 is_active=is_active,
                 custom_actions=custom_actions,
             )
-            # Set custom actions after creation to avoid constructor issues
             session.add(api_definition_version)
             session.commit()
             return self._to_dict(api_definition_version)

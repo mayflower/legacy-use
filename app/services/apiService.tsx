@@ -418,6 +418,8 @@ export const listCustomActions = async (apiName: string) => {
 };
 
 export const deleteCustomAction = async (apiName: string, actionName: string) => {
-  const response = await apiClient.delete(`/api/definitions/${apiName}/custom_actions/${encodeURIComponent(actionName)}`);
+  const response = await apiClient.delete(
+    `/api/definitions/${apiName}/custom_actions/${encodeURIComponent(actionName)}`,
+  );
   return response.data;
 };
