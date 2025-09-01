@@ -421,8 +421,5 @@ export const listCustomActions = async (apiName: string) => {
 };
 
 export const deleteCustomAction = async (apiName: string, actionName: string) => {
-  return deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete(
-    apiName,
-    actionName,
-  );
+  return deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete(apiName, actionName);
 };
