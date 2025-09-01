@@ -94,7 +94,26 @@ class ComputerToolOptions(TypedDict):
 
 
 def chunks(s: str, chunk_size: int) -> list[str]:
-    return [s[i : i + chunk_size] for i in range(0, len(s), chunk_size)]
+    result = []
+    parts = s.split('\n')
+
+    for i, part in enumerate(parts):
+        # Add the current part (could be empty string)
+        if part:
+            # Apply regular chunking to non-empty parts
+            result.extend(
+                [part[j : j + chunk_size] for j in range(0, len(part), chunk_size)]
+            )
+        elif i == 0 or i == len(parts) - 1:
+            # Handle empty parts at the beginning or end
+            if part == '':
+                result.append(part)
+
+        # Add newline separator (except after the last part)
+        if i < len(parts) - 1:
+            result.append('\n')
+
+    return result
 
 
 TRUNCATED_MESSAGE: str = '<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>'
