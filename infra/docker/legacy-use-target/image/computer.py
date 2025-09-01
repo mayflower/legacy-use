@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 OUTPUT_DIR = '/tmp/outputs'
 
-TYPING_DELAY_MS = 12
+TYPING_DELAY_MS = 20
 TYPING_GROUP_SIZE = 50
 
 
