@@ -560,6 +560,7 @@ async def add_custom_action(
     # Get the latest version of the API definition
     version = await db_tenant.get_latest_api_definition_version(api_definition.id)
 
+    print('Appending custom action:', custom_action, 'to version:', version.id)
     # Add the custom action to the API definition
     success = db_tenant.append_custom_action(version.id, custom_action)
     if not success:

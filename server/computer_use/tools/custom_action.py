@@ -12,10 +12,10 @@ class CustomActionTool(BaseAnthropicTool):
     name: Literal['custom_action'] = 'custom_action'
     custom_actions: Dict[str, Any]
 
-    def __init__(self, custom_actions: Dict[str, Any]):
+    def __init__(self, custom_actions: Dict[str, Any] | None = None):
         super().__init__()
         print(f'Custom actions: {custom_actions}')
-        self.custom_actions = custom_actions
+        self.custom_actions = custom_actions or {}
 
     def _get_action(self, action_name: str) -> Dict[str, Any]:
         return self.custom_actions.get(action_name, None)
@@ -27,24 +27,24 @@ class CustomActionTool(BaseAnthropicTool):
             'input_schema': {
                 'type': 'object',
                 'properties': {
-                    'action_id': {
-                        'type': 'string',
+                    'action_name': {
+                        'type': 'string',  # make enum based on custom_actions
                         'description': 'The action id of the custom action',
                     }
                     # api_name and parameters are are handled in the sampling_loop.py and are not required to be passed by the model
                 },
-                'required': ['action_id'],
+                'required': ['action_name'],
             },
         }
 
     async def __call__(self, **kwargs) -> ToolResult:
         """Process the custom action."""
         try:
-            action_id = kwargs.get('action_id')
+            action_name = kwargs.get('action_name')
             api_name = kwargs.get('api_name')
             tool_collection = kwargs.get('tool_collection')
 
-            if not action_id:
+            if not action_name:
                 return ToolResult(error='Missing required parameter: action_id')
             if not api_name:
                 return ToolResult(error='Missing required parameter: api_name')
@@ -53,7 +53,7 @@ class CustomActionTool(BaseAnthropicTool):
 
             # Log the reasoning
             logger.info(
-                f'Custom action tool called with action_id: {action_id} api_name: {api_name}'
+                f'Custom action tool called with action_name: {action_name} api_name: {api_name}'
             )
             # logger.info(f'Session: {kwargs.get("session", None)}')
             # logger.info(f'Session ID: {kwargs.get("session_id", None)}')
@@ -61,10 +61,10 @@ class CustomActionTool(BaseAnthropicTool):
             # TODO: handle dynamic parameter input
             # TODO: How to handle sleep times?
 
-            action = self._get_action(action_id)
+            action = self._get_action(action_name)
             print(f'Action: {action}')
             if not action:
-                return ToolResult(error=f'Custom action {action_id} not found')
+                return ToolResult(error=f'Custom action {action_name} not found')
 
             # get all actions by api_name and action_id
             # actions = [

@@ -1389,6 +1389,15 @@ class DatabaseService:
                 return {}
 
             actions_data = getattr(api_version, 'custom_actions', None) or {}
+            # Normalize to dict shape keyed by action name
+            if isinstance(actions_data, list):
+                normalized_actions: Dict[str, Dict[str, Any]] = {}
+                for item in actions_data:
+                    if isinstance(item, dict) and 'name' in item:
+                        normalized_actions[item['name']] = item
+                actions_data = normalized_actions
+            elif not isinstance(actions_data, dict):
+                actions_data = {}
             validated_actions = {}
 
             for action_name, action_data in actions_data.items():
@@ -1468,11 +1477,27 @@ class DatabaseService:
             )
 
             if not api_version:
+                print(f'No API version found for version id: {version_id}')
                 return False
 
-            actions_data = getattr(api_version, 'custom_actions', None) or {}
-            actions_data[action.name] = action.model_dump()
-            setattr(api_version, 'custom_actions', actions_data)
+            existing = getattr(api_version, 'custom_actions', None)
+            # Normalize existing to dict keyed by action name
+            # TODO simplify this
+            if existing is None:
+                normalized: Dict[str, Dict[str, Any]] = {}
+            elif isinstance(existing, list):
+                normalized = {}
+                for item in existing:
+                    if isinstance(item, dict) and 'name' in item:
+                        normalized[item['name']] = item
+            elif isinstance(existing, dict):
+                normalized = dict(existing)
+            else:
+                normalized = {}
+
+            # Upsert
+            normalized[action.name] = action.model_dump()
+            setattr(api_version, 'custom_actions', normalized)
             session.commit()
             return True
         finally:
