@@ -43,57 +43,22 @@ class CustomActionTool(BaseAnthropicTool):
         """Process the custom action."""
         try:
             action_name = kwargs.get('action_name')
-            api_name = kwargs.get('api_name')
             tool_collection = kwargs.get('tool_collection')
 
             if not action_name:
-                return ToolResult(error='Missing required parameter: action_id')
-            if not api_name:
-                return ToolResult(error='Missing required parameter: api_name')
-            if tool_collection is None:
+                return ToolResult(error='Missing required parameter: action_name')
+            if not tool_collection:
                 return ToolResult(error='Missing required parameter: tool_collection')
 
             # Log the reasoning
-            logger.info(
-                f'Custom action tool called with action_name: {action_name} api_name: {api_name}'
-            )
-            # logger.info(f'Session: {kwargs.get("session", None)}')
-            # logger.info(f'Session ID: {kwargs.get("session_id", None)}')
+            logger.info(f'Custom action tool called with action_name: {action_name}')
 
-            # TODO: handle dynamic parameter input
             # TODO: How to handle sleep times?
 
             action = self._get_action(action_name)
             print(f'Action: {action}')
             if not action:
                 return ToolResult(error=f'Custom action {action_name} not found')
-
-            # get all actions by api_name and action_id
-            # actions = [
-            #     {
-            #         'name': 'computer',
-            #         'parameters': {
-            #             'action': 'left_click',
-            #             'coordinate': [100, 100],
-            #         },
-            #     },
-            #     {
-            #         'name': 'computer',
-            #         'parameters': {'action': 'key', 'text': 'Super_L'},
-            #     },
-            #     {
-            #         'name': 'computer',
-            #         'parameters': {'action': 'type', 'text': 'notepad'},
-            #     },
-            #     {
-            #         'name': 'computer',
-            #         'parameters': {'action': 'key', 'text': 'Return'},
-            #     },
-            #     {
-            #         'name': 'computer',
-            #         'parameters': {'action': 'type', 'text': 'helloworld'},
-            #     },
-            # ]
 
             results = []
 

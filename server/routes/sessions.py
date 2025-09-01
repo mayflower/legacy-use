@@ -803,9 +803,6 @@ async def execute_computer_tool(
     if action == 'custom_action':
         tool_request['api_name'] = 'Tool Test but pixel dependent'
         tool_request['tool_collection'] = tool_collection
-        # TODO include session?
-        # tool_request['session_id'] = session_id
-        # tool_request['session'] = session_obj
 
     # Forward request to container's tool_use endpoint
     try:
