@@ -531,7 +531,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
           <Typography variant="subtitle1" gutterBottom>
             Configured Actions
           </Typography>
-          
+
           <Grid container spacing={2}>
             {customActions.map((act, idx) => (
               <Grid key={`${act.name}-${idx}`} size={{ xs: 12, md: 6 }}>
@@ -540,7 +540,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                   >
                     <Box>
-                      <Typography variant="body1">{ idx + 1 }. { act.name}</Typography>
+                      <Typography variant="body1">
+                        {idx + 1}. {act.name}
+                      </Typography>
                       <Typography
                         variant="body2"
                         color="textSecondary"
