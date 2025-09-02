@@ -41,6 +41,7 @@ class APIDefinitionRuntime:
         self.name = data['name']
         self.description = data['description']
         self.parameters = data.get('parameters', [])
+        self.custom_actions = data.get('custom_actions', {})
         self.prompt = data.get('prompt', '')
         self.prompt_cleanup = data.get('prompt_cleanup', '')
         self.response_example = data.get('response_example', {})

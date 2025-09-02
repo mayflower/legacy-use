@@ -959,7 +959,7 @@ class DatabaseService:
         prompt,
         prompt_cleanup,
         response_example,
-        custom_actions=None,
+        custom_actions: Dict[str, CustomAction] = {},
         is_active=True,
     ):
         """Create a new API definition version."""
@@ -971,7 +971,6 @@ class DatabaseService:
                     APIDefinitionVersion.api_definition_id == api_definition_id,
                     APIDefinitionVersion.is_active,
                 ).update({APIDefinitionVersion.is_active: False})
-
             api_definition_version = APIDefinitionVersion(
                 api_definition_id=api_definition_id,
                 version_number=version_number,
@@ -980,7 +979,8 @@ class DatabaseService:
                 prompt_cleanup=prompt_cleanup,
                 response_example=response_example,
                 is_active=is_active,
-                custom_actions=custom_actions,
+                # Convert CustomAction to dict (json serializable)
+                custom_actions={k: v.model_dump() for k, v in custom_actions.items()},
             )
             session.add(api_definition_version)
             session.commit()

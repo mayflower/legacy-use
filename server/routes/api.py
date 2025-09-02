@@ -129,6 +129,7 @@ async def export_api_definition(
             'api_definition': {
                 'name': api_definition_db.name,
                 'description': api_definition_db.description,
+                'custom_actions': version.custom_actions,
                 'parameters': version.parameters,
                 'prompt': version.prompt,
                 'prompt_cleanup': version.prompt_cleanup,
@@ -155,6 +156,7 @@ async def export_api_definition(
         'api_definition': {
             'name': api.name,
             'description': api.description,
+            'custom_actions': api.custom_actions,
             'parameters': api.parameters,
             'prompt': api.prompt,
             'prompt_cleanup': api.prompt_cleanup,
@@ -266,6 +268,7 @@ class ImportApiDefinitionBody(BaseModel):
     prompt: str
     prompt_cleanup: str
     response_example: Dict[str, Any]
+    custom_actions: Dict[str, CustomAction]
 
 
 class ImportApiDefinitionRequest(BaseModel):
@@ -297,6 +300,7 @@ async def import_api_definition(
                     version_number
                 ),  # Convert to string to ensure consistency
                 parameters=api_def.parameters,
+                custom_actions=api_def.custom_actions,
                 prompt=api_def.prompt,
                 prompt_cleanup=api_def.prompt_cleanup,
                 response_example=api_def.response_example,
@@ -316,6 +320,7 @@ async def import_api_definition(
                 api_definition_id=new_api_dict['id'],
                 version_number=version_number,  # Use string to ensure consistency
                 parameters=[param.model_dump() for param in api_def.parameters],
+                custom_actions=api_def.custom_actions,
                 prompt=api_def.prompt,
                 prompt_cleanup=api_def.prompt_cleanup,
                 response_example=api_def.response_example,

@@ -66,6 +66,7 @@ class APIGatewayCore:
                     'name': api_def.name,
                     'description': api_def.description,
                     'parameters': version.parameters,
+                    'custom_actions': version.custom_actions,
                     'prompt': version.prompt,
                     'prompt_cleanup': version.prompt_cleanup,
                     'response_example': version.response_example,
