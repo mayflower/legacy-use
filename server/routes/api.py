@@ -4,7 +4,7 @@ API definition and execution routes.
 
 import logging
 import traceback
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
@@ -268,7 +268,7 @@ class ImportApiDefinitionBody(BaseModel):
     prompt: str
     prompt_cleanup: str
     response_example: Dict[str, Any]
-    custom_actions: Dict[str, CustomAction]
+    custom_actions: Optional[Dict[str, CustomAction]] = None
 
 
 class ImportApiDefinitionRequest(BaseModel):
@@ -611,11 +611,13 @@ async def delete_custom_action(
         )
 
     version = await db_tenant.get_latest_api_definition_version(api_definition.id)
-    actions = db_tenant.get_custom_actions(version.id)
+    actions: dict[str, CustomAction] = db_tenant.get_custom_actions(version.id)
     if action_name not in actions:
         raise HTTPException(status_code=404, detail='Custom action not found')
     # Remove and persist
+    logger.info(f'Deleting custom action: {action_name}')
     actions.pop(action_name, None)
+    logger.info(f'Updated custom actions: {actions}')
     ok = db_tenant.set_custom_actions(version.id, actions)
     if not ok:
         raise HTTPException(status_code=500, detail='Failed to update custom actions')

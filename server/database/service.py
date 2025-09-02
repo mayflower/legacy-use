@@ -971,6 +971,20 @@ class DatabaseService:
                     APIDefinitionVersion.api_definition_id == api_definition_id,
                     APIDefinitionVersion.is_active,
                 ).update({APIDefinitionVersion.is_active: False})
+
+            def _serialize_custom_actions(actions):
+                if not actions:
+                    return {}
+                result = {}
+                for k, v in actions.items():
+                    if isinstance(v, dict):
+                        result[k] = v
+                    elif hasattr(v, 'model_dump'):
+                        result[k] = v.model_dump()
+                    else:
+                        result[k] = dict(v)
+                return result
+
             api_definition_version = APIDefinitionVersion(
                 api_definition_id=api_definition_id,
                 version_number=version_number,
@@ -979,8 +993,7 @@ class DatabaseService:
                 prompt_cleanup=prompt_cleanup,
                 response_example=response_example,
                 is_active=is_active,
-                # Convert CustomAction to dict (json serializable)
-                custom_actions={k: v.model_dump() for k, v in custom_actions.items()},
+                custom_actions=_serialize_custom_actions(custom_actions),
             )
             session.add(api_definition_version)
             session.commit()

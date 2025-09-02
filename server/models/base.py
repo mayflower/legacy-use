@@ -17,13 +17,22 @@ class Parameter(BaseModel):
     default: Optional[Union[str, List[Any]]] = None
 
 
-class CustomAction(BaseModel):
-    """A single custom action with name and parameters."""
+class CustomActionTool(BaseModel):
+    """A single tool that can be used in a custom action."""
 
-    name: str = Field(..., description="The tool name to execute (e.g., 'computer')")
-    tools: List[Dict[str, Any]] = Field(
-        ..., description='Ordered list of action objects to execute'
+    name: str = Field(..., description='The tool name to execute (e.g., "computer")')
+    parameters: Dict[str, Any] = Field(
+        ..., description='Parameters specific to the tool (e.g., "coordinate")'
     )
+
+
+class CustomAction(BaseModel):
+    """A single custom action with name and a chain of tools to execute."""
+
+    name: str = Field(
+        ..., description="The custom action name to execute (e.g., 'computer')"
+    )
+    tools: List[CustomActionTool] = Field(..., description='Chain of tools to execute')
 
 
 class APIDefinition(BaseModel):
