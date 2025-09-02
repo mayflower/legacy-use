@@ -26,7 +26,6 @@ import {
   listCustomActions,
 } from '../services/apiService';
 
-// Local types for tool specs (frontend-only)
 type ToolActionSpec = {
   name: string;
   params?: Record<string, any>;
@@ -52,7 +51,7 @@ type ApiCustomActionsProps = {
 };
 
 const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
-  // UI state (local to this component)
+  // UI state
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<
@@ -79,11 +78,12 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
   const [availableKeys, setAvailableKeys] = useState<string[]>([]);
   const [keysError, setKeysError] = useState<string | null>(null);
 
-  // Load tools for a specific group (computer_use_20250124) and keep only computer
+  // Load tools for a specific group and keep only computer
   useEffect(() => {
     const fetchTools = async () => {
       try {
         setToolsLoading(true);
+        // hardcoded computer_use_20250124, could be made dynamic at some point, but probably deprecating the 20241022 group is the better option
         const tools = (await getToolsGroup('computer_use_20250124')) as ToolSpec[];
         const computerOnly = (tools || []).filter(t => t.name === 'computer');
         setAvailableTools(computerOnly);
@@ -525,33 +525,13 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
         )}
       </Grid>
 
-      {/* Current configured actions (frontend only) */}
+      {/* Current configured actions */}
       {customActions.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
             Configured Actions
           </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="Custom action name"
-                fullWidth
-                value={customActionName}
-                onChange={e => setCustomActionName(e.target.value)}
-                margin="normal"
-                disabled={isArchived}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
-              <Button
-                variant="contained"
-                onClick={handleSaveCustomAction}
-                disabled={isArchived || savingCustomAction}
-              >
-                {savingCustomAction ? 'Saving…' : 'Save Custom Action'}
-              </Button>
-            </Grid>
-          </Grid>
+          
           <Grid container spacing={2}>
             {customActions.map((act, idx) => (
               <Grid key={`${act.name}-${idx}`} size={{ xs: 12, md: 6 }}>
@@ -560,7 +540,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                   >
                     <Box>
-                      <Typography variant="body1">{act.name}</Typography>
+                      <Typography variant="body1">{ idx + 1 }. { act.name}</Typography>
                       <Typography
                         variant="body2"
                         color="textSecondary"
@@ -582,6 +562,25 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                 </Card>
               </Grid>
             ))}
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Custom action name"
+                fullWidth
+                value={customActionName}
+                onChange={e => setCustomActionName(e.target.value)}
+                margin="normal"
+                disabled={isArchived}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSaveCustomAction}
+                disabled={isArchived || savingCustomAction}
+              >
+                {savingCustomAction ? 'Saving…' : 'Save Custom Action'}
+              </Button>
+            </Grid>
           </Grid>
         </Box>
       )}

@@ -1370,7 +1370,7 @@ class DatabaseService:
             session.close()
 
     # Custom Actions Methods
-    def get_custom_actions(self, version_id: str) -> Dict[str, Dict[str, Any]]:
+    def get_custom_actions(self, version_id: str) -> Dict[str, Dict[str, CustomAction]]:
         """Get custom actions for an API definition version with validation.
 
         Args:
@@ -1422,7 +1422,7 @@ class DatabaseService:
             session.close()
 
     def set_custom_actions(
-        self, version_id: str, actions: Dict[str, Dict[str, Any]]
+        self, version_id: str, actions: Dict[str, Dict[str, CustomAction]]
     ) -> bool:
         """Set custom actions for an API definition version with validation.
 

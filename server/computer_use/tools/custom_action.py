@@ -19,7 +19,7 @@ class CustomActionTool(BaseAnthropicTool):
     ):
         super().__init__()
         self.custom_actions = custom_actions or {}
-        # all custom action names to lowercase # TODO: move this to the database service
+        # all custom action names to lowercase
         self.custom_actions = {k.lower(): v for k, v in self.custom_actions.items()}
         self.input_parameters = input_parameters
 
@@ -68,10 +68,13 @@ class CustomActionTool(BaseAnthropicTool):
                 'type': 'object',
                 'properties': {
                     'action_name': {
-                        'type': 'string',  # make enum based on custom_actions
-                        'description': 'The action id of the custom action',
+                        'type': 'string',
+                        # generating enum dynamically, based on the given custom_actions
+                        'enum': list(self.custom_actions.keys())
+                        if self.custom_actions
+                        else [],
+                        'description': 'The name of the custom action to perform',
                     }
-                    # api_name and parameters are are handled in the sampling_loop.py and are not required to be passed by the model
                 },
                 'required': ['action_name'],
             },
@@ -117,9 +120,6 @@ class CustomActionTool(BaseAnthropicTool):
                 session_id=kwargs.get('session_id', None),
                 session=kwargs.get('session', None),
             )
-
-            # if all went fine return success (and screenshot?)
-            # return ToolResult(output='Success', base64_image=result.base64_image)
         except Exception as e:
             error_msg = f'Error processing custom action tool: {str(e)}'
             logger.error(error_msg)

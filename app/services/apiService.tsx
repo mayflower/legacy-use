@@ -397,7 +397,6 @@ export const getSessionContainerLogs = async (sessionId: string, lines = 1000) =
 // Tools
 export const getToolsGroup = async (groupName: string) => {
   const response = (await getToolsGroupToolsGroupGroupNameGet(groupName)) as any;
-  // Backend returns { status, message: tool_specifications }
   return response?.message ?? [];
 };
 
