@@ -4,9 +4,13 @@ import {
   Box,
   Button,
   Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   Grid,
-  InputLabel,
   MenuItem,
   Select,
   Snackbar,
@@ -69,6 +73,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
   const [savingCustomAction, setSavingCustomAction] = useState<boolean>(false);
   const [existingCustomActions, setExistingCustomActions] = useState<Record<string, any>>({});
   const [loadingExistingActions, setLoadingExistingActions] = useState<boolean>(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState<string | null>(null);
 
   // Available keys for key action
   const [availableKeys, setAvailableKeys] = useState<string[]>([]);
@@ -163,6 +168,8 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
     (selectedAction?.required as string[]) ||
     (selectedTool?.input_schema?.required as string[]) ||
     [];
+
+  const canConfigureSelectedAction = Boolean(selectedAction);
 
   const handleParamChange = (key: string) => (event: any) => {
     setParamValues(prev => ({ ...prev, [key]: event.target.value }));
@@ -298,6 +305,15 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
     }
   };
 
+  const openDeleteConfirm = (name: string) => setDeleteConfirmName(name);
+  const closeDeleteConfirm = () => setDeleteConfirmName(null);
+  const confirmDelete = async () => {
+    if (deleteConfirmName) {
+      await handleDeleteExistingCustomAction(deleteConfirmName);
+    }
+    closeDeleteConfirm();
+  };
+
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
   const selectedToolHasActions = Boolean(
@@ -366,7 +382,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
         )}
 
         {/* Dynamic parameter inputs */}
-        {Object.keys(currentParamSpec).length > 0 && (
+        {canConfigureSelectedAction && Object.keys(currentParamSpec).length > 0 && (
           <Grid size={12}>
             <Card variant="outlined" sx={{ p: 2 }}>
               <Grid container spacing={2}>
@@ -447,11 +463,9 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                           </Grid>
                           <Grid size={{ xs: 12, md: 4 }}>
                             <FormControl fullWidth margin="normal" disabled={isArchived}>
-                              <InputLabel id={`available-keys-label-${key}`}>Add key…</InputLabel>
                               <Select
                                 labelId={`available-keys-label-${key}`}
                                 value=""
-                                label="Add key…"
                                 displayEmpty
                                 onChange={e => {
                                   const v = e.target.value as string;
@@ -496,53 +510,51 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
           </Grid>
         )}
 
-        <Grid size={12}>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleAddConfiguredAction}
-            sx={{ mt: 1 }}
-            disabled={isArchived}
-          >
-            Add Action To List
-          </Button>
-        </Grid>
+        {canConfigureSelectedAction && (
+          <Grid size={12}>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddConfiguredAction}
+              sx={{ mt: 1 }}
+              disabled={isArchived}
+            >
+              Add Action To List
+            </Button>
+          </Grid>
+        )}
       </Grid>
 
       {/* Current configured actions (frontend only) */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Configured Actions
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              label="Custom action name"
-              fullWidth
-              value={customActionName}
-              onChange={e => setCustomActionName(e.target.value)}
-              margin="normal"
-              disabled={isArchived}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button
-              variant="contained"
-              onClick={handleSaveCustomAction}
-              disabled={isArchived || savingCustomAction}
-            >
-              {savingCustomAction ? 'Saving…' : 'Save Custom Action'}
-            </Button>
-          </Grid>
-        </Grid>
-        {customActions.length === 0 ? (
-          <Typography variant="body2" color="textSecondary">
-            No actions added yet
+      {customActions.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Configured Actions
           </Typography>
-        ) : (
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Custom action name"
+                fullWidth
+                value={customActionName}
+                onChange={e => setCustomActionName(e.target.value)}
+                margin="normal"
+                disabled={isArchived}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                variant="contained"
+                onClick={handleSaveCustomAction}
+                disabled={isArchived || savingCustomAction}
+              >
+                {savingCustomAction ? 'Saving…' : 'Save Custom Action'}
+              </Button>
+            </Grid>
+          </Grid>
           <Grid container spacing={2}>
             {customActions.map((act, idx) => (
-              <Grid key={act.name} size={12}>
+              <Grid key={`${act.name}-${idx}`} size={{ xs: 12, md: 6 }}>
                 <Card variant="outlined" sx={{ p: 2 }}>
                   <Box
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
@@ -571,8 +583,8 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
               </Grid>
             ))}
           </Grid>
-        )}
-      </Box>
+        </Box>
+      )}
 
       {/* Existing saved custom actions */}
       <Box sx={{ mt: 4 }}>
@@ -590,7 +602,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
         ) : (
           <Grid container spacing={2}>
             {Object.entries(existingCustomActions).map(([name, action]) => (
-              <Grid key={name} size={12}>
+              <Grid key={name} size={{ xs: 12, md: 6 }}>
                 <Card variant="outlined" sx={{ p: 2 }}>
                   <Box
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
@@ -609,7 +621,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                       <Button
                         color="error"
                         variant="outlined"
-                        onClick={() => handleDeleteExistingCustomAction(name)}
+                        onClick={() => openDeleteConfirm(name)}
                       >
                         Delete
                       </Button>
@@ -621,6 +633,22 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
           </Grid>
         )}
       </Box>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={Boolean(deleteConfirmName)} onClose={closeDeleteConfirm}>
+        <DialogTitle>Delete custom action</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete "{deleteConfirmName}"? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteConfirm}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDelete}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbarOpen}

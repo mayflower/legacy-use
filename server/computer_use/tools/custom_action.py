@@ -93,10 +93,7 @@ class CustomActionTool(BaseAnthropicTool):
                 f'Custom action tool called with action_name: {action_name}, input_parameters: {self.input_parameters}'
             )
 
-            # TODO: How to handle sleep times?
-
             action = self._get_action(action_name)
-            print(f'Action: {action}')
             if not action:
                 return ToolResult(error=f'Custom action {action_name} not found')
 

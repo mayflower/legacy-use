@@ -1404,7 +1404,6 @@ class DatabaseService:
             validated_actions = {}
 
             for action_name, action_data in actions_data.items():
-                print(f'Action data: {action_data}')
                 try:
                     action = CustomAction(**action_data)
                     print(f'Action: {action}')
@@ -1418,7 +1417,6 @@ class DatabaseService:
                         f'Invalid custom action data for {action_name}: {action_data}, error: {e}'
                     )
                     continue
-            print(f'Validated actions: {validated_actions}')
             return validated_actions
         finally:
             session.close()
