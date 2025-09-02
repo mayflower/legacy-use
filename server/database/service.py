@@ -1425,9 +1425,6 @@ class DatabaseService:
                     logging.warning(
                         f"Invalid custom action data for '{action_name}': {action_data}, error: {e}"
                     )
-                    print(
-                        f'Invalid custom action data for {action_name}: {action_data}, error: {e}'
-                    )
                     continue
             return validated_actions
         finally:
