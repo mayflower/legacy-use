@@ -1419,7 +1419,6 @@ class DatabaseService:
             for action_name, action_data in actions_data.items():
                 try:
                     action = CustomAction(**action_data)
-                    print(f'Action: {action}')
                     validated_actions[action_name] = action.model_dump()
                 except Exception as e:
                     # Log validation error but don't fail
