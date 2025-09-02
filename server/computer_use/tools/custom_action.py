@@ -3,7 +3,7 @@ from typing import Any, Dict, Literal
 
 from anthropic.types.beta import BetaToolUnionParam
 
-from .base import BaseAnthropicTool, ToolResult
+from .base import BaseAnthropicTool, ToolError, ToolResult
 
 logger = logging.getLogger('server')
 
@@ -80,16 +80,16 @@ class CustomActionTool(BaseAnthropicTool):
             },
         }
 
-    async def __call__(self, **kwargs) -> ToolResult:
+    async def __call__(self, **kwargs) -> ToolResult | ToolError:
         """Process the custom action."""
         try:
             action_name = kwargs.get('action_name')
             tool_collection = kwargs.get('tool_collection')
 
             if not action_name:
-                return ToolResult(error='Missing required parameter: action_name')
+                return ToolError('Missing required parameter: action_name')
             if not tool_collection:
-                return ToolResult(error='Missing required parameter: tool_collection')
+                return ToolError('Missing required parameter: tool_collection')
 
             # Log the reasoning
             logger.info(
@@ -98,7 +98,9 @@ class CustomActionTool(BaseAnthropicTool):
 
             action = self._get_action(action_name)
             if not action:
-                return ToolResult(error=f'Custom action {action_name} not found')
+                return ToolError(
+                    f'Custom action {action_name} not found',
+                )
 
             # run all actions
             for tool_action in action['tools']:
@@ -111,7 +113,7 @@ class CustomActionTool(BaseAnthropicTool):
                     session=kwargs.get('session', None),
                 )
                 if result.error:
-                    return ToolResult(error=result.error)
+                    return ToolError(result.error)
 
             # screenshot tool to return screenshot as final result
             return await tool_collection.run(
@@ -123,4 +125,4 @@ class CustomActionTool(BaseAnthropicTool):
         except Exception as e:
             error_msg = f'Error processing custom action tool: {str(e)}'
             logger.error(error_msg)
-            return ToolResult(error=error_msg)
+            return ToolError(error_msg)

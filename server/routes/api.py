@@ -299,7 +299,7 @@ async def import_api_definition(
                 version_number=str(
                     version_number
                 ),  # Convert to string to ensure consistency
-                parameters=api_def.parameters,
+                parameters=[param.model_dump() for param in api_def.parameters],
                 custom_actions=api_def.custom_actions,
                 prompt=api_def.prompt,
                 prompt_cleanup=api_def.prompt_cleanup,
@@ -337,7 +337,7 @@ async def import_api_definition(
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
         await core.load_api_definitions()
 
-        capture_api_created(request, api_def, api_id, str(version_number))
+        capture_api_created(request, api_def.model_dump(), api_id, str(version_number))
         return {'status': 'success', 'message': message, 'name': api_def.name}
     except Exception as e:
         logger.error(f'Error importing API definition: {str(e)}')
@@ -419,7 +419,9 @@ async def update_api_definition(
         core = APIGatewayCore(tenant_schema=tenant['schema'], db_tenant=db_tenant)
         await core.load_api_definitions()
 
-        capture_api_updated(request, api_def, existing_api.id, str(version_number))
+        capture_api_updated(
+            request, api_def.model_dump(), existing_api.id, str(version_number)
+        )
 
         return {
             'status': 'success',
