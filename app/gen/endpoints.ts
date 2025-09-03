@@ -45,6 +45,18 @@ export interface BodyAnalyzeVideoTeachingModeAnalyzeVideoPost {
   video: Blob;
 }
 
+export type CustomActionToolsItem = { [key: string]: unknown };
+
+/**
+ * A single custom action with name and parameters.
+ */
+export interface CustomAction {
+  /** The tool name to execute (e.g., 'computer') */
+  name: string;
+  /** Ordered list of action objects to execute */
+  tools: CustomActionToolsItem[];
+}
+
 export interface HTTPValidationError {
   detail?: ValidationError[];
 }
@@ -532,6 +544,14 @@ export type GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGet200 = {
   [key: string]: unknown;
 };
 
+export type AddCustomActionApiDefinitionsApiNameCustomActionsPost200 = { [key: string]: string };
+
+export type ListCustomActionsApiDefinitionsApiNameCustomActionsGet200 = { [key: string]: unknown };
+
+export type DeleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete200 = {
+  [key: string]: string;
+};
+
 export type ListTargetsTargetsGetParams = {
   include_archived?: boolean;
 };
@@ -688,6 +708,47 @@ export const getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet = (apiName
   return customInstance<GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGet200>({
     url: `/api/definitions/${apiName}/metadata`,
     method: 'GET',
+  });
+};
+
+/**
+ * Add a custom action to the API definition
+ * @summary Add Custom Action
+ */
+export const addCustomActionApiDefinitionsApiNameCustomActionsPost = (
+  apiName: string,
+  customAction: CustomAction,
+) => {
+  return customInstance<AddCustomActionApiDefinitionsApiNameCustomActionsPost200>({
+    url: `/api/definitions/${apiName}/custom_actions`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: customAction,
+  });
+};
+
+/**
+ * List custom actions for the latest version of an API definition.
+ * @summary List Custom Actions
+ */
+export const listCustomActionsApiDefinitionsApiNameCustomActionsGet = (apiName: string) => {
+  return customInstance<ListCustomActionsApiDefinitionsApiNameCustomActionsGet200>({
+    url: `/api/definitions/${apiName}/custom_actions`,
+    method: 'GET',
+  });
+};
+
+/**
+ * Delete a custom action by name from the latest version of an API definition.
+ * @summary Delete Custom Action
+ */
+export const deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete = (
+  apiName: string,
+  actionName: string,
+) => {
+  return customInstance<DeleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete200>({
+    url: `/api/definitions/${apiName}/custom_actions/${actionName}`,
+    method: 'DELETE',
   });
 };
 
@@ -984,14 +1045,6 @@ export const getJobTargetsTargetIdJobsJobIdGet = (targetId: string, jobId: strin
 };
 
 /**
- * Get the current status of the job queue for the current tenant.
- * @summary Get Queue Status
- */
-export const getQueueStatusJobsQueueStatusGet = () => {
-  return customInstance<unknown>({ url: `/jobs/queue/status`, method: 'GET' });
-};
-
-/**
  * Interrupt a running, queued, or pending job.
  * @summary Interrupt Job
  */
@@ -1074,42 +1127,6 @@ export const resumeJobTargetsTargetIdJobsJobIdResumePost = (targetId: string, jo
 };
 
 /**
- * Get diagnostic information about the job queue and running jobs for the current tenant.
-
-This is a temporary endpoint to help diagnose issues with the job processing system.
-It provides insights into why jobs might be stuck in the QUEUED state.
- * @summary Diagnose Job Queue
- */
-export const diagnoseJobQueueDiagnosticsQueueGet = () => {
-  return customInstance<unknown>({ url: `/diagnostics/queue`, method: 'GET' });
-};
-
-/**
- * Manually start the job queue processor for the current tenant.
-
-This endpoint can be used to manually start the job queue processor if it's
-not running or has stopped due to an exception.
- * @summary Start Job Processor
- */
-export const startJobProcessorDiagnosticsQueueStartPost = () => {
-  return customInstance<unknown>({ url: `/diagnostics/queue/start`, method: 'POST' });
-};
-
-/**
- * Check if a target has available sessions.
-
-This can help diagnose why jobs for a specific target might be stuck in the QUEUED state.
-For jobs to run, there needs to be at least one session in the "ready" state.
- * @summary Check Target Sessions
- */
-export const checkTargetSessionsDiagnosticsTargetsTargetIdSessionsGet = (targetId: string) => {
-  return customInstance<unknown>({
-    url: `/diagnostics/targets/${targetId}/sessions`,
-    method: 'GET',
-  });
-};
-
-/**
  * Get available VLM providers and their configurations.
  * @summary Get Providers
  */
@@ -1150,16 +1167,28 @@ export const getOpenapiSpecsSpecsOpenapiJsonGet = () => {
 };
 
 /**
+ * Get all tools for a given group.
+ * @summary Get Tools Group
+ */
+export const getToolsGroupToolsGroupGroupNameGet = (groupName: string) => {
+  return customInstance<unknown>({ url: `/tools/group/${groupName}`, method: 'GET' });
+};
+
+/**
+ * Get all keys.
+ * @summary Get Keys
+ */
+export const getKeysToolsKeysGet = () => {
+  return customInstance<unknown>({ url: `/tools/keys`, method: 'GET' });
+};
+
+/**
  * Root endpoint.
  * @summary Root
  */
 export const rootGet = () => {
   return customInstance<unknown>({ url: `/`, method: 'GET' });
 };
-
-type AwaitedInput<T> = PromiseLike<T> | T;
-
-type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 export type GetApiDefinitionsApiDefinitionsGetResult = NonNullable<
   Awaited<ReturnType<typeof getApiDefinitionsApiDefinitionsGet>>
@@ -1191,6 +1220,16 @@ export type UnarchiveApiDefinitionApiDefinitionsApiNameUnarchivePostResult = Non
 export type GetApiDefinitionMetadataApiDefinitionsApiNameMetadataGetResult = NonNullable<
   Awaited<ReturnType<typeof getApiDefinitionMetadataApiDefinitionsApiNameMetadataGet>>
 >;
+export type AddCustomActionApiDefinitionsApiNameCustomActionsPostResult = NonNullable<
+  Awaited<ReturnType<typeof addCustomActionApiDefinitionsApiNameCustomActionsPost>>
+>;
+export type ListCustomActionsApiDefinitionsApiNameCustomActionsGetResult = NonNullable<
+  Awaited<ReturnType<typeof listCustomActionsApiDefinitionsApiNameCustomActionsGet>>
+>;
+export type DeleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDeleteResult =
+  NonNullable<
+    Awaited<ReturnType<typeof deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete>>
+  >;
 export type AnalyzeVideoTeachingModeAnalyzeVideoPostResult = NonNullable<
   Awaited<ReturnType<typeof analyzeVideoTeachingModeAnalyzeVideoPost>>
 >;
@@ -1264,9 +1303,6 @@ export type CreateJobTargetsTargetIdJobsPostResult = NonNullable<
 export type GetJobTargetsTargetIdJobsJobIdGetResult = NonNullable<
   Awaited<ReturnType<typeof getJobTargetsTargetIdJobsJobIdGet>>
 >;
-export type GetQueueStatusJobsQueueStatusGetResult = NonNullable<
-  Awaited<ReturnType<typeof getQueueStatusJobsQueueStatusGet>>
->;
 export type InterruptJobTargetsTargetIdJobsJobIdInterruptPostResult = NonNullable<
   Awaited<ReturnType<typeof interruptJobTargetsTargetIdJobsJobIdInterruptPost>>
 >;
@@ -1285,15 +1321,6 @@ export type ResolveJobTargetsTargetIdJobsJobIdResolvePostResult = NonNullable<
 export type ResumeJobTargetsTargetIdJobsJobIdResumePostResult = NonNullable<
   Awaited<ReturnType<typeof resumeJobTargetsTargetIdJobsJobIdResumePost>>
 >;
-export type DiagnoseJobQueueDiagnosticsQueueGetResult = NonNullable<
-  Awaited<ReturnType<typeof diagnoseJobQueueDiagnosticsQueueGet>>
->;
-export type StartJobProcessorDiagnosticsQueueStartPostResult = NonNullable<
-  Awaited<ReturnType<typeof startJobProcessorDiagnosticsQueueStartPost>>
->;
-export type CheckTargetSessionsDiagnosticsTargetsTargetIdSessionsGetResult = NonNullable<
-  Awaited<ReturnType<typeof checkTargetSessionsDiagnosticsTargetsTargetIdSessionsGet>>
->;
 export type GetProvidersSettingsProvidersGetResult = NonNullable<
   Awaited<ReturnType<typeof getProvidersSettingsProvidersGet>>
 >;
@@ -1303,5 +1330,11 @@ export type UpdateProviderSettingsSettingsProvidersPostResult = NonNullable<
 export type ScalarHtmlSpecsGetResult = NonNullable<Awaited<ReturnType<typeof scalarHtmlSpecsGet>>>;
 export type GetOpenapiSpecsSpecsOpenapiJsonGetResult = NonNullable<
   Awaited<ReturnType<typeof getOpenapiSpecsSpecsOpenapiJsonGet>>
+>;
+export type GetToolsGroupToolsGroupGroupNameGetResult = NonNullable<
+  Awaited<ReturnType<typeof getToolsGroupToolsGroupGroupNameGet>>
+>;
+export type GetKeysToolsKeysGetResult = NonNullable<
+  Awaited<ReturnType<typeof getKeysToolsKeysGet>>
 >;
 export type RootGetResult = NonNullable<Awaited<ReturnType<typeof rootGet>>>;
