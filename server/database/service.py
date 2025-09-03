@@ -905,12 +905,11 @@ class DatabaseService:
 
     async def get_active_api_definition_version_by_name(self, name):
         """Get the active version of an API definition by name."""
-        with self.Session() as session:
-            api_definition = await self.get_api_definition_by_name(name)
-            if not api_definition:
-                return None
+        api_definition = await self.get_api_definition_by_name(name)
+        if not api_definition:
+            return None
 
-            return await self.get_active_api_definition_version(api_definition.id)
+        return await self.get_active_api_definition_version(api_definition.id)
 
     async def get_next_version_number(self, api_definition_id):
         """Get the next version number for an API definition."""
