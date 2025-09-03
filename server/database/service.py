@@ -875,7 +875,11 @@ class DatabaseService:
     async def update_api_definition_version(self, version_id, **kwargs):
         """Update an API definition version."""
         with self.Session() as session:
-            api_definition_version = await self.get_api_definition_version(version_id)
+            api_definition_version = (
+                session.query(APIDefinitionVersion)
+                .filter(APIDefinitionVersion.id == version_id)
+                .one_or_none()
+            )
             if not api_definition_version:
                 return None
 
