@@ -74,6 +74,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
   const [loadingExistingActions, setLoadingExistingActions] = useState<boolean>(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState<string | null>(null);
   const [editingActionName, setEditingActionName] = useState<string | null>(null);
+  const [editingConfiguredIndex, setEditingConfiguredIndex] = useState<number | null>(null);
 
   // Available keys for key action
   const [availableKeys, setAvailableKeys] = useState<string[]>([]);
@@ -240,16 +241,47 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
       builtParams.action = selectedAction.name;
     }
     const newAction = { name: selectedTool.name, parameters: builtParams };
-    setCustomActions(prev => [...prev, newAction]);
+    setCustomActions(prev => {
+      if (editingConfiguredIndex !== null) {
+        const copy = [...prev];
+        copy[editingConfiguredIndex] = newAction;
+        return copy;
+      }
+      return [...prev, newAction];
+    });
     setParamValues({});
     setSelectedActionName('');
-    setSnackbarMessage('Action added');
+    setSnackbarMessage(editingConfiguredIndex !== null ? 'Action updated' : 'Action added');
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
+    setEditingConfiguredIndex(null);
   };
 
   const handleRemoveConfiguredAction = (index: number) => {
     setCustomActions(prev => prev.filter((_, i) => i !== index));
+    if (editingConfiguredIndex !== null) {
+      if (index === editingConfiguredIndex) {
+        cancelEditConfiguredAction();
+      } else if (index < editingConfiguredIndex) {
+        setEditingConfiguredIndex(prev => (prev as number) - 1);
+      }
+    }
+  };
+
+  const handleEditConfiguredAction = (index: number) => {
+    const act = customActions[index];
+    if (!act) return;
+    setSelectedToolName(act.name);
+    const { action, ...params } = act.parameters || {};
+    setSelectedActionName((action as string) || '');
+    setParamValues(params as Record<string, any>);
+    setEditingConfiguredIndex(index);
+  };
+
+  const cancelEditConfiguredAction = () => {
+    setParamValues({});
+    setSelectedActionName('');
+    setEditingConfiguredIndex(null);
   };
 
   const handleSaveCustomAction = async () => {
@@ -333,6 +365,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
     setEditingActionName(name);
     setParamValues({});
     setSelectedActionName('');
+    setEditingConfiguredIndex(null);
   };
 
   const cancelEditing = () => {
@@ -341,6 +374,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
     setEditingActionName(null);
     setParamValues({});
     setSelectedActionName('');
+    setEditingConfiguredIndex(null);
   };
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
@@ -540,7 +574,7 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
         )}
 
         {canConfigureSelectedAction && (
-          <Grid size={12}>
+          <Grid size={12} sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="outlined"
               startIcon={<AddIcon />}
@@ -548,8 +582,18 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
               sx={{ mt: 1 }}
               disabled={isArchived}
             >
-              Add Action To List
+              {editingConfiguredIndex !== null ? 'Update Action' : 'Add Action To List'}
             </Button>
+            {editingConfiguredIndex !== null && (
+              <Button
+                variant="text"
+                onClick={cancelEditConfiguredAction}
+                sx={{ mt: 1 }}
+                disabled={isArchived}
+              >
+                Cancel
+              </Button>
+            )}
           </Grid>
         )}
       </Grid>
@@ -581,13 +625,18 @@ const ApiCustomActions = ({ apiName, isArchived }: ApiCustomActionsProps) => {
                       </Typography>
                     </Box>
                     {!isArchived && (
-                      <Button
-                        color="error"
-                        variant="outlined"
-                        onClick={() => handleRemoveConfiguredAction(idx)}
-                      >
-                        Remove
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button variant="outlined" onClick={() => handleEditConfiguredAction(idx)}>
+                          Edit
+                        </Button>
+                        <Button
+                          color="error"
+                          variant="outlined"
+                          onClick={() => handleRemoveConfiguredAction(idx)}
+                        >
+                          Remove
+                        </Button>
+                      </Box>
                     )}
                   </Box>
                 </Card>
