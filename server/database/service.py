@@ -1496,9 +1496,7 @@ class DatabaseService:
             if not isinstance(existing, dict):
                 setattr(api_version, 'custom_actions', {})
                 existing = api_version.custom_actions
-            existing_dict: MutableMapping[str, Any] = t.cast(
-                MutableMapping[str, Any], existing
-            )
+            existing_dict = t.cast(MutableMapping[str, Any], existing)
 
             # Upsert in place
             existing_dict[action.name] = action.model_dump()
