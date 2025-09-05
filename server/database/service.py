@@ -1455,9 +1455,7 @@ class DatabaseService:
             if not isinstance(existing, dict):
                 setattr(api_version, 'custom_actions', {})
                 existing = api_version.custom_actions
-            existing_dict: MutableMapping[str, Any] = t.cast(
-                MutableMapping[str, Any], existing
-            )
+            existing_dict = t.cast(MutableMapping[str, Any], existing)
 
             if not actions:
                 existing_dict.clear()
