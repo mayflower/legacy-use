@@ -1,6 +1,7 @@
 import logging
+import typing as t
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, MutableMapping, Optional
 from uuid import UUID
 
 import sqlalchemy as sa
@@ -1405,14 +1406,8 @@ class DatabaseService:
                 return {}
 
             actions_data = getattr(api_version, 'custom_actions', None) or {}
-            # Normalize to dict shape keyed by action name
-            if isinstance(actions_data, list):
-                normalized_actions: Dict[str, Dict[str, Any]] = {}
-                for item in actions_data:
-                    if isinstance(item, dict) and 'name' in item:
-                        normalized_actions[item['name']] = item
-                actions_data = normalized_actions
-            elif not isinstance(actions_data, dict):
+
+            if not isinstance(actions_data, dict):
                 actions_data = {}
             validated_actions = {}
 
@@ -1456,8 +1451,14 @@ class DatabaseService:
             if not api_version:
                 return False
 
-            if not actions:
+            existing = getattr(api_version, 'custom_actions', None)
+            if not isinstance(existing, dict):
                 setattr(api_version, 'custom_actions', {})
+                existing = api_version.custom_actions
+            existing_dict = t.cast(MutableMapping[str, Any], existing)
+
+            if not actions:
+                existing_dict.clear()
                 session.commit()
                 return True
 
@@ -1468,7 +1469,8 @@ class DatabaseService:
                     validated_action = CustomAction(**action_data)
                     validated_actions[action_name] = validated_action.model_dump()
 
-                setattr(api_version, 'custom_actions', validated_actions)
+                existing_dict.clear()
+                existing_dict.update(validated_actions)
                 session.commit()
                 return True
             except Exception as e:
@@ -1491,23 +1493,13 @@ class DatabaseService:
                 return False
 
             existing = getattr(api_version, 'custom_actions', None)
-            # Normalize existing to dict keyed by action name
-            # TODO simplify this
-            if existing is None:
-                normalized: Dict[str, Dict[str, Any]] = {}
-            elif isinstance(existing, list):
-                normalized = {}
-                for item in existing:
-                    if isinstance(item, dict) and 'name' in item:
-                        normalized[item['name']] = item
-            elif isinstance(existing, dict):
-                normalized = dict(existing)
-            else:
-                normalized = {}
+            if not isinstance(existing, dict):
+                setattr(api_version, 'custom_actions', {})
+                existing = api_version.custom_actions
+            existing_dict = t.cast(MutableMapping[str, Any], existing)
 
-            # Upsert
-            normalized[action.name] = action.model_dump()
-            setattr(api_version, 'custom_actions', normalized)
+            # Upsert in place
+            existing_dict[action.name] = action.model_dump()
             session.commit()
             return True
         finally:

@@ -14,6 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import declarative_base, relationship
 
 # Import enum types from base models
@@ -135,7 +136,7 @@ class APIDefinitionVersion(Base):
         Boolean, default=True
     )  # Only one version can be active at a time
 
-    custom_actions = Column(JSONB, nullable=True, default=dict)
+    custom_actions = Column(MutableDict.as_mutable(JSONB), nullable=True, default=dict)
 
     # Relationships
     api_definition = relationship('APIDefinition', back_populates='versions')
