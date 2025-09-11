@@ -18,7 +18,9 @@ export default function ProfilePage() {
   const { user, isLoaded } = useUser();
   const [softwareToAutomate, setSoftwareToAutomate] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [showHello, setShowHello] = useState(Boolean((user as any)?.unsafeMetadata?.softwareToAutomate));
+  const [showHello, setShowHello] = useState(
+    Boolean((user as any)?.unsafeMetadata?.softwareToAutomate),
+  );
 
   const name = user?.fullName || user?.username;
 
@@ -106,7 +108,7 @@ export default function ProfilePage() {
                       placeholder="e.g., DATEV, SAP, Lexware, Navision, ..."
                       variant="outlined"
                       value={softwareToAutomate}
-                      onChange={(e) => setSoftwareToAutomate(e.target.value)}
+                      onChange={e => setSoftwareToAutomate(e.target.value)}
                     />
                     <Button
                       variant="contained"
@@ -212,8 +214,8 @@ export default function ProfilePage() {
 
                   {/* Description */}
                   <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
-                    Start automating work in your desktop applications and expose workflows as modern
-                    APIs with our reliable AI agents.
+                    Start automating work in your desktop applications and expose workflows as
+                    modern APIs with our reliable AI agents.
                   </Typography>
                 </Stack>
               </CardContent>
