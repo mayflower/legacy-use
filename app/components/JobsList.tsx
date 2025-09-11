@@ -362,15 +362,17 @@ const JobsList = () => {
                     {job.duration_seconds ? `${Math.round(job.duration_seconds)}s` : '-'}
                   </TableCell>
                   <TableCell>
-                    {(job.total_input_tokens || job.total_output_tokens) ? (
+                    {job.total_input_tokens || job.total_output_tokens ? (
                       <Tooltip
                         title={
                           <>
                             <div>
-                              <strong>Input:</strong> {(job.total_input_tokens ?? 0).toLocaleString()}
+                              <strong>Input:</strong>{' '}
+                              {(job.total_input_tokens ?? 0).toLocaleString()}
                             </div>
                             <div>
-                              <strong>Output:</strong> {(job.total_output_tokens ?? 0).toLocaleString()}
+                              <strong>Output:</strong>{' '}
+                              {(job.total_output_tokens ?? 0).toLocaleString()}
                             </div>
                           </>
                         }
@@ -378,7 +380,9 @@ const JobsList = () => {
                         placement="top"
                       >
                         <span>
-                          {((job.total_input_tokens ?? 0) + (job.total_output_tokens ?? 0)).toLocaleString()}
+                          {(
+                            (job.total_input_tokens ?? 0) + (job.total_output_tokens ?? 0)
+                          ).toLocaleString()}
                         </span>
                       </Tooltip>
                     ) : (
