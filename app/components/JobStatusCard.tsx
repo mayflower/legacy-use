@@ -19,7 +19,6 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLocalStorage } from 'usehooks-ts';
 import { getApiDefinitionVersion } from '../services/apiService';
 
 const JobStatusCard = ({
@@ -42,7 +41,6 @@ const JobStatusCard = ({
 }) => {
   const [versionInfo, setVersionInfo] = useState<any>(null);
   const [loadingVersion, setLoadingVersion] = useState(false);
-  const [showCosts, setShowCosts] = useLocalStorage('showCosts', false);
 
   // Fetch version information if available
   useEffect(() => {
@@ -85,15 +83,6 @@ const JobStatusCard = ({
       : 'N/A';
     const isRunning = normalizedJobStatus === 'running';
 
-    // Calculate costs if token usage is available
-    let costInfo = null as string | null;
-    if (tokenUsage) {
-      const inputCost = ((tokenUsage.input ?? 0) / 1000000) * 3; // $3 per 1M input tokens
-      const outputCost = ((tokenUsage.output ?? 0) / 1000000) * 15; // $15 per 1M output tokens
-      const totalCost = inputCost + outputCost;
-      costInfo = `($${totalCost.toFixed(3)})`;
-    }
-
     return (
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -108,30 +97,7 @@ const JobStatusCard = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body2" color="textSecondary">
             Tokens: {tokens}
-            <span
-              style={{
-                opacity: showCosts ? 1 : 0,
-                marginLeft: '4px',
-              }}
-            >
-              {costInfo}
-            </span>
           </Typography>
-          {costInfo && (
-            <Tooltip title={showCosts ? 'Hide costs' : 'Show costs'}>
-              <IconButton
-                size="small"
-                onClick={() => setShowCosts(!showCosts)}
-                sx={{ p: 0.5, color: 'text.secondary' }}
-              >
-                {showCosts ? (
-                  <VisibilityOffIcon fontSize="small" />
-                ) : (
-                  <VisibilityIcon fontSize="small" />
-                )}
-              </IconButton>
-            </Tooltip>
-          )}
         </Box>
       </Box>
     );
