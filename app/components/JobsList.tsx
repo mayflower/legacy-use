@@ -362,16 +362,25 @@ const JobsList = () => {
                     {job.duration_seconds ? `${Math.round(job.duration_seconds)}s` : '-'}
                   </TableCell>
                   <TableCell>
-                    {(job.total_input_tokens ?? 0) || (job.total_output_tokens ?? 0) ? (
-                      <>
-                        {(job.total_input_tokens ?? 0) + (job.total_output_tokens ?? 0)}
-                        {(() => {
-                          const inputCost = ((job.total_input_tokens ?? 0) / 1000000) * 3; // $3 per 1M input tokens
-                          const outputCost = ((job.total_output_tokens ?? 0) / 1000000) * 15; // $15 per 1M output tokens
-                          const totalCost = inputCost + outputCost;
-                          return ` ($${totalCost.toFixed(3)})`;
-                        })()}
-                      </>
+                    {(job.total_input_tokens || job.total_output_tokens) ? (
+                      <Tooltip
+                        title={
+                          <>
+                            <div>
+                              <strong>Input:</strong> {(job.total_input_tokens ?? 0).toLocaleString()}
+                            </div>
+                            <div>
+                              <strong>Output:</strong> {(job.total_output_tokens ?? 0).toLocaleString()}
+                            </div>
+                          </>
+                        }
+                        arrow
+                        placement="top"
+                      >
+                        <span>
+                          {((job.total_input_tokens ?? 0) + (job.total_output_tokens ?? 0)).toLocaleString()}
+                        </span>
+                      </Tooltip>
                     ) : (
                       '-'
                     )}
