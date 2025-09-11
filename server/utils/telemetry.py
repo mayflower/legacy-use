@@ -406,3 +406,32 @@ def capture_job_log_created(job_id: UUID, log: dict):
         )
     except Exception as e:
         logger.debug(f"Telemetry event 'job_log_created' failed: {e}")
+
+
+def capture_ai_generation(request: Request, properties: dict):
+    """
+    Integrates manual capture of poshog LLM-analytics events
+    """
+    try:
+        capture_event(
+            request,
+            '$ai_generation',
+            {
+                '$ai_trace_id': properties.get('ai_trace_id', ''),
+                '$ai_span_id': properties.get('ai_span_id', ''),
+                '$ai_span_name': properties.get('ai_span_name', ''),
+                '$ai_parent_id': properties.get('ai_generation_name', ''),
+                '$ai_model': properties.get('ai_span_description', ''),
+                '$ai_provider': properties.get('ai_span_status', ''),
+                # "$ai_input": properties.get('ai_input', ''), // should we track? seems too sensitive
+                # "$ai_output_choices": properties.get('ai_output_choices', ''), // should we track? seems too sensitive
+                '$ai_input_tokens': properties.get('ai_input_tokens', ''),
+                '$ai_output_tokens': properties.get('ai_output_tokens', ''),
+                '$ai_latency': properties.get('ai_latency', ''),
+                '$ai_http_status': properties.get('ai_http_status', ''),
+                '$ai_temperature': properties.get('ai_temperature', ''),
+                '$ai_max_tokens': properties.get('ai_max_tokens', ''),
+            },
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry event 'ai_generation' failed: {e}")
