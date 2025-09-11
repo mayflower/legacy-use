@@ -4,8 +4,6 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ReplayIcon from '@mui/icons-material/Replay';
 import StopIcon from '@mui/icons-material/Stop';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import {
   Box,
   Card,
