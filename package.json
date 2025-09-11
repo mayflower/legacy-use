@@ -39,7 +39,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.3",
+    "@biomejs/biome": "^2.2.4",
     "@swc/plugin-emotion": "^11.1.0",
     "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
