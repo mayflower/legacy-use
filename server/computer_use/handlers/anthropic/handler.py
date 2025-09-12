@@ -256,7 +256,7 @@ class AnthropicHandler(BaseProviderHandler):
         capture_ai_generation(
             {
                 'ai_trace_id': job_id,
-                'ai_span_id': iteration_count,
+                'ai_parent_id': iteration_count,
                 'ai_provider': self.provider,
                 'ai_model': model,
                 'ai_input_tokens': parsed_response.usage.input_tokens,

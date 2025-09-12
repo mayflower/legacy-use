@@ -21,7 +21,7 @@ from server.models.base import (
     JobStatus,
 )
 from server.settings_tenant import get_tenant_setting
-from server.utils.telemetry import capture_ai_span
+from server.utils.telemetry import capture_ai_span, capture_ai_trace
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -163,10 +163,11 @@ class APIGatewayCore:
         # The 'messages' list is now correctly populated (either with initial prompt or empty)
 
         try:
-            capture_ai_span(
+            capture_ai_trace(
                 {
                     'ai_trace_id': str(job_id),
                     'ai_span_name': 'sampling_loop start',
+                    'tenant': self.tenant_schema,
                 }
             )
 

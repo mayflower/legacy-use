@@ -420,6 +420,7 @@ def capture_ai_trace(properties: dict):
             {
                 '$ai_trace_id': properties.get('ai_trace_id'),
                 '$ai_span_name': properties.get('ai_span_name'),
+                'tenant': properties.get('tenant'),
             },
         )
     except Exception as e:
