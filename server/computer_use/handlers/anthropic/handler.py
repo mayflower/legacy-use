@@ -30,7 +30,7 @@ from server.computer_use.tools.collection import ToolCollection
 from server.settings import settings
 
 from .message_converter import inject_prompt_caching
-from .response_converter import convert_from_provider_response
+from .response_converter import convert_anthropic_response
 
 AnthropicClient = (
     AsyncAnthropic | AsyncAnthropicBedrock | AsyncAnthropicVertex | LegacyUseClient
@@ -251,7 +251,9 @@ class AnthropicHandler(BaseProviderHandler):
         )
 
         # Convert response to standardized format
-        content_blocks, stop_reason = convert_from_provider_response(parsed_response)
+        content_blocks, stop_reason = self.convert_from_provider_response(
+            parsed_response
+        )
 
         return content_blocks, stop_reason, request, raw_response
 
@@ -262,4 +264,4 @@ class AnthropicHandler(BaseProviderHandler):
         Convert Anthropic response to content blocks and stop reason.
         Response is already in Anthropic format.
         """
-        return convert_from_provider_response(response)
+        return convert_anthropic_response(response)
