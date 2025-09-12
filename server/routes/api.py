@@ -12,6 +12,11 @@ from pydantic import BaseModel
 from server.core import APIGatewayCore
 from server.models.base import APIDefinition, CustomAction, Parameter
 from server.settings import settings
+from server.utils.api_definitions import (
+    get_api_parameters,
+    get_api_response_example,
+    get_api_response_schema,
+)
 from server.utils.db_dependencies import get_tenant_db
 from server.utils.telemetry import (
     capture_api_created,
@@ -50,24 +55,6 @@ async def get_api_definitions(
         )
         for api_def in api_definitions
     ]
-
-
-async def get_api_parameters(api_def, db_tenant):
-    """Get parameters for an API definition."""
-    version = await db_tenant.get_active_api_definition_version(api_def.id)
-    return version.parameters if version else []
-
-
-async def get_api_response_example(api_def, db_tenant):
-    """Get response example for an API definition."""
-    version = await db_tenant.get_active_api_definition_version(api_def.id)
-    return version.response_example if version else {}
-
-
-async def get_api_response_schema(api_def, db_tenant):
-    """Get response schema for an API definition."""
-    version = await db_tenant.get_active_api_definition_version(api_def.id)
-    return version.response_schema if version else {}
 
 
 @api_router.get(
