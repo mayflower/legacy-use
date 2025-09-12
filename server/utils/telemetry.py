@@ -427,7 +427,6 @@ def capture_ai_trace(properties: dict):
         logger.debug(f"Telemetry event 'ai_trace' failed: {e}")
 
 
-# TODO: add typing to properties
 def capture_ai_generation(properties: dict):
     """
     Integrates manual capture of poshog LLM-analytics events
@@ -447,8 +446,8 @@ def capture_ai_generation(properties: dict):
                 '$ai_parent_id': properties.get('ai_parent_id'),
                 '$ai_model': properties.get('ai_model'),
                 '$ai_provider': properties.get('ai_provider'),
-                # "$ai_input": properties.get('ai_input'), # should we track? seems too sensitive # TODO: include but redact any screenshots
-                # "$ai_output_choices": properties.get('ai_output_choices', ''), # should we track? seems too sensitive # TODO: include but redact any screenshots, but inlcude which tools were invoked
+                # "$ai_input": properties.get('ai_input'), # removed for now, since it may contain sensitive information; may include redacted content in the future
+                # "$ai_output_choices": properties.get('ai_output_choices', ''), # removed for now, since it may contain sensitive information; may include redacted content in the future
                 '$ai_input_tokens': properties.get('ai_input_tokens'),
                 '$ai_output_tokens': properties.get('ai_output_tokens'),
                 '$ai_cache_read_input_tokens': properties.get(
@@ -465,7 +464,6 @@ def capture_ai_generation(properties: dict):
         logger.debug(f"Telemetry event 'ai_generation' failed: {e}")
 
 
-# TODO: add typing to properties
 def capture_ai_span(properties: dict):
     """
     Integrates manual capture of poshog LLM-analytics events

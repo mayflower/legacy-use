@@ -240,8 +240,6 @@ class OpenAIHandler(BaseProviderHandler):
             **kwargs,
         )
 
-        print(f'Parsed response: {parsed_response}')
-
         self._capture_generation(
             parsed_response=parsed_response,
             job_id=job_id,
