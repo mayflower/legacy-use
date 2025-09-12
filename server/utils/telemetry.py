@@ -23,6 +23,7 @@ distinct_id_context: ContextVar[str] = ContextVar('distinct_id', default='extern
 posthog = Posthog(
     settings.VITE_PUBLIC_POSTHOG_KEY,
     host=settings.VITE_PUBLIC_POSTHOG_HOST,
+    debug=True,
 )
 
 
@@ -408,30 +409,78 @@ def capture_job_log_created(job_id: UUID, log: dict):
         logger.debug(f"Telemetry event 'job_log_created' failed: {e}")
 
 
-def capture_ai_generation(request: Request, properties: dict):
+def capture_ai_trace(properties: dict):
     """
     Integrates manual capture of poshog LLM-analytics events
     """
     try:
         capture_event(
-            request,
+            None,
+            '$ai_trace',
+            {
+                '$ai_trace_id': properties.get('ai_trace_id'),
+                '$ai_span_name': properties.get('ai_span_name'),
+            },
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry event 'ai_trace' failed: {e}")
+
+
+# TODO: add typing to properties
+def capture_ai_generation(properties: dict):
+    """
+    Integrates manual capture of poshog LLM-analytics events
+    """
+    try:
+        capture_event(
+            None,
             '$ai_generation',
             {
-                '$ai_trace_id': properties.get('ai_trace_id', ''),
-                '$ai_span_id': properties.get('ai_span_id', ''),
-                '$ai_span_name': properties.get('ai_span_name', ''),
-                '$ai_parent_id': properties.get('ai_generation_name', ''),
-                '$ai_model': properties.get('ai_span_description', ''),
-                '$ai_provider': properties.get('ai_span_status', ''),
-                # "$ai_input": properties.get('ai_input', ''), // should we track? seems too sensitive
-                # "$ai_output_choices": properties.get('ai_output_choices', ''), // should we track? seems too sensitive
-                '$ai_input_tokens': properties.get('ai_input_tokens', ''),
-                '$ai_output_tokens': properties.get('ai_output_tokens', ''),
-                '$ai_latency': properties.get('ai_latency', ''),
-                '$ai_http_status': properties.get('ai_http_status', ''),
-                '$ai_temperature': properties.get('ai_temperature', ''),
-                '$ai_max_tokens': properties.get('ai_max_tokens', ''),
+                '$ai_trace_id': properties.get('ai_trace_id'),  # like conversation_id
+                '$ai_span_id': properties.get(
+                    'ai_span_id'
+                ),  # (Optional) Unique identifier for this generation
+                '$ai_span_name': properties.get(
+                    'ai_span_name'
+                ),  # (Optional) Name given to this generation
+                '$ai_parent_id': properties.get('ai_parent_id'),
+                '$ai_model': properties.get('ai_model'),
+                '$ai_provider': properties.get('ai_provider'),
+                # "$ai_input": properties.get('ai_input'), # should we track? seems too sensitive # TODO: include but redact any screenshots
+                # "$ai_output_choices": properties.get('ai_output_choices', ''), # should we track? seems too sensitive # TODO: include but redact any screenshots, but inlcude which tools were invoked
+                '$ai_input_tokens': properties.get('ai_input_tokens'),
+                '$ai_output_tokens': properties.get('ai_output_tokens'),
+                '$ai_cache_read_input_tokens': properties.get(
+                    'ai_cache_read_input_tokens'
+                ),
+                '$ai_cache_creation_input_tokens': properties.get(
+                    'ai_cache_creation_input_tokens'
+                ),
+                '$ai_temperature': properties.get('ai_temperature'),
+                '$ai_max_tokens': properties.get('ai_max_tokens'),
             },
         )
     except Exception as e:
         logger.debug(f"Telemetry event 'ai_generation' failed: {e}")
+
+
+# TODO: add typing to properties
+def capture_ai_span(properties: dict):
+    """
+    Integrates manual capture of poshog LLM-analytics events
+    """
+    try:
+        capture_event(
+            None,
+            '$ai_span',
+            {
+                '$ai_trace_id': properties.get('ai_trace_id'),
+                '$ai_span_id': properties.get('ai_span_id'),
+                '$ai_span_name': properties.get('ai_span_name'),
+                '$ai_parent_id': properties.get('ai_parent_id'),
+                '$ai_is_error': properties.get('ai_is_error'),
+                '$ai_error': properties.get('ai_error'),
+            },
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry event 'ai_span' failed: {e}")
