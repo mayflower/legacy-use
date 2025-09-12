@@ -31,8 +31,14 @@ logger = logging.getLogger(__name__)
 api_router = APIRouter(prefix='/api')  # Removed the tags=["API"] to prevent duplication
 
 
+class APIDefinitionWithSchema(APIDefinition):
+    response_schema: dict[str, Any]
+
+
 @api_router.get(
-    '/definitions', response_model=List[APIDefinition], tags=['API Definitions']
+    '/definitions',
+    response_model=List[APIDefinitionWithSchema],
+    tags=['API Definitions'],
 )
 async def get_api_definitions(
     include_archived: bool = False, db_tenant=Depends(get_tenant_db)
@@ -45,7 +51,7 @@ async def get_api_definitions(
 
     # Convert to API definition objects
     return [
-        APIDefinition(
+        APIDefinitionWithSchema(
             name=api_def.name,
             description=api_def.description,
             parameters=await get_api_parameters(api_def, db_tenant),
