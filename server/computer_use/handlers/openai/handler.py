@@ -251,7 +251,7 @@ class OpenAIHandler(BaseProviderHandler):
         )
 
         # Convert response to standardized format
-        content_blocks, stop_reason = convert_openai_to_anthropic_response(
+        content_blocks, stop_reason = self.convert_from_provider_response(
             parsed_response
         )
 
