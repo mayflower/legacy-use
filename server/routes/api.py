@@ -45,6 +45,7 @@ async def get_api_definitions(
             description=api_def.description,
             parameters=await get_api_parameters(api_def, db_tenant),
             response_example=await get_api_response_example(api_def, db_tenant),
+            response_schema=await get_api_response_schema(api_def, db_tenant),
             is_archived=api_def.is_archived,
         )
         for api_def in api_definitions
@@ -61,6 +62,12 @@ async def get_api_response_example(api_def, db_tenant):
     """Get response example for an API definition."""
     version = await db_tenant.get_active_api_definition_version(api_def.id)
     return version.response_example if version else {}
+
+
+async def get_api_response_schema(api_def, db_tenant):
+    """Get response schema for an API definition."""
+    version = await db_tenant.get_active_api_definition_version(api_def.id)
+    return version.response_schema if version else {}
 
 
 @api_router.get(
