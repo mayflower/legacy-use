@@ -152,11 +152,10 @@ async def sampling_loop(
         logger.info(f'Added initial message seq {current_sequence} for job {job_id}')
         current_sequence += 1
 
-    iteration_count = -1
+    iteration_count = 0
 
     # TODO: Split up this very long loop into smaller functions
     while True:
-        iteration_count += 1
         capture_ai_span(
             {
                 'ai_trace_id': str(job_id),
@@ -165,6 +164,7 @@ async def sampling_loop(
                 'ai_span_name': 'iteration',
             }
         )
+        iteration_count += 1
         # --- Fetch current history from DB --- START
         try:
             db_messages = db_tenant.get_job_messages(job_id)
