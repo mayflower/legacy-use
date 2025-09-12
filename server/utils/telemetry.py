@@ -23,7 +23,6 @@ distinct_id_context: ContextVar[str] = ContextVar('distinct_id', default='extern
 posthog = Posthog(
     settings.VITE_PUBLIC_POSTHOG_KEY,
     host=settings.VITE_PUBLIC_POSTHOG_HOST,
-    debug=True,
 )
 
 
