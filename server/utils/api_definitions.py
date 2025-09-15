@@ -5,7 +5,9 @@ These helpers encapsulate common database lookups for API definition
 parameters, response examples, and response schemas.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, Hashable, List, Mapping, cast
+
+from openapi_schema_validator import validate
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
@@ -74,6 +76,16 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     return schema
 
 
+def validate_schema(schema: Dict[str, Any], data: Dict[str, Any]) -> tuple[bool, str]:
+    """Validate data against a schema."""
+    try:
+        # TODO: too strict?
+        validate(data, cast(Mapping[Hashable, Any], schema))
+        return True, ''
+    except Exception as e:
+        return False, str(e)
+
+
 async def get_api_parameters(api_def_id, db_tenant):
     """Get parameters for an API definition's active version."""
     version = await db_tenant.get_active_api_definition_version(api_def_id)
@@ -88,12 +100,17 @@ async def get_api_response_example(api_def_id, db_tenant):
 
 async def get_api_response_schema(api_def_id, db_tenant):
     """Get response schema for an API definition's active version."""
-    print(f'Getting response schema for api_def_id: {api_def_id}')
     version = await db_tenant.get_active_api_definition_version(api_def_id)
-    print(f'Version: {version}')
     response_example = version.response_example if version else {}
 
-    print(f'Response example: {response_example}')
+    # infer schema from response example
+    return infer_schema_from_response_example(response_example)
+
+
+async def get_api_response_schema_by_version_id(api_def_version_id, db_tenant):
+    """Get response schema for an API definition's version."""
+    version = await db_tenant.get_api_definition_version(api_def_version_id)
+    response_example = version.response_example if version else {}
 
     # infer schema from response example
     return infer_schema_from_response_example(response_example)
