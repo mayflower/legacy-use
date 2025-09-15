@@ -18,12 +18,12 @@ class ExtractionTool(BaseAnthropicTool):
 
     name: Literal['extraction'] = 'extraction'
 
-    def __init__(self, response_schema: Dict[str, Any], *args, **kwargs):
+    def __init__(self, response_schema: Dict[str, Any] | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         logger.info(
             f'Extraction tool initialized with response schema: {response_schema}'
         )
-        self.response_schema = response_schema
+        self.response_schema = response_schema or {}
 
     def to_params(self) -> BetaToolUnionParam:
         # TODO: Add the response schema to the input schema
@@ -65,11 +65,14 @@ class ExtractionTool(BaseAnthropicTool):
             logger.info(f'Extraction tool formatted JSON: {serialized_data}')
 
             # validate the data adheres to the response schema
-            valid, error = validate_schema(self.response_schema, extraction_data)
-            if not valid:
-                logger.error(f'Extraction tool data is invalid: {error}')
-                return ToolResult(error=error)
-            logger.info('Extraction tool data is valid.')
+            if self.response_schema:
+                valid, error = validate_schema(self.response_schema, extraction_data)
+                if not valid:
+                    logger.error(f'Extraction tool data is invalid: {error}')
+                    return ToolResult(error=error)
+                logger.info('Extraction tool data is valid.')
+            else:
+                logger.info('No response schema provided, skipping validation.')
 
             # Return the properly formatted data
             return ToolResult(
