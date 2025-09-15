@@ -74,21 +74,22 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     return schema
 
 
-async def get_api_parameters(api_def_version_id, db_tenant):
+async def get_api_parameters(api_def_id, db_tenant):
     """Get parameters for an API definition's active version."""
-    version = await db_tenant.get_active_api_definition_version(api_def_version_id)
+    version = await db_tenant.get_active_api_definition_version(api_def_id)
     return version.parameters if version else []
 
 
-async def get_api_response_example(api_def_version_id, db_tenant):
+async def get_api_response_example(api_def_id, db_tenant):
     """Get response example for an API definition's active version."""
-    version = await db_tenant.get_active_api_definition_version(api_def_version_id)
+    version = await db_tenant.get_active_api_definition_version(api_def_id)
     return version.response_example if version else {}
 
 
-async def get_api_response_schema(api_def_version_id, db_tenant):
+async def get_api_response_schema(api_def_id, db_tenant):
     """Get response schema for an API definition's active version."""
-    version = await db_tenant.get_active_api_definition_version(api_def_version_id)
+    print(f'Getting response schema for api_def_id: {api_def_id}')
+    version = await db_tenant.get_active_api_definition_version(api_def_id)
     print(f'Version: {version}')
     response_example = version.response_example if version else {}
 
