@@ -64,7 +64,7 @@ class ExtractionTool(BaseAnthropicTool):
             # Log the formatted JSON
             logger.info(f'Extraction tool formatted JSON: {serialized_data}')
 
-            # validate the data adheres to the response schema
+            # validate the data adheres to the response schema; an empty schema (dict) results in no validation
             if self.response_schema:
                 try:
                     validate(
