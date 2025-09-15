@@ -35,12 +35,6 @@ class APIDefinitionWithSchema(APIDefinition):
     response_schema: dict[str, Any]
 
 
-class MakeSchema(BaseModel):
-    name: str
-    type: str
-    label: str
-
-
 @api_router.get(
     '/definitions',
     response_model=List[APIDefinitionWithSchema],
@@ -102,30 +96,6 @@ async def get_api_definition(
         response_example=api.response_example,
         response_schema=await get_api_response_schema(api.version_id, db_tenant),
     )
-
-
-@api_router.get(
-    '/definitions/{api_name}/schema/',
-    response_model=dict[str, Any],
-    tags=['API Definitions'],
-)
-async def get_api_definition_schema(api_name: str, db_tenant=Depends(get_tenant_db)):
-    """Get the schema for a specific API definition by name."""
-    return await get_api_response_schema(api_name, db_tenant)
-
-
-@api_router.get(
-    '/definitions/{api_name}/schema/make',
-    response_model=list[MakeSchema],
-    tags=['API Definitions'],
-)
-async def get_api_definition_make_schema(
-    api_name: str, db_tenant=Depends(get_tenant_db)
-):
-    """Get the schema for a specific API definition by name."""
-    response_schema = await get_api_response_schema(api_name, db_tenant)
-    # convert to make.com schema
-    return response_schema
 
 
 @api_router.get(
