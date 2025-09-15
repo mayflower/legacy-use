@@ -26,7 +26,7 @@ class ExtractionTool(BaseAnthropicTool):
         self.response_schema = response_schema or {}
 
     def to_params(self) -> BetaToolUnionParam:
-        # TODO: Add the response schema to the input schema
+        # TODO: Check if including response_schema improves the tool's performance
         return {
             'name': 'extraction',
             'description': "Use this tool to return the final JSON result when you've found the information requested by the user.",
