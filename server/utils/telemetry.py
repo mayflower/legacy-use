@@ -406,3 +406,79 @@ def capture_job_log_created(job_id: UUID, log: dict):
         )
     except Exception as e:
         logger.debug(f"Telemetry event 'job_log_created' failed: {e}")
+
+
+def capture_ai_trace(properties: dict):
+    """
+    Integrates manual capture of poshog LLM-analytics events
+    """
+    try:
+        capture_event(
+            None,
+            '$ai_trace',
+            {
+                '$ai_trace_id': properties.get('ai_trace_id'),
+                '$ai_span_name': properties.get('ai_span_name'),
+                'tenant': properties.get('tenant'),
+            },
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry event 'ai_trace' failed: {e}")
+
+
+def capture_ai_generation(properties: dict):
+    """
+    Integrates manual capture of poshog LLM-analytics events
+    """
+    try:
+        capture_event(
+            None,
+            '$ai_generation',
+            {
+                '$ai_trace_id': properties.get('ai_trace_id'),  # like conversation_id
+                '$ai_span_id': properties.get(
+                    'ai_span_id'
+                ),  # (Optional) Unique identifier for this generation
+                '$ai_span_name': properties.get(
+                    'ai_span_name'
+                ),  # (Optional) Name given to this generation
+                '$ai_parent_id': properties.get('ai_parent_id'),
+                '$ai_model': properties.get('ai_model'),
+                '$ai_provider': properties.get('ai_provider'),
+                # "$ai_input": properties.get('ai_input'), # removed for now, since it may contain sensitive information; may include redacted content in the future
+                # "$ai_output_choices": properties.get('ai_output_choices', ''), # removed for now, since it may contain sensitive information; may include redacted content in the future
+                '$ai_input_tokens': properties.get('ai_input_tokens'),
+                '$ai_output_tokens': properties.get('ai_output_tokens'),
+                '$ai_cache_read_input_tokens': properties.get(
+                    'ai_cache_read_input_tokens'
+                ),
+                '$ai_cache_creation_input_tokens': properties.get(
+                    'ai_cache_creation_input_tokens'
+                ),
+                '$ai_temperature': properties.get('ai_temperature'),
+                '$ai_max_tokens': properties.get('ai_max_tokens'),
+            },
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry event 'ai_generation' failed: {e}")
+
+
+def capture_ai_span(properties: dict):
+    """
+    Integrates manual capture of poshog LLM-analytics events
+    """
+    try:
+        capture_event(
+            None,
+            '$ai_span',
+            {
+                '$ai_trace_id': properties.get('ai_trace_id'),
+                '$ai_span_id': properties.get('ai_span_id'),
+                '$ai_span_name': properties.get('ai_span_name'),
+                '$ai_parent_id': properties.get('ai_parent_id'),
+                '$ai_is_error': properties.get('ai_is_error'),
+                '$ai_error': properties.get('ai_error'),
+            },
+        )
+    except Exception as e:
+        logger.debug(f"Telemetry event 'ai_span' failed: {e}")
