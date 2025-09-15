@@ -5,6 +5,7 @@ These helpers encapsulate common database lookups for API definition
 parameters, response examples, and response schemas.
 """
 
+import json
 from typing import Any, Dict, Hashable, List, Mapping, cast
 
 from openapi_schema_validator import validate
@@ -17,6 +18,8 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     heterogeneous item types, produces an ``anyOf`` for ``items``.
     ``None`` values are treated as a union with ``null`` as a conservative default.
     """
+
+    print(f'Inferring schema from response example: {response_example}')
 
     def infer(value: Any) -> Dict[str, Any]:
         # Objects
@@ -36,11 +39,10 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
 
             item_schemas: List[Dict[str, Any]] = [infer(item) for item in value]
 
-            # Deduplicate schemas by equality
-            unique_item_schemas: List[Dict[str, Any]] = []
-            for s in item_schemas:
-                if s not in unique_item_schemas:
-                    unique_item_schemas.append(s)
+            # Deduplicate schemas by equality, using a set to hash the items
+            unique_item_schemas: List[Dict[str, Any]] = list(
+                {json.dumps(s, sort_keys=True): s for s in item_schemas}.values()
+            )
 
             if len(unique_item_schemas) == 1:
                 schema['items'] = unique_item_schemas[0]
