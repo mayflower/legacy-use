@@ -6,9 +6,7 @@ parameters, response examples, and response schemas.
 """
 
 import json
-from typing import Any, Dict, Hashable, List, Mapping, cast
-
-from openapi_schema_validator import validate
+from typing import Any, Dict, List
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
@@ -73,16 +71,6 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
         schema.setdefault('description', 'API response')
 
     return schema
-
-
-def validate_schema(schema: Dict[str, Any], data: Dict[str, Any]) -> tuple[bool, str]:
-    """Validate data against a schema."""
-    try:
-        validate(data, cast(Mapping[Hashable, Any], schema))
-        return True, ''
-    except Exception as e:
-        # if too strict, ignore certain errors here
-        return False, str(e)
 
 
 async def get_api_parameters(api_def_id, db_tenant):
