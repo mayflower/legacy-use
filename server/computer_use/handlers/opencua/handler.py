@@ -167,13 +167,11 @@ class OpenCuaHandler(BaseProviderHandler):
         content_blocks, stop_reason = self.convert_from_provider_response(result)
 
         capture_ai_generation(
-            {
-                'ai_trace_id': job_id,
-                'ai_parent_id': iteration_count,
-                'ai_provider': self.provider,
-                'ai_model': self.model,
-                # More meaningful metrics are not yet supported by our SageMaker endpoint
-            }
+            ai_trace_id=job_id,
+            ai_parent_id=str(iteration_count),
+            ai_provider=self.provider,
+            ai_model=self.model,
+            # More meaningful metrics are not yet supported by our SageMaker endpoint
         )
 
         # if the last block is not a tool_use, add a mock screenshot tool use

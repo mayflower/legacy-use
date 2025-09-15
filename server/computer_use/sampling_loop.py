@@ -157,12 +157,10 @@ async def sampling_loop(
     # TODO: Split up this very long loop into smaller functions
     while True:
         capture_ai_span(
-            {
-                'ai_trace_id': str(job_id),
-                'ai_parent_id': str(job_id),
-                'ai_span_id': iteration_count,
-                'ai_span_name': 'iteration',
-            }
+            ai_trace_id=str(job_id),
+            ai_parent_id=str(job_id),
+            ai_span_id=str(iteration_count),
+            ai_span_name='iteration',
         )
         iteration_count += 1
         # --- Fetch current history from DB --- START
@@ -196,11 +194,9 @@ async def sampling_loop(
 
         try:
             capture_ai_span(
-                {
-                    'ai_trace_id': str(job_id),
-                    'ai_parent_id': iteration_count,
-                    'ai_span_name': 'api call',
-                }
+                ai_trace_id=str(job_id),
+                ai_parent_id=str(iteration_count),
+                ai_span_name='api call',
             )
             # Make API call via handler
             (
@@ -304,11 +300,9 @@ async def sampling_loop(
             output_callback(content_block)
             if content_block['type'] == 'tool_use':
                 capture_ai_span(
-                    {
-                        'ai_trace_id': str(job_id),
-                        'ai_parent_id': iteration_count,
-                        'ai_span_name': 'tool use',
-                    }
+                    ai_trace_id=str(job_id),
+                    ai_parent_id=str(iteration_count),
+                    ai_span_name='tool use',
                 )
                 found_tool_use = True
 
@@ -382,11 +376,9 @@ async def sampling_loop(
                     session=session_obj,
                 )
                 capture_ai_span(
-                    {
-                        'ai_trace_id': str(job_id),
-                        'ai_parent_id': iteration_count,
-                        'ai_span_name': 'tool used',
-                    }
+                    ai_trace_id=str(job_id),
+                    ai_parent_id=str(iteration_count),
+                    ai_span_name='tool used',
                 )
 
                 # --- Save Tool Result Message to DB --- START

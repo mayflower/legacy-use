@@ -408,7 +408,7 @@ def capture_job_log_created(job_id: UUID, log: dict):
         logger.debug(f"Telemetry event 'job_log_created' failed: {e}")
 
 
-def capture_ai_trace(properties: dict):
+def capture_ai_trace(ai_trace_id: str, ai_span_name: str, tenant: str):
     """
     Integrates manual capture of poshog LLM-analytics events
     """
@@ -417,16 +417,29 @@ def capture_ai_trace(properties: dict):
             None,
             '$ai_trace',
             {
-                '$ai_trace_id': properties.get('ai_trace_id'),
-                '$ai_span_name': properties.get('ai_span_name'),
-                'tenant': properties.get('tenant'),
+                '$ai_trace_id': ai_trace_id,
+                '$ai_span_name': ai_span_name,
+                'tenant': tenant,
             },
         )
     except Exception as e:
         logger.debug(f"Telemetry event 'ai_trace' failed: {e}")
 
 
-def capture_ai_generation(properties: dict):
+def capture_ai_generation(
+    ai_trace_id: str,
+    ai_span_id: str | None = None,
+    ai_span_name: str | None = None,
+    ai_parent_id: str | None = None,
+    ai_model: str | None = None,
+    ai_provider: str | None = None,
+    ai_input_tokens: int | None = None,
+    ai_output_tokens: int | None = None,
+    ai_cache_read_input_tokens: int | None = None,
+    ai_cache_creation_input_tokens: int | None = None,
+    ai_temperature: float | None = None,
+    ai_max_tokens: int | None = None,
+):
     """
     Integrates manual capture of poshog LLM-analytics events
     """
@@ -435,35 +448,34 @@ def capture_ai_generation(properties: dict):
             None,
             '$ai_generation',
             {
-                '$ai_trace_id': properties.get('ai_trace_id'),  # like conversation_id
-                '$ai_span_id': properties.get(
-                    'ai_span_id'
-                ),  # (Optional) Unique identifier for this generation
-                '$ai_span_name': properties.get(
-                    'ai_span_name'
-                ),  # (Optional) Name given to this generation
-                '$ai_parent_id': properties.get('ai_parent_id'),
-                '$ai_model': properties.get('ai_model'),
-                '$ai_provider': properties.get('ai_provider'),
+                '$ai_trace_id': ai_trace_id,  # like conversation_id
+                '$ai_span_id': ai_span_id,  # Unique identifier for this generation
+                '$ai_span_name': ai_span_name,  # Name given to this generation
+                '$ai_parent_id': ai_parent_id,
+                '$ai_model': ai_model,
+                '$ai_provider': ai_provider,
                 # "$ai_input": properties.get('ai_input'), # removed for now, since it may contain sensitive information; may include redacted content in the future
                 # "$ai_output_choices": properties.get('ai_output_choices', ''), # removed for now, since it may contain sensitive information; may include redacted content in the future
-                '$ai_input_tokens': properties.get('ai_input_tokens'),
-                '$ai_output_tokens': properties.get('ai_output_tokens'),
-                '$ai_cache_read_input_tokens': properties.get(
-                    'ai_cache_read_input_tokens'
-                ),
-                '$ai_cache_creation_input_tokens': properties.get(
-                    'ai_cache_creation_input_tokens'
-                ),
-                '$ai_temperature': properties.get('ai_temperature'),
-                '$ai_max_tokens': properties.get('ai_max_tokens'),
+                '$ai_input_tokens': ai_input_tokens,
+                '$ai_output_tokens': ai_output_tokens,
+                '$ai_cache_read_input_tokens': ai_cache_read_input_tokens,
+                '$ai_cache_creation_input_tokens': ai_cache_creation_input_tokens,
+                '$ai_temperature': ai_temperature,
+                '$ai_max_tokens': ai_max_tokens,
             },
         )
     except Exception as e:
         logger.debug(f"Telemetry event 'ai_generation' failed: {e}")
 
 
-def capture_ai_span(properties: dict):
+def capture_ai_span(
+    ai_trace_id: str,
+    ai_span_id: str | None = None,
+    ai_span_name: str | None = None,
+    ai_parent_id: str | None = None,
+    ai_is_error: bool = False,
+    ai_error: str | None = None,
+):
     """
     Integrates manual capture of poshog LLM-analytics events
     """
@@ -472,12 +484,12 @@ def capture_ai_span(properties: dict):
             None,
             '$ai_span',
             {
-                '$ai_trace_id': properties.get('ai_trace_id'),
-                '$ai_span_id': properties.get('ai_span_id'),
-                '$ai_span_name': properties.get('ai_span_name'),
-                '$ai_parent_id': properties.get('ai_parent_id'),
-                '$ai_is_error': properties.get('ai_is_error'),
-                '$ai_error': properties.get('ai_error'),
+                '$ai_trace_id': ai_trace_id,
+                '$ai_span_id': ai_span_id,
+                '$ai_span_name': ai_span_name,
+                '$ai_parent_id': ai_parent_id,
+                '$ai_is_error': ai_is_error,
+                '$ai_error': ai_error,
             },
         )
     except Exception as e:

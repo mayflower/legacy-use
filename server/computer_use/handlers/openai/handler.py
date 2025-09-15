@@ -194,20 +194,18 @@ class OpenAIHandler(BaseProviderHandler):
         total_output_tokens = self._total_output_tokens(parsed_response)
 
         capture_ai_generation(
-            {
-                'ai_trace_id': job_id,
-                'ai_parent_id': iteration_count,
-                'ai_provider': 'openai',
-                'ai_model': _get(parsed_response, 'model') or self.model,
-                'ai_input_tokens': _get(parsed_response, 'usage.prompt_tokens'),
-                'ai_output_tokens': total_output_tokens,
-                # 'ai_cache_read_input_tokens': parsed_response.usage.prompt_tokens, # Not available
-                'ai_cache_creation_input_tokens': _get(
-                    parsed_response, 'usage.prompt_tokens_details.cached_tokens'
-                ),
-                'ai_temperature': temperature,
-                'ai_max_tokens': max_tokens,
-            }
+            ai_trace_id=job_id,
+            ai_parent_id=str(iteration_count),
+            ai_provider='openai',
+            ai_model=_get(parsed_response, 'model') or self.model,
+            ai_input_tokens=_get(parsed_response, 'usage.prompt_tokens'),
+            ai_output_tokens=total_output_tokens,
+            ai_cache_read_input_tokens=_get(parsed_response, 'usage.prompt_tokens'),
+            ai_cache_creation_input_tokens=_get(
+                parsed_response, 'usage.prompt_tokens_details.cached_tokens'
+            ),
+            ai_temperature=temperature,
+            ai_max_tokens=max_tokens,
         )
 
     async def execute(
