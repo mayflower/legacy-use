@@ -11,12 +11,11 @@ from openapi_schema_validator import validate
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
-    """Infer a best-effort OpenAPI-compatible JSON schema from an example value.
+    """Infer a best-effort OpenAPI 3.1-compatible JSON Schema from an example value.
 
     Handles nested objects, arrays, and primitive types. For arrays with
     heterogeneous item types, produces an ``anyOf`` for ``items``.
-    ``None`` values are treated as nullable strings as a conservative default
-    for OpenAPI 3.0.
+    ``None`` values are treated as a union with ``null`` as a conservative default.
     """
 
     print(f'Inferring schema from response example: {response_example}')
@@ -62,7 +61,8 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
         if isinstance(value, str):
             return {'type': 'string'}
         if value is None:
-            return {'type': 'string', 'nullable': True}
+            # OpenAPI 3.1 / JSON Schema: use a type union with "null"
+            return {'type': ['string', 'null']}
 
         # Fallback
         return {'type': 'string'}
