@@ -18,8 +18,6 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     ``None`` values are treated as a union with ``null`` as a conservative default.
     """
 
-    print(f'Inferring schema from response example: {response_example}')
-
     def infer(value: Any) -> Dict[str, Any]:
         # Objects
         if isinstance(value, dict):
@@ -73,18 +71,16 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     if isinstance(schema, dict) and schema.get('type') == 'object':
         schema.setdefault('description', 'API response')
 
-    print(f'Inferred schema: {schema}')
     return schema
 
 
 def validate_schema(schema: Dict[str, Any], data: Dict[str, Any]) -> tuple[bool, str]:
     """Validate data against a schema."""
     try:
-        # TODO: too strict?
-        print(f'Validating schema: {schema} against data: {data}')
         validate(data, cast(Mapping[Hashable, Any], schema))
         return True, ''
     except Exception as e:
+        # if too strict, ignore certain errors here
         return False, str(e)
 
 
