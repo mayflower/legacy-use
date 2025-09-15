@@ -14,9 +14,9 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     """Infer a best-effort OpenAPI-compatible JSON schema from an example value.
 
     Handles nested objects, arrays, and primitive types. For arrays with
-    heterogeneous item types, produces an ``anyOf`` for ``items``. ``None``
-    values are treated as nullable strings as a conservative default for
-    OpenAPI 3.0.
+    heterogeneous item types, produces an ``anyOf`` for ``items``.
+    ``None`` values are treated as nullable strings as a conservative default
+    for OpenAPI 3.0.
     """
 
     print(f'Inferring schema from response example: {response_example}')
@@ -28,6 +28,7 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
             schema: Dict[str, Any] = {'type': 'object'}
             if properties:
                 schema['properties'] = properties
+                schema['required'] = list(properties.keys())
             return schema
 
         # Arrays
@@ -80,6 +81,7 @@ def validate_schema(schema: Dict[str, Any], data: Dict[str, Any]) -> tuple[bool,
     """Validate data against a schema."""
     try:
         # TODO: too strict?
+        print(f'Validating schema: {schema} against data: {data}')
         validate(data, cast(Mapping[Hashable, Any], schema))
         return True, ''
     except Exception as e:
