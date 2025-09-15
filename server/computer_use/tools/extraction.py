@@ -2,11 +2,11 @@
 
 import json
 import logging
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Hashable, Literal, Mapping, cast
 
 from anthropic.types.beta import BetaToolUnionParam
-
-from server.utils.api_definitions import validate_schema
+from jsonschema import ValidationError
+from openapi_schema_validator import validate
 
 from .base import BaseAnthropicTool, ToolResult
 
@@ -66,10 +66,14 @@ class ExtractionTool(BaseAnthropicTool):
 
             # validate the data adheres to the response schema
             if self.response_schema:
-                valid, error = validate_schema(self.response_schema, extraction_data)
-                if not valid:
-                    logger.error(f'Extraction tool data is invalid: {error}')
-                    return ToolResult(error=error)
+                try:
+                    validate(
+                        extraction_data,
+                        cast(Mapping[Hashable, Any], self.response_schema),
+                    )
+                except ValidationError as e:
+                    logger.error(f'Extraction tool data is invalid: {e}')
+                    return ToolResult(error=str(e.message))
                 logger.info('Extraction tool data is valid.')
             else:
                 logger.info('No response schema provided, skipping validation.')
