@@ -6,6 +6,8 @@ from typing import Any, Dict, Literal
 
 from anthropic.types.beta import BetaToolUnionParam
 
+from server.utils.api_definitions import validate_schema
+
 from .base import BaseAnthropicTool, ToolResult
 
 logger = logging.getLogger('server')
@@ -16,7 +18,15 @@ class ExtractionTool(BaseAnthropicTool):
 
     name: Literal['extraction'] = 'extraction'
 
+    def __init__(self, response_schema: Dict[str, Any], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        logger.info(
+            f'Extraction tool initialized with response schema: {response_schema}'
+        )
+        self.response_schema = response_schema
+
     def to_params(self) -> BetaToolUnionParam:
+        # TODO: Add the response schema to the input schema
         return {
             'name': 'extraction',
             'description': "Use this tool to return the final JSON result when you've found the information requested by the user.",
@@ -53,6 +63,13 @@ class ExtractionTool(BaseAnthropicTool):
 
             # Log the formatted JSON
             logger.info(f'Extraction tool formatted JSON: {serialized_data}')
+
+            # validate the data adheres to the response schema
+            valid, error = validate_schema(self.response_schema, extraction_data)
+            if not valid:
+                logger.error(f'Extraction tool data is invalid: {error}')
+                return ToolResult(error=error)
+            logger.info('Extraction tool data is valid.')
 
             # Return the properly formatted data
             return ToolResult(
