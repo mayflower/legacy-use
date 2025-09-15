@@ -25,7 +25,6 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
             schema: Dict[str, Any] = {'type': 'object'}
             if properties:
                 schema['properties'] = properties
-                schema['required'] = list(properties.keys())
             return schema
 
         # Arrays
