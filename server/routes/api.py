@@ -54,9 +54,9 @@ async def get_api_definitions(
         APIDefinitionWithSchema(
             name=api_def.name,
             description=api_def.description,
-            parameters=await get_api_parameters(api_def, db_tenant),
-            response_example=await get_api_response_example(api_def, db_tenant),
-            response_schema=await get_api_response_schema(api_def, db_tenant),
+            parameters=await get_api_parameters(api_def.id, db_tenant),
+            response_example=await get_api_response_example(api_def.id, db_tenant),
+            response_schema=await get_api_response_schema(api_def.id, db_tenant),
             is_archived=api_def.is_archived,
         )
         for api_def in api_definitions

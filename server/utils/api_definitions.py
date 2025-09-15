@@ -17,6 +17,8 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     OpenAPI 3.0.
     """
 
+    print(f'Inferring schema from response example: {response_example}')
+
     def infer(value: Any) -> Dict[str, Any]:
         # Objects
         if isinstance(value, dict):
@@ -63,27 +65,34 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
         return {'type': 'string'}
 
     schema = infer(response_example)
+
+    # Add description to the schema if it's an object
     if isinstance(schema, dict) and schema.get('type') == 'object':
         schema.setdefault('description', 'API response')
+
+    print(f'Inferred schema: {schema}')
     return schema
 
 
-async def get_api_parameters(api_def, db_tenant):
+async def get_api_parameters(api_def_version_id, db_tenant):
     """Get parameters for an API definition's active version."""
-    version = await db_tenant.get_active_api_definition_version(api_def.id)
+    version = await db_tenant.get_active_api_definition_version(api_def_version_id)
     return version.parameters if version else []
 
 
-async def get_api_response_example(api_def, db_tenant):
+async def get_api_response_example(api_def_version_id, db_tenant):
     """Get response example for an API definition's active version."""
-    version = await db_tenant.get_active_api_definition_version(api_def.id)
+    version = await db_tenant.get_active_api_definition_version(api_def_version_id)
     return version.response_example if version else {}
 
 
-async def get_api_response_schema(api_def, db_tenant):
+async def get_api_response_schema(api_def_version_id, db_tenant):
     """Get response schema for an API definition's active version."""
-    version = await db_tenant.get_active_api_definition_version(api_def.id)
+    version = await db_tenant.get_active_api_definition_version(api_def_version_id)
+    print(f'Version: {version}')
     response_example = version.response_example if version else {}
+
+    print(f'Response example: {response_example}')
 
     # infer schema from response example
     return infer_schema_from_response_example(response_example)
