@@ -113,3 +113,45 @@ def test_infer_schema_from_response_example_duplicate_array_items():
     any_of_types = [item.get('type') for item in any_of_schemas]
     assert 'integer' in any_of_types
     assert 'string' in any_of_types
+
+
+def test_infer_schema_from_response_example_nested_objects_in_arrays():
+    # Test nested objects in arrays
+    nested_example = {
+        'array_with_nested_objects': [
+            {'id': 1, 'name': 'first'},
+            {'id': 2, 'number': 0},
+            'string_item',
+        ]
+    }
+    nested_schema = infer_schema_from_response_example(nested_example)
+
+    nested_array_items = (
+        nested_schema.get('properties', {})
+        .get('array_with_nested_objects', {})
+        .get('items', {})
+    )
+    assert 'anyOf' in nested_array_items
+    any_of_schemas = nested_array_items.get('anyOf', [])
+    assert len(any_of_schemas) == 3
+
+    # Should have object type and string type
+    types = [item.get('type') for item in any_of_schemas]
+    assert 'object' in types
+    assert 'string' in types
+
+    # Should have two different object schemas
+    object_schemas = [item for item in any_of_schemas if item.get('type') == 'object']
+    assert len(object_schemas) == 2
+
+    # Check each object schema individually
+    obj1_properties = object_schemas[0].get('properties', {})
+    obj2_properties = object_schemas[1].get('properties', {})
+
+    # First object should have 'id' and 'name'
+    assert obj1_properties.get('id', {}).get('type') == 'integer'
+    assert obj1_properties.get('name', {}).get('type') == 'string'
+
+    # Second object should have 'id' and 'number'
+    assert obj2_properties.get('id', {}).get('type') == 'integer'
+    assert obj2_properties.get('number', {}).get('type') == 'integer'
