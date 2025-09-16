@@ -73,6 +73,8 @@ def openapi_to_make_schema(openapi_schema: dict[str, Any]) -> List[MakeResponseS
     def get_make_type(type: str) -> str:
         if type == 'integer':
             return 'number'
+        elif type == 'number':
+            return 'number'
         elif type == 'boolean':
             return 'boolean'
         elif type == 'array':
