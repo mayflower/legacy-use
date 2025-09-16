@@ -357,7 +357,7 @@ def capture_job_resolved(
         print('job_resolved', job)
         capture_event(
             request,
-            'job_resolved',
+            'job_manually_resolved' if manual_resolution else 'job_resolved',
             {
                 'job_id': job.get('id'),
                 'target_id': job.get('target_id'),
