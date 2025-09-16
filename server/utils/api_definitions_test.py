@@ -75,3 +75,41 @@ def test_infer_schema_nested_objects():
         .get('type')
         == 'object'
     )
+
+
+def test_infer_schema_from_response_example_duplicate_array_items():
+    """Test schema inference for arrays with duplicate item types."""
+    example = {
+        'homogeneous_array': [1, 2, 3],
+        'heterogeneous_array': [1, 'string', True],
+        'duplicate_types_array': [1, 2, 'string', 'another_string', 3],
+    }
+    schema = infer_schema_from_response_example(example)
+
+    # Homogeneous array should have single item type
+    homogeneous_items = (
+        schema.get('properties', {}).get('homogeneous_array', {}).get('items', {})
+    )
+    assert homogeneous_items.get('type') == 'integer'
+
+    # Heterogeneous array should use anyOf
+    heterogeneous_items = (
+        schema.get('properties', {}).get('heterogeneous_array', {}).get('items', {})
+    )
+    assert 'anyOf' in heterogeneous_items
+    any_of_types = [item.get('type') for item in heterogeneous_items.get('anyOf', [])]
+    assert 'integer' in any_of_types
+    assert 'string' in any_of_types
+    assert 'boolean' in any_of_types
+
+    # Array with duplicate types should deduplicate in anyOf
+    duplicate_items = (
+        schema.get('properties', {}).get('duplicate_types_array', {}).get('items', {})
+    )
+    assert 'anyOf' in duplicate_items
+    any_of_schemas = duplicate_items.get('anyOf', [])
+    # Should only have 2 unique schemas: integer and string
+    assert len(any_of_schemas) == 2
+    any_of_types = [item.get('type') for item in any_of_schemas]
+    assert 'integer' in any_of_types
+    assert 'string' in any_of_types
