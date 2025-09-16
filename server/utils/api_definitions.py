@@ -5,7 +5,9 @@ These helpers encapsulate common database lookups for API definition
 parameters, response examples, and response schemas.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List
+
+from server.models.base import MakeResponseSchema
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
@@ -63,6 +65,61 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
         schema.setdefault('description', 'API response')
 
     return schema
+
+
+def openapi_to_make_schema(openapi_schema: dict[str, Any]) -> List[MakeResponseSchema]:
+    """Convert an OpenAPI schema to a Make schema."""
+
+    def get_make_type(type: str) -> str:
+        if type == 'integer':
+            return 'number'
+        elif type == 'boolean':
+            return 'boolean'
+        elif type == 'array':
+            return 'array'
+        elif type == 'object':
+            return 'collection'
+        else:
+            return 'text'
+
+    make_schema = []
+    for key, value in openapi_schema.get('properties', {}).items():
+        if value.get('type') == 'array':
+            item = {'type': 'string'}
+            if value.get('anyOf'):
+                item = value.get('anyOf')[0]
+            elif value.get('items'):
+                item = value.get('items')
+            make_schema.append(
+                {
+                    'name': key,
+                    'type': 'array',
+                    'label': key,
+                    'spec': {
+                        # Does not require name
+                        'type': get_make_type(item.get('type', 'string')),
+                        'label': item.get('label'),
+                    },
+                }
+            )
+        elif value.get('type') == 'object':
+            make_schema.append(
+                {
+                    'name': key,
+                    'type': 'collection',
+                    'label': key,
+                    'spec': openapi_to_make_schema(value),
+                }
+            )
+        else:
+            make_schema.append(
+                {
+                    'name': key,
+                    'type': get_make_type(value.get('type')),
+                    'label': key,
+                }
+            )
+    return make_schema
 
 
 async def get_api_parameters(api_def_id, db_tenant):
