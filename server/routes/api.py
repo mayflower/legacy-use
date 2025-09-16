@@ -105,7 +105,7 @@ async def get_api_definition(
 
 @api_router.get(
     '/definitions/{api_name}/make_schema',
-    response_model=MakeResponseSchema,
+    response_model=List[MakeResponseSchema],
     tags=['API Definitions'],
 )
 async def make_schema(
@@ -113,9 +113,7 @@ async def make_schema(
 ):
     """Return response schema in make.com compatible format."""
     api = await db_tenant.get_api_definition_by_name(api_name)
-    response_schema = await get_api_response_schema_by_version_id(
-        api.version_id, db_tenant
-    )
+    response_schema = await get_api_response_schema(api.id, db_tenant)
     make_schema = openapi_to_make_schema(response_schema)
     return make_schema
 

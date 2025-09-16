@@ -128,7 +128,7 @@ class MakeResponseSchema(BaseModel):
     name: str
     type: str
     label: str
-    spec: Optional[List['MakeResponseSchema'] | 'MakeResponseSchema']
+    spec: Optional[List['MakeResponseSchema'] | 'MakeResponseSchema'] = None
 
 
 class TargetType(str, Enum):

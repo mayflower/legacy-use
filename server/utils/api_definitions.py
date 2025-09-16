@@ -96,9 +96,9 @@ def openapi_to_make_schema(openapi_schema: dict[str, Any]) -> List[MakeResponseS
                     'type': 'array',
                     'label': key,
                     'spec': {
-                        # Does not require name
+                        'name': '',
                         'type': get_make_type(item.get('type', 'string')),
-                        'label': item.get('label'),
+                        'label': item.get('label', ''),
                     },
                 }
             )
