@@ -60,6 +60,7 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
             )
 
         distinct_id = get_distinct_id(request)
+        enriched['distinct_id'] = distinct_id
         tenant = get_tenant(request)
         enriched['tenant'] = tenant
 
