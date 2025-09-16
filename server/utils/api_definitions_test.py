@@ -1,4 +1,9 @@
-from server.utils.api_definitions import infer_schema_from_response_example
+from typing import cast
+
+from server.utils.api_definitions import (
+    infer_schema_from_response_example,
+    openapi_to_make_schema,
+)
 
 
 def test_infer_schema_types():
@@ -155,3 +160,58 @@ def test_infer_schema_from_response_example_nested_objects_in_arrays():
     # Second object should have 'id' and 'number'
     assert obj2_properties.get('id', {}).get('type') == 'integer'
     assert obj2_properties.get('number', {}).get('type') == 'integer'
+
+
+def test_openapi_to_make_schema():
+    openapi_schema = {
+        'type': 'object',
+        'properties': {
+            'integer': {'type': 'integer'},
+            'boolean': {'type': 'boolean'},
+            'array': {'type': 'array', 'items': {'type': 'integer'}},
+            'array_any_of': {
+                'type': 'array',
+                'anyOf': [{'type': 'integer'}, {'type': 'string'}],
+            },
+            'object': {
+                'type': 'object',
+                'properties': {'id': {'type': 'integer'}, 'name': {'type': 'string'}},
+            },
+            'text_fallback': {'type': 'notAType'},
+        },
+    }
+    make_schema = openapi_to_make_schema(openapi_schema)
+    schema_list = cast(list[dict], make_schema)
+    print(schema_list)
+    assert len(schema_list) == 6
+    assert schema_list[0].get('name') == 'integer'
+    assert schema_list[0].get('type') == 'number'
+    assert schema_list[1].get('name') == 'boolean'
+    assert schema_list[1].get('type') == 'boolean'
+    assert schema_list[2].get('name') == 'array'
+    assert schema_list[2].get('type') == 'array'
+    # Check spec for array (items: integer -> number)
+    assert 'spec' in schema_list[2]
+    assert schema_list[2].get('spec', {}).get('type') == 'number'
+    assert schema_list[2].get('spec', {}).get('label') is None
+
+    # Check array_any_of mapping (uses first anyOf item -> integer -> number)
+    assert schema_list[3].get('name') == 'array_any_of'
+    assert schema_list[3].get('type') == 'array'
+    assert 'spec' in schema_list[3]
+    assert schema_list[3].get('spec', {}).get('type') == 'number'
+    assert schema_list[3].get('spec', {}).get('label') is None
+
+    # Object should map to collection with nested spec
+    assert schema_list[4].get('name') == 'object'
+    assert schema_list[4].get('type') == 'collection'
+    nested_spec = schema_list[4].get('spec')
+    assert isinstance(nested_spec, list)
+    assert len(nested_spec) == 2
+    assert nested_spec[0].get('name') == 'id'
+    assert nested_spec[0].get('type') == 'number'
+    assert nested_spec[1].get('name') == 'name'
+    assert nested_spec[1].get('type') == 'text'
+
+    assert schema_list[5].get('name') == 'text_fallback'
+    assert schema_list[5].get('type') == 'text'
