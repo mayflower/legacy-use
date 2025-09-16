@@ -356,9 +356,7 @@ def capture_job_resolved(
                 'duration_seconds': job.get('duration_seconds'),
                 'total_input_tokens': job.get('total_input_tokens'),
                 'total_output_tokens': job.get('total_output_tokens'),
-                'result_length': len(job.get('result') or {})
-                if job.get('result') is not None
-                else -1,
+                'result_length': len(job.get('result') or {}),
                 'created_at': job.get('created_at'),
                 'updated_at': job.get('updated_at'),
                 'completed_at': job.get('completed_at'),
