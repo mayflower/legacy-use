@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Dict, Hashable, Literal, Mapping, cast
+from typing import Any, Dict, Hashable, Literal
 
 from anthropic.types.beta import BetaToolUnionParam
 from jsonschema import ValidationError
@@ -18,12 +18,14 @@ class ExtractionTool(BaseAnthropicTool):
 
     name: Literal['extraction'] = 'extraction'
 
-    def __init__(self, response_schema: Dict[str, Any] | None = None, *args, **kwargs):
+    def __init__(
+        self, response_schema: Dict[Hashable, Any] | None = None, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         logger.info(
             f'Extraction tool initialized with response schema: {response_schema}'
         )
-        self.response_schema = response_schema or {}
+        self.response_schema = response_schema
 
     def to_params(self) -> BetaToolUnionParam:
         # TODO: Check if including response_schema improves the tool's performance
@@ -67,10 +69,7 @@ class ExtractionTool(BaseAnthropicTool):
             # validate the data adheres to the response schema; an empty schema (dict) results in no validation
             if self.response_schema:
                 try:
-                    validate(
-                        extraction_data,
-                        cast(Mapping[Hashable, Any], self.response_schema),
-                    )
+                    validate(extraction_data, self.response_schema)
                 except ValidationError as e:
                     logger.error(f'Extraction tool data is invalid: {e}')
                     return ToolResult(error=str(e.message))

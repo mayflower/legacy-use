@@ -5,8 +5,7 @@ These helpers encapsulate common database lookups for API definition
 parameters, response examples, and response schemas.
 """
 
-import json
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
@@ -22,31 +21,26 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     def infer(value: Any) -> Dict[str, Any]:
         # Objects
         if isinstance(value, dict):
-            properties: Dict[str, Any] = {key: infer(val) for key, val in value.items()}
-            schema: Dict[str, Any] = {'type': 'object'}
-            if properties:
-                schema['properties'] = properties
-            return schema
+            return {
+                'type': 'object',
+                'properties': {key: infer(val) for key, val in value.items()},
+            }
 
         # Arrays
         if isinstance(value, list):
-            schema: Dict[str, Any] = {'type': 'array'}
             if not value:
-                schema['items'] = {'type': 'string'}
-                return schema
+                return {'type': 'array', 'items': {'type': 'string'}}
 
-            item_schemas: List[Dict[str, Any]] = [infer(item) for item in value]
-
-            # Deduplicate schemas by equality, using a set to hash the items
-            unique_item_schemas: List[Dict[str, Any]] = list(
-                {json.dumps(s, sort_keys=True): s for s in item_schemas}.values()
-            )
+            # Collect unique schemas from array items
+            unique_item_schemas = []
+            for item in value:
+                schema = infer(item)
+                if schema not in unique_item_schemas:
+                    unique_item_schemas.append(schema)
 
             if len(unique_item_schemas) == 1:
-                schema['items'] = unique_item_schemas[0]
-            else:
-                schema['items'] = {'anyOf': unique_item_schemas}
-            return schema
+                return {'type': 'array', 'items': unique_item_schemas[0]}
+            return {'type': 'array', 'items': {'anyOf': unique_item_schemas}}
 
         # Primitives
         if isinstance(value, bool):
