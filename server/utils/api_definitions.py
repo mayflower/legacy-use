@@ -32,7 +32,6 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
             if not value:
                 return {'type': 'array', 'items': {'type': 'string'}}
 
-            schema: Dict[str, Any] = {'type': 'array'}
             item_schemas: List[Dict[str, Any]] = [infer(item) for item in value]
 
             # Deduplicate schemas by equality, using a set to hash the items
@@ -41,10 +40,8 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
             )
 
             if len(unique_item_schemas) == 1:
-                schema['items'] = unique_item_schemas[0]
-            else:
-                schema['items'] = {'anyOf': unique_item_schemas}
-            return schema
+                return {'type': 'array', 'items': unique_item_schemas[0]}
+            return {'type': 'array', 'items': {'anyOf': unique_item_schemas}}
 
         # Primitives
         if isinstance(value, bool):
