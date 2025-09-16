@@ -16,8 +16,6 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     ``None`` values are treated as a union with ``null`` as a conservative default.
     """
 
-    print(f'Inferring schema from response example: {response_example}')
-
     def infer(value: Any) -> Dict[str, Any]:
         # Objects
         if isinstance(value, dict):
