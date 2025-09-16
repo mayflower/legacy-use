@@ -90,8 +90,6 @@ async def get_api_definition(
         )
 
     api = api_definitions[api_name]
-    print('api.version_id:', api.version_id)
-    print('api.version:', api.version)
     return APIDefinitionWithSchema(
         name=api.name,
         description=api.description,
