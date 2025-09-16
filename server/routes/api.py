@@ -16,6 +16,7 @@ from server.utils.api_definitions import (
     get_api_parameters,
     get_api_response_example,
     get_api_response_schema,
+    get_api_response_schema_by_version_id,
 )
 from server.utils.db_dependencies import get_tenant_db
 from server.utils.telemetry import (
@@ -89,12 +90,16 @@ async def get_api_definition(
         )
 
     api = api_definitions[api_name]
+    print('api.version_id:', api.version_id)
+    print('api.version:', api.version)
     return APIDefinitionWithSchema(
         name=api.name,
         description=api.description,
         parameters=[Parameter(**param) for param in api.parameters],
         response_example=api.response_example,
-        response_schema=await get_api_response_schema(api.version_id, db_tenant),
+        response_schema=await get_api_response_schema_by_version_id(
+            api.version_id, db_tenant
+        ),
     )
 
 
