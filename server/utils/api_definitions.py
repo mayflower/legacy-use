@@ -5,8 +5,7 @@ These helpers encapsulate common database lookups for API definition
 parameters, response examples, and response schemas.
 """
 
-import json
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
@@ -32,12 +31,12 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
             if not value:
                 return {'type': 'array', 'items': {'type': 'string'}}
 
-            item_schemas: List[Dict[str, Any]] = [infer(item) for item in value]
-
-            # Deduplicate schemas by equality, using a set to hash the items
-            unique_item_schemas: List[Dict[str, Any]] = list(
-                {json.dumps(s, sort_keys=True): s for s in item_schemas}.values()
-            )
+            # Collect unique schemas from array items
+            unique_item_schemas = []
+            for item in value:
+                schema = infer(item)
+                if schema not in unique_item_schemas:
+                    unique_item_schemas.append(schema)
 
             if len(unique_item_schemas) == 1:
                 return {'type': 'array', 'items': unique_item_schemas[0]}
