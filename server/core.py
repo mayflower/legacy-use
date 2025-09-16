@@ -164,11 +164,9 @@ class APIGatewayCore:
 
         try:
             capture_ai_trace(
-                {
-                    'ai_trace_id': str(job_id),
-                    'ai_span_name': 'sampling_loop start',
-                    'tenant': self.tenant_schema,
-                }
+                ai_trace_id=str(job_id),
+                ai_span_name='sampling_loop start',
+                tenant=self.tenant_schema,
             )
 
             # Execute the API call - sampling_loop will handle saving the messages if it receives any
@@ -189,12 +187,7 @@ class APIGatewayCore:
                 tenant_schema=self.tenant_schema,
                 job_data=job_data,
             )
-            capture_ai_span(
-                {
-                    'ai_trace_id': str(job_id),
-                    'ai_span_name': 'sampling_loop end',
-                }
-            )
+            capture_ai_span(ai_trace_id=str(job_id), ai_span_name='sampling_loop end')
 
             # --- Interpret result and Update DB Status --- START
             final_status = (
@@ -271,12 +264,10 @@ class APIGatewayCore:
 
         except Exception as e:
             capture_ai_span(
-                {
-                    'ai_trace_id': str(job_id),
-                    'ai_span_name': 'sampling_loop error',
-                    'ai_is_error': True,
-                    'ai_error': str(e),
-                }
+                ai_trace_id=str(job_id),
+                ai_span_name='sampling_loop error',
+                ai_is_error=True,
+                ai_error=str(e),
             )
             # Handle exceptions raised BY sampling_loop (e.g., ValueError, APIError, RuntimeError)
             error_message = str(e)

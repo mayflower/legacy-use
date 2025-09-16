@@ -254,18 +254,16 @@ class AnthropicHandler(BaseProviderHandler):
         )
 
         capture_ai_generation(
-            {
-                'ai_trace_id': job_id,
-                'ai_parent_id': iteration_count,
-                'ai_provider': self.provider,
-                'ai_model': model,
-                'ai_input_tokens': parsed_response.usage.input_tokens,
-                'ai_output_tokens': parsed_response.usage.output_tokens,
-                'ai_cache_read_input_tokens': parsed_response.usage.cache_read_input_tokens,
-                'ai_cache_creation_input_tokens': parsed_response.usage.cache_creation_input_tokens,
-                'ai_temperature': temperature,
-                'ai_max_tokens': max_tokens,
-            }
+            ai_trace_id=job_id,
+            ai_parent_id=str(iteration_count),
+            ai_provider=self.provider,
+            ai_model=model,
+            ai_input_tokens=parsed_response.usage.input_tokens,
+            ai_output_tokens=parsed_response.usage.output_tokens,
+            ai_cache_read_input_tokens=parsed_response.usage.cache_read_input_tokens,
+            ai_cache_creation_input_tokens=parsed_response.usage.cache_creation_input_tokens,
+            ai_temperature=temperature,
+            ai_max_tokens=max_tokens,
         )
 
         # Convert response to standardized format
