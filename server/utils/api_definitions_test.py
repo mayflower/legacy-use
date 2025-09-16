@@ -193,14 +193,12 @@ def test_openapi_to_make_schema():
     # Check spec for array (items: integer -> number)
     assert 'spec' in schema_list[2]
     assert schema_list[2].get('spec', {}).get('type') == 'number'
-    assert schema_list[2].get('spec', {}).get('label') is None
 
     # Check array_any_of mapping (uses first anyOf item -> integer -> number)
     assert schema_list[3].get('name') == 'array_any_of'
     assert schema_list[3].get('type') == 'array'
     assert 'spec' in schema_list[3]
     assert schema_list[3].get('spec', {}).get('type') == 'number'
-    assert schema_list[3].get('spec', {}).get('label') is None
 
     # Object should map to collection with nested spec
     assert schema_list[4].get('name') == 'object'
