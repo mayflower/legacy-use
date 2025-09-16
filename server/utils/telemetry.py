@@ -67,7 +67,7 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
         posthog.capture(
             event_name,
             distinct_id=tenant
-            or distinct_id,  # atm, tenant hold more information for us, so we use it if available
+            or distinct_id,  # atm, tenant holds more information for us
             properties=enriched,
         )
     except Exception as e:
@@ -355,7 +355,6 @@ def capture_job_resolved(
         if isinstance(job, Job):
             job = job.model_dump()
 
-        print('job_resolved', job)
         capture_event(
             request,
             'job_manually_resolved' if manual_resolution else 'job_resolved',
