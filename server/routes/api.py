@@ -113,6 +113,10 @@ async def make_schema(
 ):
     """Return response schema in make.com compatible format."""
     api = await db_tenant.get_api_definition_by_name(api_name)
+    if not api:
+        raise HTTPException(
+            status_code=404, detail=f"API definition '{api_name}' not found"
+        )
     response_schema = await get_api_response_schema(api.id, db_tenant)
     make_schema = openapi_to_make_schema(response_schema)
     return make_schema
