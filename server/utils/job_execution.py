@@ -26,7 +26,7 @@ from server.utils.job_logging import (
     _create_tool_callback,
     add_job_log,
 )
-from server.utils.telemetry import capture_job_resolved
+from server.utils.telemetry import capture_job_resolved, tenant_context
 
 # Add import for session management functions
 
@@ -283,6 +283,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
     # Import core only when needed
     from server.core import APIGatewayCore
     from server.database.multi_tenancy import with_db
+
+    tenant_context.set(tenant_schema)
 
     job_id_str = str(job.id)
 
