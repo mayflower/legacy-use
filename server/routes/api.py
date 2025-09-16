@@ -10,13 +10,19 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from server.core import APIGatewayCore
-from server.models.base import APIDefinition, CustomAction, Parameter
+from server.models.base import (
+    APIDefinitionWithSchema,
+    CustomAction,
+    MakeResponseSchema,
+    Parameter,
+)
 from server.settings import settings
 from server.utils.api_definitions import (
     get_api_parameters,
     get_api_response_example,
     get_api_response_schema,
     get_api_response_schema_by_version_id,
+    openapi_to_make_schema,
 )
 from server.utils.db_dependencies import get_tenant_db
 from server.utils.telemetry import (
@@ -30,10 +36,6 @@ logger = logging.getLogger(__name__)
 
 # Create router
 api_router = APIRouter(prefix='/api')  # Removed the tags=["API"] to prevent duplication
-
-
-class APIDefinitionWithSchema(APIDefinition):
-    response_schema: dict[str, Any]
 
 
 @api_router.get(
@@ -99,6 +101,23 @@ async def get_api_definition(
             api.version_id, db_tenant
         ),
     )
+
+
+@api_router.get(
+    '/definitions/{api_name}/make_schema',
+    response_model=MakeResponseSchema,
+    tags=['API Definitions'],
+)
+async def make_schema(
+    api_name: str, request: Request, db_tenant=Depends(get_tenant_db)
+):
+    """Return response schema in make.com compatible format."""
+    api = await db_tenant.get_api_definition_by_name(api_name)
+    response_schema = await get_api_response_schema_by_version_id(
+        api.version_id, db_tenant
+    )
+    make_schema = openapi_to_make_schema(response_schema)
+    return make_schema
 
 
 @api_router.get(
