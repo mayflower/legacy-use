@@ -335,35 +335,35 @@ def capture_job_canceled(request: Request, job: Job):
         logger.debug(f"Telemetry event 'job_canceled' failed: {e}")
 
 
-def capture_job_resolved(request: Request | None, job: Job, manual_resolution: bool):
+def capture_job_resolved(
+    request: Request | None, job: Job | Dict[str, Any], manual_resolution: bool
+):
     try:
-        if job.completed_at:
-            completion_time_seconds = (
-                job.completed_at - job.created_at
-            ).total_seconds()
-        else:
-            completion_time_seconds = -1
+        # Convert job to dict for consistent access with strict type narrowing
+        if isinstance(job, Job):
+            job = job.model_dump()
 
-        completion_time_seconds = int(completion_time_seconds)
+        print('job_resolved', job)
         capture_event(
             request,
             'job_resolved',
             {
-                'job_id': job.id,
-                'target_id': job.target_id,
-                'api_name': job.api_name,
-                'parameters_count': len(job.parameters),
-                'api_definition_version_id': job.api_definition_version_id,
-                'duration_seconds': job.duration_seconds,
-                'total_input_tokens': job.total_input_tokens,
-                'total_output_tokens': job.total_output_tokens,
-                'result_length': len(job.result) if job.result else -1,
-                'created_at': job.created_at,
-                'updated_at': job.updated_at,
-                'completed_at': job.completed_at,
-                'completion_time_seconds': completion_time_seconds,
+                'job_id': job.get('id'),
+                'target_id': job.get('target_id'),
+                'api_name': job.get('api_name'),
+                'parameters_count': len(job.get('parameters') or {}),
+                'api_definition_version_id': job.get('api_definition_version_id'),
+                'duration_seconds': job.get('duration_seconds'),
+                'total_input_tokens': job.get('total_input_tokens'),
+                'total_output_tokens': job.get('total_output_tokens'),
+                'result_length': len(job.get('result') or {})
+                if job.get('result') is not None
+                else -1,
+                'created_at': job.get('created_at'),
+                'updated_at': job.get('updated_at'),
+                'completed_at': job.get('completed_at'),
+                'status': job.get('status'),
                 'manual_resolution': manual_resolution,
-                'status': job.status,
             },
         )
     except Exception as e:

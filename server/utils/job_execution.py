@@ -417,6 +417,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                 )
                 metrics = compute_job_metrics(updated_job, http_exchanges)
                 job_with_tokens = updated_job.copy()
+                job_with_tokens['duration_seconds'] = metrics['duration_seconds']
                 job_with_tokens['total_input_tokens'] = metrics['total_input_tokens']
                 job_with_tokens['total_output_tokens'] = metrics['total_output_tokens']
 
