@@ -14,11 +14,13 @@ from server.models.base import (
     TargetUpdate,
 )
 from server.settings import settings
+from server.utils.tenant_utils import get_tenant_from_request
 
 logger = logging.getLogger(__name__)
 
 # Context variable to track distinct ID across async calls
 distinct_id_context: ContextVar[str] = ContextVar('distinct_id', default='external')
+tenant_context: ContextVar[str] = ContextVar('tenant', default='')
 
 posthog = Posthog(
     settings.VITE_PUBLIC_POSTHOG_KEY,
@@ -39,8 +41,6 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
         return
 
     try:
-        distinct_id = get_distinct_id(request)
-
         enriched = {**properties, '$process_person_profile': 'always'}
         if request:
             headers = request.headers
@@ -59,6 +59,10 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
                 }
             )
 
+        distinct_id = get_distinct_id(request)
+        tenant = get_tenant(request)
+        enriched['tenant'] = tenant
+
         posthog.capture(
             event_name,
             distinct_id=distinct_id,
@@ -68,14 +72,28 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
         logger.debug(f"Telemetry event '{event_name}' failed: {e}")
 
 
-def get_distinct_id(request: Request | None):
+def get_distinct_id(request: Request | None) -> str:
     """
     Get the distinct ID from the request headers.
     """
     if request is not None:
-        return request.headers.get('X-Distinct-ID', 'external')
-    else:
-        return distinct_id_context.get()
+        distinct_id = request.headers.get('X-Distinct-ID')
+        if distinct_id:
+            return distinct_id
+
+    return distinct_id_context.get()
+
+
+def get_tenant(request: Request | None) -> str:
+    """
+    Get the tenant from the request headers.
+    """
+    if request is not None:
+        tenant = get_tenant_from_request(request).get('schema')
+        if tenant:
+            return tenant
+
+    return tenant_context.get()
 
 
 async def posthog_middleware(request: Request, call_next):
@@ -90,20 +108,12 @@ async def posthog_middleware(request: Request, call_next):
         # Set distinct ID in context for downstream usage
         distinct_id = get_distinct_id(request)
         distinct_id_context.set(distinct_id)
+        tenant = get_tenant(request)
+        tenant_context.set(tenant)
     except Exception as e:
         logger.debug(f'Telemetry middleware failed: {e}')
 
     response = await call_next(request)
-
-    # This captures any API request to the backend, but it's too noisy for now
-    # capture_event(
-    #     distinct_id,
-    #     'api_request_backend',
-    #     {
-    #         'url': request.url.path,
-    #         'method': request.method,
-    #     },
-    # )
     return response
 
 
