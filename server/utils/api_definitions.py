@@ -22,11 +22,10 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
     def infer(value: Any) -> Dict[str, Any]:
         # Objects
         if isinstance(value, dict):
-            properties: Dict[str, Any] = {key: infer(val) for key, val in value.items()}
-            schema: Dict[str, Any] = {'type': 'object'}
-            if properties:
-                schema['properties'] = properties
-            return schema
+            return {
+                'type': 'object',
+                'properties': {key: infer(val) for key, val in value.items()},
+            }
 
         # Arrays
         if isinstance(value, list):
