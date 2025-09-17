@@ -87,9 +87,6 @@ def openapi_to_make_schema(openapi_schema: dict[str, Any]) -> List[MakeResponseS
     def first_schema_option(schema: dict[str, Any]) -> dict[str, Any]:
         """Return the first schema entry when union keywords like anyOf are present."""
 
-        if not isinstance(schema, dict):
-            return {}
-
         any_of = schema.get('anyOf')
         if isinstance(any_of, list) and any_of:
             first = any_of[0]
@@ -103,18 +100,10 @@ def openapi_to_make_schema(openapi_schema: dict[str, Any]) -> List[MakeResponseS
     for key, value in openapi_schema.get('properties', {}).items():
         if value.get('type') == 'array':
             raw_items = value.get('items')
+            # handle anyOf -> 'items': { 'anyOf': [{'type': 'integer'}, {'type': 'string'}]}
             items_schema = first_schema_option(
                 raw_items if isinstance(raw_items, dict) else {}
             )
-            if not items_schema:
-                # handle anyOf -> 'items': { 'anyOf': [{'type': 'integer'}, {'type': 'string'}]}
-                array_any_of = value.get('anyOf')
-                if isinstance(array_any_of, list):
-                    for option in array_any_of:
-                        if isinstance(option, dict):
-                            items_schema = first_schema_option(option)
-                            if items_schema:
-                                break
             item_type = get_make_type(items_schema.get('type'))
             item_spec: dict[str, Any] = {
                 'name': '',
