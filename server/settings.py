@@ -78,6 +78,9 @@ class Settings(BaseSettings):
     DATABASE_POOL_RECYCLE: int = 3600
     DATABASE_POOL_PRE_PING: bool = True
 
+    # Maintenance leader retry interval
+    MAINTENANCE_LEADER_RETRY_INTERVAL: int = 120  # 2 minutes
+
     API_KEY_NAME: str = 'X-API-Key'
 
     # Maximum number of tokens (input + output) allowed per job
