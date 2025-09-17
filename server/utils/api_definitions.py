@@ -5,7 +5,9 @@ These helpers encapsulate common database lookups for API definition
 parameters, response examples, and response schemas.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List
+
+from server.models.base import MakeResponseSchema
 
 
 def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
@@ -63,6 +65,79 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
         schema.setdefault('description', 'API response')
 
     return schema
+
+
+def openapi_to_make_schema(openapi_schema: dict[str, Any]) -> List[MakeResponseSchema]:
+    """Convert an OpenAPI schema to a Make schema."""
+
+    def get_make_type(type: str | None) -> str:
+        if type == 'integer':
+            return 'number'
+        elif type == 'number':
+            return 'number'
+        elif type == 'boolean':
+            return 'boolean'
+        elif type == 'array':
+            return 'array'
+        elif type == 'object':
+            return 'collection'
+        else:
+            return 'text'
+
+    def first_schema_option(schema: dict[str, Any]) -> dict[str, Any]:
+        """Return the first schema entry when union keywords like anyOf are present."""
+
+        any_of = schema.get('anyOf')
+        if isinstance(any_of, list) and any_of:
+            first = any_of[0]
+            if isinstance(first, dict):
+                return first
+            return {}
+        return schema
+
+    make_schema = []
+    # iterate over the properties of the openapi schema
+    for key, value in openapi_schema.get('properties', {}).items():
+        if value.get('type') == 'array':
+            raw_items = value.get('items')
+            # handle anyOf -> 'items': { 'anyOf': [{'type': 'integer'}, {'type': 'string'}]}
+            items_schema = first_schema_option(
+                raw_items if isinstance(raw_items, dict) else {}
+            )
+            item_type = get_make_type(items_schema.get('type'))
+            item_spec: dict[str, Any] = {
+                'name': '',
+                'type': item_type,
+                'label': items_schema.get('label', ''),
+            }
+            if item_type == 'collection':
+                item_spec['spec'] = openapi_to_make_schema(items_schema)
+            make_schema.append(
+                {
+                    'name': key,
+                    'type': 'array',
+                    'label': key,
+                    'spec': item_spec,
+                }
+            )
+        elif value.get('type') == 'object':
+            make_schema.append(
+                {
+                    'name': key,
+                    'type': 'collection',
+                    'label': key,
+                    'spec': openapi_to_make_schema(value),
+                }
+            )
+        else:
+            make_schema.append(
+                {
+                    'name': key,
+                    'type': get_make_type(value.get('type')),
+                    'label': key,
+                }
+            )
+    return make_schema
 
 
 async def get_api_parameters(api_def_id, db_tenant):

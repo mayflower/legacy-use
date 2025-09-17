@@ -119,6 +119,18 @@ IMPORTANT INSTRUCTIONS FOR RETURNING RESULTS:
         return prompt_text
 
 
+class APIDefinitionWithSchema(APIDefinition):
+    response_schema: dict[str, Any]
+
+
+# https://developers.make.com/custom-apps-documentation/app-blocks/interface
+class MakeResponseSchema(BaseModel):
+    name: str
+    type: str
+    label: str
+    spec: Optional[List['MakeResponseSchema'] | 'MakeResponseSchema'] = None
+
+
 class TargetType(str, Enum):
     RDP = 'rdp'
     VNC = 'vnc'
