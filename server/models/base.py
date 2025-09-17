@@ -210,6 +210,7 @@ class Session(BaseModel):
     is_archived: bool = False
     archive_reason: Optional[str] = None
     last_job_time: Optional[datetime] = None
+    container_status: Optional[Dict[str, Any]] = None
 
 
 class SessionCreate(BaseModel):
