@@ -26,7 +26,7 @@ from server.utils.job_logging import (
     _create_tool_callback,
     add_job_log,
 )
-from server.utils.telemetry import capture_job_resolved
+from server.utils.telemetry import capture_job_resolved, tenant_context
 
 # Add import for session management functions
 
@@ -284,6 +284,8 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
     from server.core import APIGatewayCore
     from server.database.multi_tenancy import with_db
 
+    tenant_context.set(tenant_schema)
+
     job_id_str = str(job.id)
 
     # Track token usage for this job - Use a list to allow modification by nonlocal callback
@@ -417,6 +419,7 @@ async def execute_api_in_background_with_tenant(job: Job, tenant_schema: str):
                 )
                 metrics = compute_job_metrics(updated_job, http_exchanges)
                 job_with_tokens = updated_job.copy()
+                job_with_tokens['duration_seconds'] = metrics['duration_seconds']
                 job_with_tokens['total_input_tokens'] = metrics['total_input_tokens']
                 job_with_tokens['total_output_tokens'] = metrics['total_output_tokens']
 
