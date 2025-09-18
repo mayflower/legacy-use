@@ -337,14 +337,25 @@ For more information, please refer to the migration documentation.
 
     # Start background maintenance tasks only if we are the leader
     leader_key = 'legacy_use_maintenance_v1'
-    if acquire_maintenance_leadership(leader_key):
-        asyncio.create_task(scheduled_log_pruning())
-        logger.info('Started background task for pruning old logs (leader)')
 
-        start_session_monitor()
-        logger.info('Started session state monitor (leader)')
-    else:
+    async def start_maintenance_tasks() -> bool:
+        if acquire_maintenance_leadership(leader_key):
+            asyncio.create_task(scheduled_log_pruning())
+            logger.info('Started background task for pruning old logs (leader)')
+
+            start_session_monitor()
+            logger.info('Started session state monitor (leader)')
+            return True
         logger.info('Another process holds maintenance leadership; skipping monitors')
+        return False
+
+    async def ensure_maintenance_leadership() -> None:
+        while True:
+            if await start_maintenance_tasks():
+                break
+            await asyncio.sleep(settings.MAINTENANCE_LEADER_RETRY_INTERVAL)
+
+    asyncio.create_task(ensure_maintenance_leadership())
 
     # No need to load API definitions on startup anymore
     # They will be loaded on demand when needed

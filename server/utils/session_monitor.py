@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # How often to check session states (in seconds)
 INIT_CHECK_INTERVAL = 5  # Check every second during initialization
-READY_CHECK_INTERVAL = 60  # Check every 60 seconds once ready
+READY_CHECK_INTERVAL = 30  # Check every 30 seconds once ready
 INACTIVE_SESSION_THRESHOLD = 60 * 60  # 60 minutes in seconds
 
 
