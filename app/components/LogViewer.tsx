@@ -264,6 +264,15 @@ const LogViewer = ({ logs }) => {
     return result;
   };
 
+  // Helper function to format coordinates
+  const formatCoordinates = (coordinate: any) => {
+    if (coordinate && coordinate.length === 2) {
+      const [x, y] = coordinate;
+      return `(${x},${y})`;
+    }
+    return null;
+  };
+
   // Function to properly format log entries
   const formatLog = (log: any) => {
     if (typeof log === 'string') {
@@ -358,23 +367,29 @@ const LogViewer = ({ logs }) => {
           case 'screenshot':
             return 'Taking screenshot...';
           case 'mouse_move': {
-            const coordinate = log.content.input?.coordinate;
-            if (coordinate && coordinate.length === 2) {
-              const [x, y] = coordinate;
-              return `Moving to ${x}:${y}`;
-            }
-            return 'Moving mouse';
+            const coords = formatCoordinates(log.content.input?.coordinate);
+            return coords ? `Moving to ${coords}` : 'Moving mouse';
           }
-          case 'left_click':
-            return 'Left clicking';
-          case 'left_click_drag':
-            return 'Dragging with left button';
-          case 'right_click':
-            return 'Right clicking';
-          case 'middle_click':
-            return 'Middle clicking';
-          case 'double_click':
-            return 'Double clicking';
+          case 'left_click': {
+            const coords = formatCoordinates(log.content.input?.coordinate);
+            return coords ? `Left clicking at ${coords}` : 'Left clicking';
+          }
+          case 'left_click_drag': {
+            const coords = formatCoordinates(log.content.input?.coordinate);
+            return coords ? `Dragging with left button to ${coords}` : 'Dragging with left button';
+          }
+          case 'right_click': {
+            const coords = formatCoordinates(log.content.input?.coordinate);
+            return coords ? `Right clicking at ${coords}` : 'Right clicking';
+          }
+          case 'middle_click': {
+            const coords = formatCoordinates(log.content.input?.coordinate);
+            return coords ? `Middle clicking at ${coords}` : 'Middle clicking';
+          }
+          case 'double_click': {
+            const coords = formatCoordinates(log.content.input?.coordinate);
+            return coords ? `Double clicking at ${coords}` : 'Double clicking';
+          }
           case 'type':
             return `Typing: "${log.content.input?.text || ''}"`;
           case 'key':
