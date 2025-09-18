@@ -66,8 +66,7 @@ def capture_event(request: Request | None, event_name: str, properties: dict):
 
         posthog.capture(
             event_name,
-            distinct_id=tenant
-            or distinct_id,  # atm, tenant holds more information for us
+            distinct_id=distinct_id,
             properties=enriched,
         )
     except Exception as e:
