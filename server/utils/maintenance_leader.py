@@ -19,6 +19,38 @@ logger = logging.getLogger(__name__)
 _leader_connection = None  # type: Optional[object]
 
 
+def wait_for_maintenance_leadership(lock_key: str) -> None:
+    """
+    Block until this process holds the advisory lock keyed by ``lock_key``.
+    Uses ``pg_advisory_lock`` so we only return once the lock is available and
+    bound to a dedicated connection that lives for the lifetime of the leader.
+    """
+    global _leader_connection
+    if _leader_connection is not None:
+        # Already leader in this process; nothing else to do.
+        return
+    conn = engine.raw_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            'SELECT pg_advisory_lock(hashtextextended(%s, 77))',
+            [lock_key],
+        )
+        # ``pg_advisory_lock`` blocks until it acquires the lock; fetching the
+        # single row ensures the command is complete before we proceed.
+        cur.fetchone()
+        cur.close()
+        _leader_connection = conn
+        logger.info(f"Acquired maintenance leadership with key '{lock_key}'")
+    except Exception as e:
+        logger.error(f'Failed to wait for maintenance leadership: {e}')
+        try:
+            conn.close()
+        except Exception:
+            pass
+        raise
+
+
 def acquire_maintenance_leadership(lock_key: str) -> bool:
     """
     Try to acquire a session-level advisory lock keyed by the provided string.
