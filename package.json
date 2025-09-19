@@ -29,7 +29,7 @@
     "ajv-keywords": "5.1.0",
     "axios": "^1.12.2",
     "material-ui-popup-state": "^5.3.6",
-    "posthog-js": "^1.266.0",
+    "posthog-js": "^1.266.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-json-pretty": "^2.2.0",
