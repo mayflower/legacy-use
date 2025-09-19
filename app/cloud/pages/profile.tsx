@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { CreateNewTenant } from '../components/CreateNewTenant';
 import { SoftwareAutomationQuestion } from '../components/SoftwareAutomationQuestion';
 
 export default function ProfilePage() {
@@ -197,6 +198,8 @@ export default function ProfilePage() {
                 </Stack>
               </CardContent>
             </Card>
+
+            <CreateNewTenant />
 
             {/* Additional Info */}
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>

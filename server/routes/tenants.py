@@ -9,6 +9,7 @@ tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 async def create_new_tenant(name: str, schema: str, host: str):
     print(f'Creating new tenant: {name}, {schema}, {host}')
     # TODO: Add admin auth
+    print(f'Creating new tenant: {name}, {schema}, {host}')
     return create_tenant(name, schema, host)
 
 
