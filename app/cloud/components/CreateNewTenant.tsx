@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography';
 import { FormEvent, useState } from 'react';
 import { apiClient } from '../../services/apiService';
 
+import { useUser } from '@clerk/clerk-react';
+
 type CreateNewTenantProps = {
   onSuccess?: (tenant: { name: string; schema: string; host: string }) => void;
 };
@@ -41,15 +43,7 @@ function inferTenantDetails(name: string): InferredTenant {
     throw new Error('Please choose a different name for your tenant');
   }
 
-  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-  const baseDomain = hostname
-    ? hostname.replace(/^cloud\./, '')
-    : '';
-  const effectiveDomain = !baseDomain || baseDomain === 'localhost' || baseDomain === '127.0.0.1'
-    ? 'lvh.me'
-    : baseDomain;
-
-  const host = `${slug}.${effectiveDomain}`;
+  const host = `${slug}.${'legacy-use.com'}`;
 
   return {
     name: trimmedName,
@@ -72,7 +66,9 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       setError(null);
 
       const inferred = inferTenantDetails(tenantName);
-      await apiClient.post('/tenants/', null, { params: inferred });
+      const clerkId = useUser().user?.id;
+      const clerkJwt = useUser().user?.jwt; // TODO: https://clerk.com/docs/react/hooks/use-auth 
+      await apiClient.post('/tenants/', null, { params: { ...inferred, clerk_id: clerkId } });
 
       setSuccess(inferred);
       setTenantName('');
