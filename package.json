@@ -1,7 +1,7 @@
 {
   "name": "legacy-use",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -25,11 +25,11 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
-    "@sentry/react": "^10.11.0",
+    "@sentry/react": "^10.12.0",
     "ajv-keywords": "5.1.0",
     "axios": "^1.12.2",
     "material-ui-popup-state": "^5.3.6",
-    "posthog-js": "^1.266.0",
+    "posthog-js": "^1.266.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-json-pretty": "^2.2.0",
@@ -41,14 +41,14 @@
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@swc/plugin-emotion": "^11.1.0",
-    "@types/node": "^24.4.0",
+    "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react-swc": "^4.0.1",
+    "@vitejs/plugin-react-swc": "^4.1.0",
     "ajv": "^8.17.1",
     "orval": "^7.11.2",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.6"
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

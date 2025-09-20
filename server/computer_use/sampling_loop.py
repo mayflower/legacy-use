@@ -33,6 +33,7 @@ from server.computer_use.tools import (
     ToolVersion,
 )
 from server.computer_use.tools.custom_action import CustomActionTool
+from server.computer_use.tools.extraction import ExtractionTool
 from server.computer_use.utils import (
     _beta_message_param_to_job_message_content,
     _job_message_to_beta_message_param,
@@ -44,6 +45,9 @@ from server.computer_use.utils import (
 from server.database.service import DatabaseService
 
 # Import the centralized health check function
+from server.utils.api_definitions import (
+    get_api_response_schema_by_version_id,
+)
 from server.utils.docker_manager import check_target_container_health
 from server.utils.telemetry import (
     capture_ai_span,
@@ -113,6 +117,11 @@ async def sampling_loop(
                 job_data['api_definition_version_id'],
             )
             tools.append(ToolCls(custom_actions, job_data['parameters']))
+        elif ToolCls == ExtractionTool:
+            response_schema = await get_api_response_schema_by_version_id(
+                job_data['api_definition_version_id'], db_tenant
+            )
+            tools.append(ToolCls(response_schema))
         else:
             tools.append(ToolCls())
 
@@ -158,12 +167,10 @@ async def sampling_loop(
     while True:
         iteration_count += 1
         capture_ai_span(
-            {
-                'ai_trace_id': str(job_id),
-                'ai_parent_id': str(job_id),
-                'ai_span_id': iteration_count,
-                'ai_span_name': 'iteration',
-            }
+            ai_trace_id=str(job_id),
+            ai_parent_id=str(job_id),
+            ai_span_id=str(iteration_count),
+            ai_span_name='iteration',
         )
         # --- Fetch current history from DB --- START
         try:
@@ -196,11 +203,9 @@ async def sampling_loop(
 
         try:
             capture_ai_span(
-                {
-                    'ai_trace_id': str(job_id),
-                    'ai_parent_id': iteration_count,
-                    'ai_span_name': 'api call',
-                }
+                ai_trace_id=str(job_id),
+                ai_parent_id=str(iteration_count),
+                ai_span_name='api call',
             )
             # Make API call via handler
             (
@@ -304,11 +309,9 @@ async def sampling_loop(
             output_callback(content_block)
             if content_block['type'] == 'tool_use':
                 capture_ai_span(
-                    {
-                        'ai_trace_id': str(job_id),
-                        'ai_parent_id': iteration_count,
-                        'ai_span_name': 'tool use',
-                    }
+                    ai_trace_id=str(job_id),
+                    ai_parent_id=str(iteration_count),
+                    ai_span_name='tool use',
                 )
                 found_tool_use = True
 
@@ -382,11 +385,9 @@ async def sampling_loop(
                     session=session_obj,
                 )
                 capture_ai_span(
-                    {
-                        'ai_trace_id': str(job_id),
-                        'ai_parent_id': iteration_count,
-                        'ai_span_name': 'tool used',
-                    }
+                    ai_trace_id=str(job_id),
+                    ai_parent_id=str(iteration_count),
+                    ai_span_name='tool used',
                 )
 
                 # --- Save Tool Result Message to DB --- START
