@@ -1,9 +1,7 @@
 import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useEffect, useState } from 'react';
@@ -134,56 +132,61 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   }, []);
 
   return (
-    <Card sx={{ maxWidth: 600, width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
+    <Card sx={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
       <CardContent>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <Typography variant="h5">Create your tenant</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Pick a name for this tenant. We will generate the technical details for you based on
-              the name.
+        <Typography variant="h5" gutterBottom>
+          {success ? 'Your Tenant' : 'Create your tenant'}
+        </Typography>
+
+        {!success && (
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Pick a name for this tenant. We will generate the technical details for you.
+          </Typography>
+        )}
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, mx: 'auto', maxWidth: 400 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
+
+        {!success ? (
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Tenant name"
+              placeholder="e.g., Acme Corp"
+              value={tenantName}
+              onChange={event => setTenantName(event.target.value)}
+              fullWidth
+              required
+              disabled={isSubmitting}
+              sx={{ mb: 2, maxWidth: 400, mx: 'auto', display: 'block' }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting || !tenantName.trim()}
+            >
+              {isSubmitting ? 'Creating...' : 'Create tenant'}
+            </Button>
+          </form>
+        ) : (
+          <>
+            <Typography variant="h6" gutterBottom>
+              {success.name}
             </Typography>
-
-            {error && (
-              <Alert severity="error" onClose={() => setError(null)}>
-                {error}
-              </Alert>
-            )}
-            {
-              !success && (
-                <>
-                <TextField
-                label="Tenant name"
-                placeholder="e.g., Acme Corp"
-                value={tenantName}
-                onChange={event => setTenantName(event.target.value)}
-                fullWidth
-                required
-                disabled={isSubmitting}
-              />
-  
-              <Button type="submit" variant="contained" disabled={isSubmitting || !tenantName.trim()}>
-                {isSubmitting ? 'Creating...' : 'Create tenant'}
-              </Button>
-              </>
-              )
-            }
-
-            {success && (
-              <>
-              <Alert severity="success">
-                {`Tenant created!`}
-              </Alert>
-              <Button
-                variant="contained"
-                onClick={() => handleForwardToNewTenant(success.host, success.api_key)}
-              >
-                Go to tenant
-              </Button>
-              </>
-            )}
-          </Stack>
-        </Box>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Host: {success.host}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => handleForwardToNewTenant(success.host, success.api_key)}
+              sx={{ mt: 1 }}
+            >
+              Go to tenant
+            </Button>
+          </>
+        )}
       </CardContent>
     </Card>
   );

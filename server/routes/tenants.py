@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 
 from server.database.multi_tenancy import get_tenant_by_clerk_creation_id
-from server.tenant_manager import create_tenant, delete_tenant
+from server.tenant_manager import create_tenant
 
 tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
@@ -37,8 +37,7 @@ async def create_new_tenant(request: Request, name: str, schema: str, host: str)
     return {'api_key': new_tenant_api_key}
 
 
-@tenants_router.delete('/', response_model=bool)
-async def delete_existing_tenant(schema: str):
-    # TODO: Remove with missing authorization
-    # TODO: Add admin auth
-    return delete_tenant(schema)
+# @tenants_router.delete('/', response_model=bool)
+# async def delete_existing_tenant(schema: str):
+#     # TODO: Can't be done by schema but must by clerk_creation_id
+#     return delete_tenant(schema)
