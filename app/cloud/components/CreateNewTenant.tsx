@@ -145,7 +145,11 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
         )}
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2, mx: 'auto', maxWidth: 400 }} onClose={() => setError(null)}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2, mx: 'auto', maxWidth: 400 }}
+            onClose={() => setError(null)}
+          >
             {error}
           </Alert>
         )}
@@ -162,11 +166,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
               disabled={isSubmitting}
               sx={{ mb: 2, maxWidth: 400, mx: 'auto', display: 'block' }}
             />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting || !tenantName.trim()}
-            >
+            <Button type="submit" variant="contained" disabled={isSubmitting || !tenantName.trim()}>
               {isSubmitting ? 'Creating...' : 'Create tenant'}
             </Button>
           </form>

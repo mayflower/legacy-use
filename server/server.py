@@ -161,7 +161,6 @@ async def auth_middleware(request: Request, call_next):
             return await call_next(request)
 
     # Check if request path matches any admin API patterns
-    # TODO: Move to separate middleware for admin API?
     for pattern in clerk_auth_api_patterns:
         if re.match(pattern, request.url.path):
             sdk = Clerk(bearer_auth=settings.CLERK_SECRET_KEY)
