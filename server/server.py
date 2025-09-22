@@ -150,8 +150,8 @@ async def auth_middleware(request: Request, call_next):
         whitelist_patterns.append(rf'^{api_prefix}/specs(/.*)?$')
         whitelist_patterns.append(rf'^{api_prefix}/openapi.json$')
 
-    # Admin API patterns
-    admin_api_patterns = [
+    # Clerk auth API patterns
+    clerk_auth_api_patterns = [
         rf'^{api_prefix}/tenants(/.*)?$',
     ]
 
@@ -162,16 +162,19 @@ async def auth_middleware(request: Request, call_next):
 
     # Check if request path matches any admin API patterns
     # TODO: Move to separate middleware for admin API?
-    for pattern in admin_api_patterns:
+    for pattern in clerk_auth_api_patterns:
         if re.match(pattern, request.url.path):
-            # TODO: Check for admin API key
-            # TODO: Is this the right place to handle this. Should there maybe be a separate middleware for admin API?
-
             sdk = Clerk(bearer_auth=settings.CLERK_SECRET_KEY)
             reqeuest_state = sdk.authenticate_request(
                 request, AuthenticateRequestOptions()
             )
-            if reqeuest_state.is_authenticated:
+            if (
+                reqeuest_state.is_authenticated
+                and reqeuest_state.payload
+                and reqeuest_state.payload.get('sub')
+            ):
+                # add clerk user id to request state
+                request.state.clerk_user_id = reqeuest_state.payload.get('sub')
                 return await call_next(request)
 
             logger.error('Unauthorized request to admin API:', reqeuest_state.reason)
