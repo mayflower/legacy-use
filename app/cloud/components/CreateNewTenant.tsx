@@ -30,13 +30,16 @@ function inferTenantDetails(name: string): InferredTenant {
 
   const slug = trimmedName
     .toLowerCase()
+    // Replace any sequence of non-lowercase-alphanumeric characters with a dash
     .replace(/[^a-z0-9]+/g, '-')
+    // Remove leading or trailing dashes
     .replace(/^-+|-+$/g, '');
 
   if (!slug) {
     throw new Error('Tenant name must contain alphanumeric characters');
   }
 
+  // Replace all dashes with underscores
   const schema = slug.replace(/-/g, '_');
 
   const host = `${slug}.${window.location.hostname.replace('cloud.', '')}`;
@@ -85,6 +88,11 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       const response = await apiClient.post('/tenants/', null, {
         params: { ...inferred, clerk_id: clerkId },
         headers,
+      });
+
+      // update the clerk user with the tenant name
+      await apiClient.put('/users/me', {
+        name: response.data.name,
       });
 
       if (response.data.api_key) {

@@ -204,9 +204,13 @@ export default function ProfilePage() {
             <CreateNewTenant />
 
             {/* Logout button */}
-            <Button variant="contained" onClick={() => signOut()}>
-              Logout
-            </Button>
+            {user && (
+              <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1200 }}>
+                <Button variant="contained" onClick={() => signOut()}>
+                  Logout
+                </Button>
+              </Box>
+            )}
 
             {/* Additional Info */}
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
