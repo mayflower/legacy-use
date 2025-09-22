@@ -38,6 +38,7 @@ class Tenant(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
+    clerk_creation_id = Column(String(256), nullable=True)
 
 
 class Target(Base):
