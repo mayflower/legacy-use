@@ -6,10 +6,10 @@ import CardContent from '@mui/material/CardContent';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { FormEvent, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { apiClient } from '../../services/apiService';
 
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 
 type CreateNewTenantProps = {
   onSuccess?: (tenant: { name: string; schema: string; host: string }) => void;
@@ -53,6 +53,8 @@ function inferTenantDetails(name: string): InferredTenant {
 }
 
 export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const [tenantName, setTenantName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,9 +68,19 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       setError(null);
 
       const inferred = inferTenantDetails(tenantName);
-      const clerkId = useUser().user?.id;
-      const clerkJwt = useUser().user?.jwt; // TODO: https://clerk.com/docs/react/hooks/use-auth 
-      await apiClient.post('/tenants/', null, { params: { ...inferred, clerk_id: clerkId } });
+      const clerkId = user?.id;
+      const clerkJwt = await getToken();
+
+      const headers = clerkJwt
+        ? {
+            Authorization: `Bearer ${clerkJwt}`,
+          }
+        : undefined;
+
+      await apiClient.post('/tenants/', null, {
+        params: { ...inferred, clerk_id: clerkId },
+        headers,
+      });
 
       setSuccess(inferred);
       setTenantName('');
@@ -77,6 +89,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
         onSuccess(inferred);
       }
     } catch (err: any) {
+      console.log('err', err);
       const detail = err?.response?.data?.detail;
       if (detail) {
         setError(typeof detail === 'string' ? detail : 'Failed to create tenant.');

@@ -18,5 +18,6 @@ async def create_new_tenant(name: str, schema: str, host: str, clerk_id: str):
 
 @tenants_router.delete('/', response_model=bool)
 async def delete_existing_tenant(schema: str):
+    # TODO: Remove with missing authorization
     # TODO: Add admin auth
     return delete_tenant(schema)

@@ -99,6 +99,8 @@ class Settings(BaseSettings):
     VITE_PUBLIC_POSTHOG_KEY: str = 'phc_i1lWRELFSWLrbwV8M8sddiFD83rVhWzyZhP27T3s6V8'
     VITE_PUBLIC_DISABLE_TRACKING: bool = False
 
+    CLERK_SECRET_KEY: str | None = None
+
     LOG_RETENTION_DAYS: int = 7
     SHOW_DOCS: bool = True
     HIDE_INTERNAL_API_ENDPOINTS_IN_DOC: bool = False

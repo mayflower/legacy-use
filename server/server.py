@@ -7,6 +7,7 @@ import logging
 import os
 
 import sentry_sdk
+from clerk_backend_api import AuthenticateRequestOptions, Clerk
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -160,11 +161,24 @@ async def auth_middleware(request: Request, call_next):
             return await call_next(request)
 
     # Check if request path matches any admin API patterns
+    # TODO: Move to separate middleware for admin API?
     for pattern in admin_api_patterns:
         if re.match(pattern, request.url.path):
             # TODO: Check for admin API key
             # TODO: Is this the right place to handle this. Should there maybe be a separate middleware for admin API?
-            return await call_next(request)
+
+            sdk = Clerk(bearer_auth=settings.CLERK_SECRET_KEY)
+            reqeuest_state = sdk.authenticate_request(
+                request, AuthenticateRequestOptions()
+            )
+            if reqeuest_state.is_authenticated:
+                return await call_next(request)
+
+            logger.error('Unauthorized request to admin API:', reqeuest_state.reason)
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={'detail': 'Unauthorized'},
+            )
 
     try:
         # We check for tenant first, so the web-app can redirect if no tenant is found
