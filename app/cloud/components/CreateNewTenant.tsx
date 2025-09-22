@@ -65,7 +65,6 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<InferredTenant | null>(null);
 
-
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
 
@@ -119,7 +118,8 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
           <Stack spacing={2}>
             <Typography variant="h5">Create your tenant</Typography>
             <Typography variant="body2" color="text.secondary">
-              Pick a name for this tenant. We will generate the technical details for you based on the name.
+              Pick a name for this tenant. We will generate the technical details for you based on
+              the name.
             </Typography>
 
             {error && (
@@ -144,11 +144,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
               disabled={isSubmitting}
             />
 
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting || !tenantName.trim()}
-            >
+            <Button type="submit" variant="contained" disabled={isSubmitting || !tenantName.trim()}>
               {isSubmitting ? 'Creating...' : 'Create tenant'}
             </Button>
             {/* Forward to new tenant page */}
@@ -156,7 +152,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
               <Button
                 variant="contained"
                 onClick={() => handleForwardToNewTenant(success.host, success.api_key)}
-                >
+              >
                 Go to tenant
               </Button>
             )}
