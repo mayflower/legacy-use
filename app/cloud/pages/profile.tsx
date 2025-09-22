@@ -1,7 +1,8 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import {
   Avatar,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -16,6 +17,7 @@ import { SoftwareAutomationQuestion } from '../components/SoftwareAutomationQues
 
 export default function ProfilePage() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useAuth();
   const [softwareToAutomate, setSoftwareToAutomate] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showHello, setShowHello] = useState(
@@ -200,6 +202,11 @@ export default function ProfilePage() {
             </Card>
 
             <CreateNewTenant />
+
+            {/* Logout button */}
+            <Button variant="contained" onClick={() => signOut()}>
+              Logout
+            </Button>
 
             {/* Additional Info */}
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
