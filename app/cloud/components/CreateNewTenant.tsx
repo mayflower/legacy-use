@@ -22,8 +22,6 @@ type InferredTenant = {
   api_key: string;
 };
 
-const RESERVED_SCHEMA_NAMES = new Set(['cloud', 'www', 'admin', 'local', 'api', 'signup', 'auth']);
-
 function inferTenantDetails(name: string): InferredTenant {
   const trimmedName = name.trim();
   if (!trimmedName) {
@@ -40,9 +38,6 @@ function inferTenantDetails(name: string): InferredTenant {
   }
 
   const schema = slug.replace(/-/g, '_');
-  if (RESERVED_SCHEMA_NAMES.has(schema)) {
-    throw new Error('Please choose a different name for your tenant');
-  }
 
   const host = `${slug}.${window.location.hostname.replace('cloud.', '')}`;
 
