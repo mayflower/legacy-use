@@ -5,7 +5,7 @@ from server.tenant_manager import create_tenant, delete_tenant
 tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
 
-@tenants_router.post('/', response_model=str)
+@tenants_router.post('/', response_model=dict[str, str])
 async def create_new_tenant(name: str, schema: str, host: str, clerk_id: str):
     print(f'Creating new tenant: {name}, {schema}, {host}')
 
@@ -18,7 +18,7 @@ async def create_new_tenant(name: str, schema: str, host: str, clerk_id: str):
 
     # TODO: create and add Anthropic API key for tenant
 
-    return new_tenant_api_key
+    return {'api_key': new_tenant_api_key}
 
 
 @tenants_router.delete('/', response_model=bool)

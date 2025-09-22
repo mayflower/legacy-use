@@ -12,13 +12,14 @@ import { apiClient } from '../../services/apiService';
 import { useUser, useAuth } from '@clerk/clerk-react';
 
 type CreateNewTenantProps = {
-  onSuccess?: (tenant: { name: string; schema: string; host: string }) => void;
+  onSuccess?: (tenant: { name: string; schema: string; host: string; api_key: string }) => void;
 };
 
 type InferredTenant = {
   name: string;
   schema: string;
   host: string;
+  api_key: string;
 };
 
 const RESERVED_SCHEMA_NAMES = new Set(['cloud', 'www', 'admin', 'local', 'api', 'signup', 'auth']);
@@ -60,6 +61,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<InferredTenant | null>(null);
 
+
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
 
@@ -77,13 +79,15 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
           }
         : undefined;
 
-      await apiClient.post('/tenants/', null, {
+      const response = await apiClient.post('/tenants/', null, {
         params: { ...inferred, clerk_id: clerkId },
         headers,
       });
 
-      setSuccess(inferred);
-      setTenantName('');
+      if (response.data.api_key) {
+        setSuccess({ ...inferred, api_key: response.data.api_key });
+        setTenantName('');
+      }
 
       if (onSuccess) {
         onSuccess(inferred);
@@ -143,6 +147,15 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
             >
               {isSubmitting ? 'Creating...' : 'Create tenant'}
             </Button>
+            {/* Forward to new tenant page */}
+            {success && (
+              <Button
+                variant="contained"
+                onClick={() => window.open(`https://${success.host}?api_key=${success.api_key}`, '_blank')}
+                >
+                Go to tenant
+              </Button>
+            )}
           </Stack>
         </Box>
       </CardContent>
