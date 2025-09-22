@@ -49,7 +49,9 @@ def with_db(tenant_schema: Optional[str]):
         yield db
 
 
-def tenant_create(name: str, schema: str, host: str) -> None:
+def tenant_create(
+    name: str, schema: str, host: str, clerk_creation_id: str | None = None
+) -> None:
     """Create a new tenant with its schema and tables."""
 
     # Check schema name against blacklist
@@ -63,6 +65,7 @@ def tenant_create(name: str, schema: str, host: str) -> None:
             name=name,
             host=host,
             schema=schema,
+            clerk_creation_id=clerk_creation_id,
         )
         db_tenant.add(tenant)
 
@@ -97,3 +100,13 @@ def get_tenant_by_schema(schema: str) -> Optional[Tenant]:
     """Get tenant by schema."""
     with db_session.Session() as session:
         return session.query(Tenant).filter(Tenant.schema == schema).first()
+
+
+def get_tenant_by_clerk_creation_id(clerk_creation_id: str) -> Optional[Tenant]:
+    """Get tenant by clerk creation ID."""
+    with db_session.Session() as session:
+        return (
+            session.query(Tenant)
+            .filter(Tenant.clerk_creation_id == clerk_creation_id)
+            .first()
+        )
