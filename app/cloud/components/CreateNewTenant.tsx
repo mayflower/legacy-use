@@ -44,13 +44,22 @@ function inferTenantDetails(name: string): InferredTenant {
     throw new Error('Please choose a different name for your tenant');
   }
 
-  const host = `${slug}.${'legacy-use.com'}`;
+  const host = `${slug}.${window.location.hostname.replace('cloud.', '')}`;
 
   return {
     name: trimmedName,
     schema,
     host,
+    api_key: '',
   };
+}
+
+function handleForwardToNewTenant(host: string, api_key: string) {
+  if (host.includes('localhost')) {
+    window.open(`http://${host}:${window.location.port}?api_key=${api_key}`, '_blank');
+  } else {
+    window.open(`https://${host}?api_key=${api_key}`, '_blank');
+  }
 }
 
 export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
@@ -151,7 +160,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
             {success && (
               <Button
                 variant="contained"
-                onClick={() => window.open(`https://${success.host}?api_key=${success.api_key}`, '_blank')}
+                onClick={() => handleForwardToNewTenant(success.host, success.api_key)}
                 >
                 Go to tenant
               </Button>
