@@ -18,6 +18,8 @@ async def create_new_tenant(name: str, schema: str, host: str, clerk_id: str):
 
     # TODO: create and add Anthropic API key for tenant
 
+    # TODO: send mail with credentials to user
+
     return {'api_key': new_tenant_api_key}
 
 

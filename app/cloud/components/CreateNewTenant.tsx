@@ -90,11 +90,6 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
         headers,
       });
 
-      // update the clerk user with the tenant name
-      await apiClient.put('/users/me', {
-        name: response.data.name,
-      });
-
       if (response.data.api_key) {
         setSuccess({ ...inferred, api_key: response.data.api_key });
         setTenantName('');
@@ -135,34 +130,38 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
                 {error}
               </Alert>
             )}
+            {
+              !success && (
+                <>
+                <TextField
+                label="Tenant name"
+                placeholder="e.g., Acme Corp"
+                value={tenantName}
+                onChange={event => setTenantName(event.target.value)}
+                fullWidth
+                required
+                disabled={isSubmitting}
+              />
+  
+              <Button type="submit" variant="contained" disabled={isSubmitting || !tenantName.trim()}>
+                {isSubmitting ? 'Creating...' : 'Create tenant'}
+              </Button>
+              </>
+              )
+            }
 
             {success && (
-              <Alert severity="success" onClose={() => setSuccess(null)}>
-                {`Tenant created! Schema: ${success.schema}, Host: ${success.host}`}
+              <>
+              <Alert severity="success">
+                {`Tenant created!`}
               </Alert>
-            )}
-
-            <TextField
-              label="Tenant name"
-              placeholder="e.g., Acme Corp"
-              value={tenantName}
-              onChange={event => setTenantName(event.target.value)}
-              fullWidth
-              required
-              disabled={isSubmitting}
-            />
-
-            <Button type="submit" variant="contained" disabled={isSubmitting || !tenantName.trim()}>
-              {isSubmitting ? 'Creating...' : 'Create tenant'}
-            </Button>
-            {/* Forward to new tenant page */}
-            {success && (
               <Button
                 variant="contained"
                 onClick={() => handleForwardToNewTenant(success.host, success.api_key)}
               >
                 Go to tenant
               </Button>
+              </>
             )}
           </Stack>
         </Box>

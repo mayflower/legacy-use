@@ -101,11 +101,6 @@ def create_tenant(
     if not is_valid:
         raise ValueError(f'Validation error: {error_msg}')
 
-    # Check for existing tenants
-    is_unique, error_msg = check_existing_tenant(schema, host)
-    if not is_unique:
-        raise ValueError(f'Conflict error: {error_msg}')
-
     # check if clerk_creation_id is already in use for a tenant
     if clerk_creation_id:
         tenant = get_tenant_by_clerk_creation_id(clerk_creation_id)
@@ -113,6 +108,11 @@ def create_tenant(
             raise ValueError('Clerk creation ID already in use for a tenant')
     else:
         print('No clerk creation ID provided; Skipping check')
+
+    # Check for existing tenants
+    is_unique, error_msg = check_existing_tenant(schema, host)
+    if not is_unique:
+        raise ValueError(f'Conflict error: {error_msg}')
 
     try:
         # Create the tenant
