@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { apiClient } from '../../services/apiService';
 
 import { useUser, useAuth } from '@clerk/clerk-react';
@@ -113,6 +113,25 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       setIsSubmitting(false);
     }
   };
+
+  const handleGetTenant = async () => {
+    const response = await apiClient.get('/tenants/');
+    return response.data;
+  };
+
+  // check if user already has a tenant
+  useEffect(() => {
+    const fetchTenant = async () => {
+      const tenant = await handleGetTenant();
+      if (tenant) {
+        setSuccess(tenant);
+        if (onSuccess) {
+          onSuccess(tenant);
+        }
+      }
+    };
+    fetchTenant();
+  }, []);
 
   return (
     <Card sx={{ maxWidth: 600, width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>

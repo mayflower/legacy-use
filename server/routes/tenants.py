@@ -1,15 +1,29 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
+from server.database.multi_tenancy import get_tenant_by_clerk_creation_id
 from server.tenant_manager import create_tenant, delete_tenant
 
 tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
 
-@tenants_router.post('/', response_model=dict[str, str])
-async def create_new_tenant(name: str, schema: str, host: str, clerk_id: str):
-    print(f'Creating new tenant: {name}, {schema}, {host}')
+@tenants_router.get('/', response_model=dict[str, str | None])
+async def get_tenant(request: Request):
+    clerk_id = request.state.clerk_user_id
+    tenant = get_tenant_by_clerk_creation_id(clerk_id, include_api_key=True)
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
 
-    # TODO: Do not allow a user to create a tenant if he already has a tenant
+    return {
+        'api_key': getattr(tenant, 'api_key', None),
+        'name': tenant.name,
+        'schema': tenant.schema,
+        'host': tenant.host,
+    }
+
+
+@tenants_router.post('/', response_model=dict[str, str])
+async def create_new_tenant(request: Request, name: str, schema: str, host: str):
+    clerk_id = request.state.clerk_user_id
 
     try:
         new_tenant_api_key = create_tenant(name, schema, host, clerk_id)

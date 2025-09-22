@@ -102,11 +102,21 @@ def get_tenant_by_schema(schema: str) -> Optional[Tenant]:
         return session.query(Tenant).filter(Tenant.schema == schema).first()
 
 
-def get_tenant_by_clerk_creation_id(clerk_creation_id: str) -> Optional[Tenant]:
+def get_tenant_by_clerk_creation_id(
+    clerk_creation_id: str, include_api_key: bool = False
+) -> Optional[Tenant]:
     """Get tenant by clerk creation ID."""
     with db_session.Session() as session:
-        return (
+        tenant = (
             session.query(Tenant)
             .filter(Tenant.clerk_creation_id == clerk_creation_id)
             .first()
         )
+        if tenant and include_api_key:
+            # Load API key from tenant settings
+            from server.settings_tenant import get_tenant_setting
+
+            api_key = get_tenant_setting(str(tenant.schema), 'API_KEY')
+            # Attach API key to tenant object for convenience
+            tenant.api_key = api_key
+        return tenant
