@@ -55,7 +55,6 @@ async def check_program_connection() -> bool:
 
         # Client-specific checks
         if REMOTE_CLIENT_TYPE == 'rdp':
-            # All RDP-specific checks are in check_rdp_ready
             return await check_rdp_ready()
         elif REMOTE_CLIENT_TYPE == 'vnc':
             return await check_vnc_ready()
@@ -70,29 +69,26 @@ async def check_program_connection() -> bool:
 
 async def check_vnc_ready() -> bool:
     """Check if VNC connection is fully ready including client availability, processes, windows, and display."""
+    try:
+        # Check for VNC client
+        result = await run('which xtigervncviewer', timeout=2.0)
+        if not (result[0] == 0 and result[1].strip()):
+            print('VNC client xtigervncviewer not found')
+            return False
 
-    # Check for tigervnc is available
-    _, stdout, _ = await run('xtigervncviewer --help', timeout=5.0)
-    if 'TigerVNC' not in stdout:
-        print('TigerVNC is not available')
+        return True
+    except Exception as e:
+        print(f'VNC readiness check failed: {e}')
         return False
-    # VNC typically shows content immediately, so basic connection check is sufficient
-    return True
 
 
 async def check_rdp_ready() -> bool:
     """Check if RDP connection is fully ready including client availability, processes, windows, and display."""
     try:
         # Check if xfreerdp3 client is available
-        try:
-            _, stdout, _ = await run('xfreerdp3 --version', timeout=5.0)
-            if 'freerdp' in stdout.lower() or 'version' in stdout.lower():
-                print('Found RDP client: xfreerdp3')
-            else:
-                print(f'xfreerdp3 returned unexpected output: {stdout}')
-                return False
-        except Exception as e:
-            print(f'xfreerdp3 check failed: {e}')
+        _, stdout, _ = await run('xfreerdp3 --version', timeout=5.0)
+        if not ('freerdp' in stdout.lower() or 'version' in stdout.lower()):
+            print(f'xfreerdp3 returned unexpected output: {stdout}')
             return False
 
         # Check if xfreerdp3 processes are running
