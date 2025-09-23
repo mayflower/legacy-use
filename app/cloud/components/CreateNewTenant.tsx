@@ -1,3 +1,4 @@
+import { useAuth, useUser } from '@clerk/clerk-react';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -6,8 +7,6 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useEffect, useState } from 'react';
 import { apiClient } from '../../services/apiService';
-
-import { useUser, useAuth } from '@clerk/clerk-react';
 
 type CreateNewTenantProps = {
   onSuccess?: (tenant: { name: string; schema: string; host: string; api_key: string }) => void;
