@@ -156,7 +156,12 @@ export default function ProfilePage() {
                   {/* User Information */}
                   {user && (
                     <Box>
-                      <Stack direction="row" spacing={3} alignItems="center" justifyContent="center">
+                      <Stack
+                        direction="row"
+                        spacing={3}
+                        alignItems="center"
+                        justifyContent="center"
+                      >
                         <Avatar
                           src={user.imageUrl}
                           alt={user.fullName || user.username || 'User'}
