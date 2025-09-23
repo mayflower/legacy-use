@@ -50,7 +50,7 @@ def with_db(tenant_schema: Optional[str]):
 
 
 def tenant_create(
-    name: str, schema: str, host: str, clerk_creation_id: str | None = None
+    name: str, schema: str, host: str, clerk_user_id: str | None = None
 ) -> None:
     """Create a new tenant with its schema and tables."""
 
@@ -65,7 +65,7 @@ def tenant_create(
             name=name,
             host=host,
             schema=schema,
-            clerk_creation_id=clerk_creation_id,
+            clerk_user_id=clerk_user_id,
         )
         db_tenant.add(tenant)
 
@@ -102,14 +102,14 @@ def get_tenant_by_schema(schema: str) -> Optional[Tenant]:
         return session.query(Tenant).filter(Tenant.schema == schema).first()
 
 
-def get_tenant_by_clerk_creation_id(
-    clerk_creation_id: str, include_api_key: bool = False
+def get_tenant_by_clerk_user_id(
+    clerk_user_id: str, include_api_key: bool = False
 ) -> Optional[Tenant]:
     """Get tenant by clerk creation ID."""
     with db_session.Session() as session:
         tenant = (
             session.query(Tenant)
-            .filter(Tenant.clerk_creation_id == clerk_creation_id)
+            .filter(Tenant.clerk_user_id == clerk_user_id)
             .first()
         )
         if tenant and include_api_key:

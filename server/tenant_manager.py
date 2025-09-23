@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from server.database.multi_tenancy import (
-    get_tenant_by_clerk_creation_id,
+    get_tenant_by_clerk_user_id,
     get_tenant_by_host,
     get_tenant_by_schema,
     tenant_create,
@@ -86,7 +86,7 @@ def check_existing_tenant(schema: str, host: str) -> tuple[bool, str]:
 
 
 def create_tenant(
-    name: str, schema: str, host: str, clerk_creation_id: str | None = None
+    name: str, schema: str, host: str, clerk_user_id: str | None = None
 ) -> str:
     """Create a new tenant."""
 
@@ -101,9 +101,9 @@ def create_tenant(
     if not is_valid:
         raise ValueError(f'Validation error: {error_msg}')
 
-    # check if clerk_creation_id is already in use for a tenant
-    if clerk_creation_id:
-        tenant = get_tenant_by_clerk_creation_id(clerk_creation_id)
+    # check if clerk_user_id is already in use for a tenant
+    if clerk_user_id:
+        tenant = get_tenant_by_clerk_user_id(clerk_user_id)
         if tenant:
             raise ValueError('Clerk creation ID already in use for a tenant')
     else:
@@ -116,7 +116,7 @@ def create_tenant(
 
     try:
         # Create the tenant
-        tenant_create(name, schema, host, clerk_creation_id)
+        tenant_create(name, schema, host, clerk_user_id)
 
         # Generate and store a secure API key for the new tenant
         api_key = generate_secure_api_key()
