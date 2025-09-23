@@ -156,7 +156,7 @@ export default function ProfilePage() {
                   {/* User Information */}
                   {user && (
                     <Box>
-                      <Stack spacing={2} alignItems="center">
+                      <Stack direction="row" spacing={3} alignItems="center" justifyContent="center">
                         <Avatar
                           src={user.imageUrl}
                           alt={user.fullName || user.username || 'User'}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
                           }}
                         />
 
-                        <Stack spacing={1} alignItems="center">
+                        <Stack alignItems="flex-start">
                           {name && <Typography variant="h5">{name}</Typography>}
 
                           {user.primaryEmailAddress && (
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                             </Typography>
                           )}
 
-                          {user.createdAt && (
+                          {user.createdAt && !name && (
                             <Chip
                               label={`Member since ${new Date(user.createdAt).toLocaleDateString()}`}
                               variant="outlined"
