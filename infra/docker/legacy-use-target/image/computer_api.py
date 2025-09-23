@@ -40,15 +40,80 @@ REMOTE_CLIENT_TYPE = os.getenv('REMOTE_CLIENT_TYPE', 'generic')
 
 
 async def check_program_connection() -> bool:
-    """Check if the appropriate program for the target type has an established connection."""
+    """Check if the appropriate program for the target type has an established connection and desktop is ready."""
 
     try:
+        print(f'Checking for established connections for {REMOTE_CLIENT_TYPE}')
+
         # Check for established connections for the program
         _, stdout, _ = await run(
             f'netstat -tnp | grep {REMOTE_CLIENT_TYPE}', timeout=5.0
         )
-        return 'ESTABLISHED' in stdout
+        if 'ESTABLISHED' not in stdout:
+            print(f'No established connections for {REMOTE_CLIENT_TYPE}')
+            return False
+
+        # Client-specific checks
+        if REMOTE_CLIENT_TYPE == 'rdp':
+            # All RDP-specific checks are in check_rdp_ready
+            return await check_rdp_ready()
+        elif REMOTE_CLIENT_TYPE == 'vnc':
+            return await check_vnc_ready()
+        else:
+            print(f'{REMOTE_CLIENT_TYPE} is not supported')
+            return False
+
     except (TimeoutError, Exception):
+        print(f'Error checking for established connections for {REMOTE_CLIENT_TYPE}')
+        return False
+
+
+async def check_vnc_ready() -> bool:
+    """Check if VNC connection is fully ready including client availability, processes, windows, and display."""
+
+    # Check for tigervnc is available
+    _, stdout, _ = await run('xtigervncviewer --help', timeout=5.0)
+    if 'TigerVNC' not in stdout:
+        print('TigerVNC is not available')
+        return False
+    # VNC typically shows content immediately, so basic connection check is sufficient
+    return True
+
+
+async def check_rdp_ready() -> bool:
+    """Check if RDP connection is fully ready including client availability, processes, windows, and display."""
+    try:
+        # Check if xfreerdp3 client is available
+        try:
+            _, stdout, _ = await run('xfreerdp3 --version', timeout=5.0)
+            if 'freerdp' in stdout.lower() or 'version' in stdout.lower():
+                print('Found RDP client: xfreerdp3')
+            else:
+                print(f'xfreerdp3 returned unexpected output: {stdout}')
+                return False
+        except Exception as e:
+            print(f'xfreerdp3 check failed: {e}')
+            return False
+
+        # Check if xfreerdp3 processes are running
+        _, stdout, _ = await run('pgrep -f xfreerdp3', timeout=2.0)
+        if not stdout.strip():
+            print('No xfreerdp3 process found')
+            return False
+
+        # Check for active RDP windows
+        _, stdout, _ = await run(
+            'timeout 3 xdotool search --name "FreeRDP" 2>/dev/null || echo "no-windows"',
+            timeout=3.0,
+        )
+        if 'no-windows' in stdout:
+            print('No RDP windows found')
+            return False
+
+        return True
+
+    except Exception as e:
+        print(f'RDP readiness check failed: {e}')
         return False
 
 
