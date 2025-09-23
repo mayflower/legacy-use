@@ -138,12 +138,15 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
         textAlign: 'center',
         boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
         borderRadius: 3,
+        p: 1.5,
       }}
     >
       <CardContent>
-        <Typography variant="h5" gutterBottom>
-          {success ? 'Your organization' : 'Create your organization'}
-        </Typography>
+        {!success && (
+          <Typography variant="h5" gutterBottom>
+            Create your organization
+          </Typography>
+        )}
 
         {!success && (
           <Typography variant="body2" color="text.secondary" gutterBottom>
