@@ -11,8 +11,6 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-from server.migrations.tenant import for_each_tenant_schema
-
 # revision identifiers, used by Alembic.
 revision: str = '2478611410c3'
 down_revision: Union[str, None] = '6d173f57c620'
@@ -20,8 +18,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-@for_each_tenant_schema
-def upgrade(schema: str) -> None:
+def upgrade() -> None:
     op.add_column(
         'tenants',
         sa.Column('clerk_user_id', sa.String(length=256), nullable=True),
@@ -32,8 +29,7 @@ def upgrade(schema: str) -> None:
     )
 
 
-@for_each_tenant_schema
-def downgrade(schema: str) -> None:
+def downgrade() -> None:
     op.drop_constraint(
         'unique_clerk_user_id', 'tenants', schema='shared', type_='unique'
     )
