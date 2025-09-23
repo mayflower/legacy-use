@@ -188,10 +188,6 @@ export default function ProfilePage() {
                     </Box>
                   )}
 
-                  <Typography variant="body1">
-                    You're all set, we will send you an email with your credentials shortly.
-                  </Typography>
-
                   {/* Description */}
                   <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
                     Start automating work in your desktop applications and expose workflows as
