@@ -132,7 +132,15 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   }, []);
 
   return (
-    <Card sx={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
+    <Card
+      sx={{
+        maxWidth: 600,
+        width: '100%',
+        textAlign: 'center',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+        borderRadius: 3,
+      }}
+    >
       <CardContent>
         <Typography variant="h5" gutterBottom>
           {success ? 'Your Tenant' : 'Create your tenant'}
