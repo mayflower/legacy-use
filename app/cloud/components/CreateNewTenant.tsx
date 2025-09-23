@@ -142,12 +142,12 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
     >
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          {success ? 'Your Tenant' : 'Create your tenant'}
+          {success ? 'Your organization' : 'Create your organization'}
         </Typography>
 
         {!success && (
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Pick a name for this tenant. We will generate the technical details for you.
+            Pick a name for your organization. We will generate the technical details for you.
           </Typography>
         )}
 
@@ -164,7 +164,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
         {!success ? (
           <form onSubmit={handleSubmit}>
             <TextField
-              label="Tenant name"
+              label="Organization name"
               placeholder="e.g., Acme Corp"
               value={tenantName}
               onChange={event => setTenantName(event.target.value)}
@@ -174,7 +174,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
               sx={{ mb: 2, maxWidth: 400, mx: 'auto', display: 'block' }}
             />
             <Button type="submit" variant="contained" disabled={isSubmitting || !tenantName.trim()}>
-              {isSubmitting ? 'Creating...' : 'Create tenant'}
+              {isSubmitting ? 'Creating...' : 'Create organization'}
             </Button>
           </form>
         ) : (
@@ -190,7 +190,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
               onClick={() => handleForwardToNewTenant(success.host, success.api_key)}
               sx={{ mt: 1 }}
             >
-              Go to tenant
+              Go to organization
             </Button>
           </>
         )}
