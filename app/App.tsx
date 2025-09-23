@@ -1,9 +1,7 @@
-// biome-ignore assist/source/organizeImports: must be on top
 import CssBaseline from '@mui/material/CssBaseline';
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
@@ -22,7 +20,7 @@ import EditApiDefinition from './components/EditApiDefinition';
 import TeachingMode from './components/TeachingMode';
 import JobDetails from './components/JobDetails';
 import JobsList from './components/JobsList';
-import OnboardingWizard from './components/OnboardingWizard';
+import Settings from './components/Settings';
 import SessionList from './components/SessionList';
 import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
@@ -148,8 +146,6 @@ const AppLayout = () => {
   const { apiKey, setIsApiKeyValid } = useApiKey();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const { isProviderValid } = useAiProvider();
 
   // Check if we're on a session detail page or job detail page
@@ -196,19 +192,6 @@ const AppLayout = () => {
     }
   }, [selectedSessionId]);
 
-  // Check if user has completed onboarding
-  useEffect(() => {
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    const hasOnboarded = onboardingCompleted === 'true';
-    setHasCompletedOnboarding(hasOnboarded);
-
-    // Show onboarding for new users without API key
-    // Disabled: onboarding dialog will not open automatically
-    // if (!hasOnboarded) {
-    //   setOnboardingOpen(true);
-    // }
-  }, [apiKey]);
-
   // Validate API key on mount and when it changes
   useEffect(() => {
     const validateApiKey = async () => {
@@ -238,7 +221,7 @@ const AppLayout = () => {
     };
 
     validateApiKey();
-  }, [apiKey, setIsApiKeyValid, hasCompletedOnboarding]);
+  }, [apiKey, setIsApiKeyValid]);
 
   // Extract session ID from URL if we're on a target detail page
   useEffect(() => {
@@ -287,13 +270,6 @@ const AppLayout = () => {
   // Adjust the grid layout based on what's being shown
   const showRightPanel = showVncViewer || showNotReadyPlaceholder || showArchivedPlaceholder;
 
-  // Handle onboarding completion
-  const handleOnboardingComplete = () => {
-    localStorage.setItem('onboardingCompleted', 'true');
-    setHasCompletedOnboarding(true);
-    setOnboardingOpen(false);
-  };
-
   // Show loading state while validating API key
   if (isValidatingApiKey) {
     return (
@@ -318,18 +294,13 @@ const AppLayout = () => {
         <AppHeader />
 
         {/* Show warning if no ai provider is configured */}
-        {!isProviderValid && !onboardingOpen && (
+        {!isProviderValid && (
           <Box sx={{ p: 2 }}>
             <Alert
               severity="warning"
-              action={
-                <Button color="inherit" size="small" onClick={() => setOnboardingOpen(true)}>
-                  Complete Onboarding
-                </Button>
-              }
             >
-              No AI provider configured. Please complete the onboarding wizard or configure a custom
-              AI provider to use the app.
+              No AI provider configured. Configure an AI provider to enable model-driven features in
+              the app.
             </Alert>
           </Box>
         )}
@@ -371,12 +342,7 @@ const AppLayout = () => {
       {/* API Key Dialog */}
       <ApiKeyDialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} />
 
-      {/* Onboarding Wizard */}
-      <OnboardingWizard
-        open={onboardingOpen && !apiKeyDialogOpen}
-        onClose={() => setOnboardingOpen(false)}
-        onComplete={handleOnboardingComplete}
-      />
+      {/* Settings route renders separately; no additional dialogs here. */}
     </SessionContext.Provider>
   );
 };
@@ -393,6 +359,7 @@ function App() {
                 <Route path="" element={<Dashboard />} />
                 <Route path="apis" element={<ApiList />} />
                 <Route path="apis/:apiName/edit" element={<EditApiDefinition />} />
+                <Route path="settings" element={<Settings />} />
                 <Route path="sessions" element={<SessionList />} />
                 <Route path="sessions/new" element={<CreateSession />} />
                 <Route path="sessions/:sessionId" element={<TargetDetails />} />
