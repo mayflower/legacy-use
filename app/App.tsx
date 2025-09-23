@@ -30,7 +30,7 @@ import VncViewer from './components/VncViewer';
 import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import type { Session } from './gen/endpoints';
-import { getSessions, setApiKeyHeader, testApiKey } from './services/apiService';
+import { getSession, setApiKeyHeader, testApiKey } from './services/apiService';
 
 // Create a dark theme
 const darkTheme = createTheme({
@@ -176,25 +176,62 @@ const AppLayout = () => {
     }
   }, [isSessionDetail, location.pathname]);
 
-  // Fetch session details when selectedSessionId changes
+  // Load details for the session referenced in the global context
   useEffect(() => {
-    if (selectedSessionId) {
-      const fetchSessionDetails = async () => {
-        try {
-          const sessionsData = await getSessions(true); // Include archived sessions
-          const sessionData = sessionsData.find(s => s.id === selectedSessionId);
-          setCurrentSession(sessionData || null);
-        } catch (err) {
-          console.error('Error fetching session details:', err);
+    if (!selectedSessionId) {
+      setCurrentSession(null);
+      return;
+    }
+
+    let isActive = true;
+
+    const fetchSessionDetails = async () => {
+      try {
+        const sessionData = await getSession(selectedSessionId);
+        if (isActive) {
+          setCurrentSession(sessionData);
+        }
+      } catch (err) {
+        console.error('Error fetching session details:', err);
+        if (isActive) {
           setCurrentSession(null);
         }
-      };
+      }
+    };
 
-      fetchSessionDetails();
-    } else {
-      setCurrentSession(null);
+    fetchSessionDetails();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedSessionId, setCurrentSession]);
+
+  // Poll for session updates so views like JobDetails stay in sync
+  useEffect(() => {
+    if (!selectedSessionId || currentSession?.is_archived) {
+      return;
     }
-  }, [selectedSessionId]);
+
+    let isActive = true;
+
+    const pollSessionDetails = async () => {
+      try {
+        const sessionData = await getSession(selectedSessionId);
+        if (isActive) {
+          setCurrentSession(sessionData);
+        }
+      } catch (err) {
+        console.error('Error polling session details:', err);
+      }
+    };
+
+    const intervalId = window.setInterval(pollSessionDetails, 5000);
+
+    return () => {
+      isActive = false;
+      clearInterval(intervalId);
+    };
+  }, [selectedSessionId, currentSession?.is_archived, setCurrentSession]);
 
   // Check if user has completed onboarding
   useEffect(() => {
