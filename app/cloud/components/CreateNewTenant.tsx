@@ -95,7 +95,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       if (onSuccess) {
         onSuccess(inferred);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.log('err', err);
       const detail = err?.response?.data?.detail;
       if (detail) {
