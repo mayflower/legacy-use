@@ -15,9 +15,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from server.database.multi_tenancy import (
+    get_tenant_by_clerk_user_id,
     get_tenant_by_host,
     get_tenant_by_schema,
     tenant_create,
+    tenant_delete,
 )
 from server.database.service import DatabaseService
 from server.settings_tenant import set_tenant_setting
@@ -83,7 +85,9 @@ def check_existing_tenant(schema: str, host: str) -> tuple[bool, str]:
     return True, ''
 
 
-def create_tenant(name: str, schema: str, host: str) -> bool:
+def create_tenant(
+    name: str, schema: str, host: str, clerk_user_id: str | None = None
+) -> str:
     """Create a new tenant."""
 
     print('Creating tenant:')
@@ -95,18 +99,24 @@ def create_tenant(name: str, schema: str, host: str) -> bool:
     # Validate input
     is_valid, error_msg = validate_tenant_data(name, schema, host)
     if not is_valid:
-        print(f'❌ Validation error: {error_msg}')
-        return False
+        raise ValueError(f'Validation error: {error_msg}')
+
+    # check if clerk_user_id is already in use for a tenant
+    if clerk_user_id:
+        tenant = get_tenant_by_clerk_user_id(clerk_user_id)
+        if tenant:
+            raise ValueError('Clerk creation ID already in use for a tenant')
+    else:
+        print('No clerk creation ID provided; Skipping check')
 
     # Check for existing tenants
     is_unique, error_msg = check_existing_tenant(schema, host)
     if not is_unique:
-        print(f'❌ Conflict error: {error_msg}')
-        return False
+        raise ValueError(f'Conflict error: {error_msg}')
 
     try:
         # Create the tenant
-        tenant_create(name, schema, host)
+        tenant_create(name, schema, host, clerk_user_id)
 
         # Generate and store a secure API key for the new tenant
         api_key = generate_secure_api_key()
@@ -121,10 +131,24 @@ def create_tenant(name: str, schema: str, host: str) -> bool:
         print('   This API key provides full access to the tenant.')
         print('   Store it securely - it cannot be recovered if lost.')
         print('   Use this key to authenticate API requests for this tenant.')
-        return True
+        return api_key
 
     except Exception as e:
         print(f'❌ Error creating tenant: {str(e)}')
+        try:
+            tenant_delete(schema)
+        except Exception as rollback_error:
+            print(f'❌ Error rolling back tenant creation: {str(rollback_error)}')
+        raise e
+
+
+def delete_tenant(schema: str) -> bool:
+    """Delete a tenant."""
+    try:
+        tenant_delete(schema)
+        return True
+    except Exception as e:
+        print(f'❌ Error deleting tenant: {str(e)}')
         return False
 
 
