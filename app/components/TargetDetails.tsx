@@ -133,13 +133,7 @@ const TargetDetails = () => {
       setCurrentSession(null);
       setSelectedSessionId(null);
     };
-  }, [
-    targetId,
-    sessionIdFromUrl,
-    setCurrentSession,
-    setSelectedSessionId,
-    fetchJobsForSession,
-  ]);
+  }, [targetId, sessionIdFromUrl, setCurrentSession, setSelectedSessionId, fetchJobsForSession]);
 
   useEffect(() => {
     if (!currentSession || currentSession.target_id !== targetId) {
