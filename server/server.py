@@ -340,11 +340,8 @@ For more information, please refer to the migration documentation.
 
     async def start_maintenance_tasks_when_leader() -> None:
         logger.info('Waiting to acquire maintenance leadership lock')
-        try:
-            await asyncio.to_thread(wait_for_maintenance_leadership, leader_key)
-        except Exception:
-            logger.exception('Failed while waiting for maintenance leadership')
-            return
+        await asyncio.to_thread(wait_for_maintenance_leadership, leader_key)
+
         # Once the blocking call returns we own the lock in this process.
         asyncio.create_task(scheduled_log_pruning())
         logger.info('Started background task for pruning old logs (leader)')

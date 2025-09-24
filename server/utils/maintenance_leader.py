@@ -49,13 +49,8 @@ def wait_for_maintenance_leadership(lock_key: str) -> None:
             cur.close()
         _leader_connection = conn
         logger.info(f"Acquired maintenance leadership with key '{lock_key}'")
-    except Exception as e:
-        logger.error(f'Failed to wait for maintenance leadership: {e}')
-        try:
-            conn.close()
-        except Exception:
-            pass
-        raise
+    finally:
+        conn.close()
 
 
 def acquire_maintenance_leadership(lock_key: str) -> bool:
