@@ -7,12 +7,12 @@ import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import { useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
@@ -147,7 +147,6 @@ const AppHeader = () => {
             </MenuItem>
             {apiKey && <MenuItem onClick={handleClearApiKey}>Clear API Key</MenuItem>}
           </Menu>
-
         </Toolbar>
       </AppBar>
 

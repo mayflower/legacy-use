@@ -1,5 +1,3 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   Alert,
   Box,
@@ -15,6 +13,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { updateProviderSettings } from '../services/apiService';
 
@@ -128,7 +128,8 @@ const Settings = () => {
       setSaveSuccess(true);
       await refreshProviders();
     } catch (error) {
-      const message = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      const message = (error as { response?: { data?: { detail?: string } } })?.response?.data
+        ?.detail;
       setSaveError(message || 'Failed to update provider settings.');
       setSaveSuccess(false);
     } finally {
@@ -182,8 +183,8 @@ const Settings = () => {
             </Typography>
             {configuredProviders.length === 0 ? (
               <Typography color="text.secondary">
-                No AI models are currently configured. Add provider credentials to enable AI-assisted
-                workflows.
+                No AI models are currently configured. Add provider credentials to enable
+                AI-assisted workflows.
               </Typography>
             ) : (
               <Box
@@ -241,7 +242,9 @@ const Settings = () => {
                   id="edit-provider"
                   label="Provider"
                   value={selectedProviderId}
-                  onChange={(event: SelectChangeEvent<string>) => setSelectedProviderId(event.target.value)}
+                  onChange={(event: SelectChangeEvent<string>) =>
+                    setSelectedProviderId(event.target.value)
+                  }
                 >
                   {providers.map(provider => (
                     <MenuItem key={provider.provider} value={provider.provider}>
@@ -259,7 +262,8 @@ const Settings = () => {
                 ) : (
                   credentialKeys.map(key => {
                     const placeholder = selectedProvider.credentials?.[key] ?? '';
-                    const isSecret = key.toLowerCase().includes('key') || key.toLowerCase().includes('secret');
+                    const isSecret =
+                      key.toLowerCase().includes('key') || key.toLowerCase().includes('secret');
                     return (
                       <TextField
                         key={key}
@@ -270,7 +274,11 @@ const Settings = () => {
                         placeholder={placeholder || undefined}
                         fullWidth
                         autoComplete="off"
-                        helperText={placeholder ? 'Current value hidden. Enter a new value to replace it.' : undefined}
+                        helperText={
+                          placeholder
+                            ? 'Current value hidden. Enter a new value to replace it.'
+                            : undefined
+                        }
                       />
                     );
                   })
