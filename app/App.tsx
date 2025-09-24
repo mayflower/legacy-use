@@ -338,8 +338,6 @@ const AppLayout = () => {
 
       {/* API Key Dialog */}
       <ApiKeyDialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} />
-
-      {/* Settings route renders separately; no additional dialogs here. */}
     </SessionContext.Provider>
   );
 };
