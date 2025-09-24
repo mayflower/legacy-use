@@ -1,5 +1,9 @@
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import {
+  Alert,
   Box,
+  Button,
   Chip,
   CircularProgress,
   FormControl,
@@ -7,15 +11,130 @@ import {
   MenuItem,
   Paper,
   Select,
+  Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import { useAiProvider } from '../contexts/AiProviderContext';
+import { updateProviderSettings } from '../services/apiService';
 
 const Settings = () => {
-  const { providers, currentProvider, loading } = useAiProvider();
+  const { providers, currentProvider, loading, refreshProviders } = useAiProvider();
   const configuredProviders = providers.filter(provider => provider.available);
   const hasProviders = providers.length > 0;
   const activeProviderValue = currentProvider ?? '';
+  const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+  const [credentials, setCredentials] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const previousProviderId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && providers.length > 0) {
+      setSelectedProviderId(prevId => {
+        if (prevId && providers.some(provider => provider.provider === prevId)) {
+          return prevId;
+        }
+        if (currentProvider && providers.some(provider => provider.provider === currentProvider)) {
+          return currentProvider;
+        }
+        return providers[0].provider;
+      });
+    }
+  }, [loading, providers, currentProvider]);
+
+  const selectedProvider = useMemo(
+    () => providers.find(provider => provider.provider === selectedProviderId) ?? null,
+    [providers, selectedProviderId],
+  );
+
+  useEffect(() => {
+    if (selectedProvider) {
+      const emptyCredentials = Object.keys(selectedProvider.credentials || {}).reduce(
+        (acc, key) => ({
+          ...acc,
+          [key]: '',
+        }),
+        {} as Record<string, string>,
+      );
+      setCredentials(emptyCredentials);
+      setSaveError(null);
+    } else {
+      setCredentials({});
+    }
+  }, [selectedProvider]);
+
+  useEffect(() => {
+    if (!selectedProviderId) {
+      previousProviderId.current = null;
+      return;
+    }
+
+    if (previousProviderId.current !== selectedProviderId) {
+      if (previousProviderId.current !== null) {
+        setSaveSuccess(false);
+      }
+      previousProviderId.current = selectedProviderId;
+    }
+  }, [selectedProviderId]);
+
+  const credentialKeys = useMemo(() => {
+    if (!selectedProvider) {
+      return [];
+    }
+    return Object.keys(selectedProvider.credentials || {});
+  }, [selectedProvider]);
+
+  const handleCredentialChange = (key: string, value: string) => {
+    setCredentials(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+    if (saveError) {
+      setSaveError(null);
+    }
+    if (saveSuccess) {
+      setSaveSuccess(false);
+    }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedProvider) {
+      return;
+    }
+
+    const missingField = credentialKeys.find(key => !credentials[key]?.trim());
+    if (missingField) {
+      setSaveError('All fields are required to update this provider.');
+      setSaveSuccess(false);
+      return;
+    }
+
+    const trimmedCredentials = credentialKeys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: credentials[key].trim(),
+      }),
+      {} as Record<string, string>,
+    );
+
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      await updateProviderSettings(selectedProvider.provider, trimmedCredentials);
+      setSaveSuccess(true);
+      await refreshProviders();
+    } catch (error) {
+      const message = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setSaveError(message || 'Failed to update provider settings.');
+      setSaveSuccess(false);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -102,6 +221,72 @@ const Settings = () => {
               </Box>
             )}
           </Paper>
+
+          {providers.length > 0 && selectedProvider && (
+            <Paper
+              component="form"
+              variant="outlined"
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+              onSubmit={handleSubmit}
+            >
+              <Typography variant="h6">Configure AI Provider</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Choose a provider and enter new credentials to update and activate it.
+              </Typography>
+
+              <FormControl fullWidth>
+                <InputLabel id="edit-provider-label">Provider</InputLabel>
+                <Select
+                  labelId="edit-provider-label"
+                  id="edit-provider"
+                  label="Provider"
+                  value={selectedProviderId}
+                  onChange={(event: SelectChangeEvent<string>) => setSelectedProviderId(event.target.value)}
+                >
+                  {providers.map(provider => (
+                    <MenuItem key={provider.provider} value={provider.provider}>
+                      {provider.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Stack spacing={2}>
+                {credentialKeys.length === 0 ? (
+                  <Typography color="text.secondary">
+                    This provider does not require any credentials.
+                  </Typography>
+                ) : (
+                  credentialKeys.map(key => {
+                    const placeholder = selectedProvider.credentials?.[key] ?? '';
+                    const isSecret = key.toLowerCase().includes('key') || key.toLowerCase().includes('secret');
+                    return (
+                      <TextField
+                        key={key}
+                        label={key}
+                        type={isSecret ? 'password' : 'text'}
+                        value={credentials[key] ?? ''}
+                        onChange={event => handleCredentialChange(key, event.target.value)}
+                        placeholder={placeholder || undefined}
+                        fullWidth
+                        autoComplete="off"
+                        helperText={placeholder ? 'Current value hidden. Enter a new value to replace it.' : undefined}
+                      />
+                    );
+                  })
+                )}
+              </Stack>
+
+              {saveError && <Alert severity="error">{saveError}</Alert>}
+              {saveSuccess && <Alert severity="success">Provider updated successfully.</Alert>}
+
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button type="submit" variant="contained" disabled={saving}>
+                  {saving ? 'Saving…' : 'Save and Activate'}
+                </Button>
+              </Box>
+            </Paper>
+          )}
         </>
       )}
     </Box>
