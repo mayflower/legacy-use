@@ -18,8 +18,7 @@ import TargetInfoCard from './TargetInfoCard';
 const TargetDetails = () => {
   const { targetId } = useParams();
   const location = useLocation();
-  const { selectSessionId, currentSession, refreshCurrentSession, clearSelectedSession } =
-    useContext(SessionContext);
+  const { currentSession, setCurrentSession, setSelectedSessionId } = useContext(SessionContext);
 
   // Get sessionId from URL query params if it exists
   const queryParams = new URLSearchParams(location.search);
@@ -47,21 +46,27 @@ const TargetDetails = () => {
       try {
         setLoading(true);
 
+        // Fetch target information
         const targetData = await getTarget(targetId as string);
         setTarget(targetData);
 
-        const sessionsData = await getSessions(true);
+        // Fetch all sessions for this target
+        const sessionsData = await getSessions(true); // Include archived sessions
         const filteredSessions = sessionsData.filter(s => s.target_id === targetId);
         setTargetSessions(filteredSessions);
 
+        // If there are sessions, select the appropriate one
         if (filteredSessions.length > 0) {
           let sessionToSelect: Session | undefined;
 
+          // If we have a sessionId from URL, try to find that session
           if (sessionIdFromUrl) {
             sessionToSelect = filteredSessions.find(s => s.id === sessionIdFromUrl);
           }
 
+          // If no session found from URL param, default to most recent
           if (!sessionToSelect) {
+            // Sort sessions by creation date (newest first)
             const sortedSessions = [...filteredSessions].sort(
               (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
             );
@@ -69,19 +74,22 @@ const TargetDetails = () => {
             sessionToSelect = sortedSessions[0];
           }
 
+          // Fetch detailed session information including container_status
           try {
             const detailedSession = await getSession((sessionToSelect as Session).id);
-            setSelectedSession(detailedSession);
-            selectSessionId(detailedSession.id, detailedSession);
+            setSelectedSession(detailedSession as any);
+            setCurrentSession(detailedSession as any);
+            setSelectedSessionId((detailedSession as any).id);
           } catch (err) {
             console.error('Error fetching detailed session:', err);
-            const fallbackSession = sessionToSelect as Session;
-            setSelectedSession(fallbackSession);
-            selectSessionId(fallbackSession.id, fallbackSession);
+            // Fallback to basic session data
+            setSelectedSession(sessionToSelect as Session);
+            setCurrentSession(sessionToSelect as Session);
+            setSelectedSessionId((sessionToSelect as Session).id);
           }
-        } else {
-          setSelectedSession(null);
-          clearSelectedSession();
+
+          // Fetch jobs for the selected session
+          fetchJobsForSession();
         }
 
         setLoading(false);
@@ -94,11 +102,18 @@ const TargetDetails = () => {
 
     fetchTargetDetails();
 
+    // Clean up function
     return () => {
-      setSelectedSession(null);
-      clearSelectedSession();
+      setCurrentSession(null);
+      setSelectedSessionId(null);
     };
-  }, [targetId, sessionIdFromUrl, selectSessionId, clearSelectedSession]);
+  }, [
+    targetId,
+    sessionIdFromUrl,
+    setCurrentSession,
+    setSelectedSessionId,
+    fetchJobsForSession,
+  ]);
 
   const fetchJobsForSession = useCallback(async () => {
     try {
@@ -127,12 +142,7 @@ const TargetDetails = () => {
   }, [targetId]);
 
   useEffect(() => {
-    if (!currentSession) {
-      setSelectedSession(prev => (prev ? null : prev));
-      return;
-    }
-
-    if (currentSession.target_id !== targetId) {
+    if (!currentSession || currentSession.target_id !== targetId) {
       return;
     }
 
@@ -160,28 +170,30 @@ const TargetDetails = () => {
     const sessionId = event.target.value as string;
     const session = targetSessions.find(s => s.id === sessionId) as Session | undefined;
 
-    if (session) {
-      setSelectedSession(session);
-      selectSessionId(sessionId, session);
-    } else {
-      setSelectedSession(null);
-      selectSessionId(sessionId);
-    }
-
-    getSession(sessionId)
-      .then(detailedSession => {
-        setSelectedSession(detailedSession);
-        selectSessionId(sessionId, detailedSession);
-      })
-      .catch(err => {
-        console.error('Error fetching detailed session:', err);
+    // Fetch detailed session information including container_status
+    try {
+      getSession(sessionId).then(detailedSession => {
+        setSelectedSession(detailedSession as any);
+        setCurrentSession(detailedSession as any);
+        setSelectedSessionId(sessionId);
       });
+    } catch (err) {
+      console.error('Error fetching detailed session:', err);
+      // Fallback to basic session data
+      if (session) {
+        setSelectedSession(session);
+        setCurrentSession(session);
+        setSelectedSessionId(sessionId);
+      }
+    }
 
     // Update URL with the new session ID without navigating
     const newUrl = `/targets/${targetId}?sessionId=${sessionId}`;
     window.history.pushState({}, '', newUrl);
 
-    if (!session) {
+    if (session) {
+      fetchJobsForSession();
+    } else {
       setJobs([]);
       setQueuedJobs([]);
       setExecutedJobs([]);
@@ -220,16 +232,22 @@ const TargetDetails = () => {
       const updatedSessions = sessionsData.filter(s => s.target_id === targetId);
       setTargetSessions(updatedSessions);
 
-      if (currentSession) {
-        const refreshedSession = await refreshCurrentSession();
-        if (refreshedSession) {
-          setSelectedSession(refreshedSession);
-          selectSessionId(refreshedSession.id, refreshedSession);
-        } else {
-          const updatedSession = updatedSessions.find(s => s.id === currentSession.id);
+      // Update the selected session if it exists
+      if (selectedSession) {
+        // Fetch detailed session information including container_status
+        try {
+          const detailedSession = await getSession((selectedSession as Session).id);
+          setSelectedSession(detailedSession as any);
+          setCurrentSession(detailedSession as any);
+        } catch (err) {
+          console.error('Error fetching detailed session during refresh:', err);
+          // Fallback to basic session data
+          const updatedSession = updatedSessions.find(
+            s => s.id === (selectedSession as Session).id,
+          );
           if (updatedSession) {
             setSelectedSession(updatedSession);
-            selectSessionId(updatedSession.id, updatedSession);
+            setCurrentSession(updatedSession);
           }
         }
       }
@@ -257,15 +275,13 @@ const TargetDetails = () => {
 
       // Select another session if available, otherwise clear selection
       if (filteredSessions.length > 0) {
-        const nextSession = filteredSessions[0];
-        setSelectedSession(nextSession);
-        selectSessionId(nextSession.id, nextSession);
+        setSelectedSession(filteredSessions[0]);
+        setCurrentSession(filteredSessions[0]);
+        fetchJobsForSession();
       } else {
         setSelectedSession(null);
-        clearSelectedSession();
+        setCurrentSession(null);
         setJobs([]);
-        setQueuedJobs([]);
-        setExecutedJobs([]);
       }
     } catch (err: any) {
       console.error('Error deleting session:', err);
@@ -311,9 +327,9 @@ const TargetDetails = () => {
         const session = targetSessions.find(s => s.id === newSessionId);
         if (session) {
           setSelectedSession(session);
-          selectSessionId(newSessionId, session);
-        } else {
-          selectSessionId(newSessionId);
+          setCurrentSession(session);
+          setSelectedSessionId(newSessionId);
+          fetchJobsForSession();
         }
       }
     };
@@ -325,7 +341,7 @@ const TargetDetails = () => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [targetSessions, selectSessionId]);
+  }, [targetSessions, setCurrentSession, setSelectedSessionId, fetchJobsForSession]);
 
   const handleCopyToClipboard = (text: string, event?: any) => {
     if (event) event.stopPropagation();
@@ -394,13 +410,7 @@ const TargetDetails = () => {
             setActiveTab={setActiveTab}
             targetId={targetId}
             selectedSession={selectedSession}
-            setSelectedSessionId={sessionId => {
-              if (sessionId) {
-                selectSessionId(sessionId, selectedSession ?? null);
-              } else {
-                selectSessionId(null);
-              }
-            }}
+            setSelectedSessionId={setSelectedSessionId}
             formatDate={formatDate}
             getStatusColor={getStatusColor}
           />

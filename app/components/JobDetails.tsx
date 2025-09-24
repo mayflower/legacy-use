@@ -41,7 +41,7 @@ const JobDetails = () => {
   const targetIdReq = targetId as string;
   const jobIdReq = jobId as string;
   const navigate = useNavigate();
-  const { selectSessionId, clearSelectedSession } = useContext(SessionContext);
+  const { setSelectedSessionId, setCurrentSession } = useContext(SessionContext);
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -224,7 +224,8 @@ const JobDetails = () => {
         try {
           const sessionData = await getSession(sid as string);
           if (sessionData) {
-            selectSessionId(sid as string, sessionData as any);
+            setSelectedSessionId(sid as string);
+            setCurrentSession(sessionData as any);
           }
         } catch (err) {
           console.error('Error fetching session details for VNC viewer:', err);
@@ -236,9 +237,10 @@ const JobDetails = () => {
 
     // Clean up function to reset the session context when unmounting
     return () => {
-      clearSelectedSession();
+      setSelectedSessionId(null);
+      setCurrentSession(null);
     };
-  }, [job?.session_id, selectSessionId, clearSelectedSession]);
+  }, [job?.session_id, setSelectedSessionId, setCurrentSession]);
 
   // Initial load effect - only runs once on component mount
   useEffect(() => {
