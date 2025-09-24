@@ -41,6 +41,32 @@ const TargetDetails = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [copySnackbarOpen, setCopySnackbarOpen] = useState(false);
 
+  const fetchJobsForSession = useCallback(async () => {
+    try {
+      // Fetch jobs for this target without filtering by session
+      const jobsData = await getJobs(targetId as string);
+      setJobs(jobsData);
+
+      // Get the target to get blocking jobs information
+      const targetData = await getTarget(targetId as string);
+
+      // Group locally: running, queued, executed based on jobs + target info
+      const blocking = targetData.blocking_jobs || [];
+      const running = jobsData.find(job => job.status === 'running') || null;
+      const queued = jobsData.filter(job => job.status === 'queued');
+      const blockingIds = new Set(blocking.map(job => job.id));
+      const executed = jobsData.filter(job => job.status !== 'queued' && !blockingIds.has(job.id));
+
+      setRunningJob(running);
+      setQueuedJobs(queued);
+      setBlockingJobs(blocking);
+      setExecutedJobs(executed);
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+      setError(`Failed to fetch jobs: ${err.message}`);
+    }
+  }, [targetId]);
+
   useEffect(() => {
     const fetchTargetDetails = async () => {
       try {
@@ -114,32 +140,6 @@ const TargetDetails = () => {
     setSelectedSessionId,
     fetchJobsForSession,
   ]);
-
-  const fetchJobsForSession = useCallback(async () => {
-    try {
-      // Fetch jobs for this target without filtering by session
-      const jobsData = await getJobs(targetId as string);
-      setJobs(jobsData);
-
-      // Get the target to get blocking jobs information
-      const targetData = await getTarget(targetId as string);
-
-      // Group locally: running, queued, executed based on jobs + target info
-      const blocking = targetData.blocking_jobs || [];
-      const running = jobsData.find(job => job.status === 'running') || null;
-      const queued = jobsData.filter(job => job.status === 'queued');
-      const blockingIds = new Set(blocking.map(job => job.id));
-      const executed = jobsData.filter(job => job.status !== 'queued' && !blockingIds.has(job.id));
-
-      setRunningJob(running);
-      setQueuedJobs(queued);
-      setBlockingJobs(blocking);
-      setExecutedJobs(executed);
-    } catch (err) {
-      console.error('Error fetching jobs:', err);
-      setError(`Failed to fetch jobs: ${err.message}`);
-    }
-  }, [targetId]);
 
   useEffect(() => {
     if (!currentSession || currentSession.target_id !== targetId) {
