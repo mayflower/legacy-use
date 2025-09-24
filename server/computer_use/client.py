@@ -36,7 +36,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
         return LegacyAPIResponse(
             raw=raw_response,
             cast_to=BetaMessage,
-            client=self._messages._client,  # type: ignore[attr-defined]
+            client=self._messages._client,
             stream=False,
             stream_cls=None,
             options=FinalRequestOptions(
@@ -44,7 +44,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
                 url=settings.LEGACYUSE_PROXY_BASE_URL + 'create',
                 headers={'Content-Type': 'application/json'},
                 json_data=response_json,
-                post_parser=NotGiven(),  # No post-processing needed
+                post_parser=NotGiven(),
             ),
             retries_taken=0,
         )
@@ -62,7 +62,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
     ) -> LegacyAPIResponse[BetaMessage]:
         url = settings.LEGACYUSE_PROXY_BASE_URL + 'create'
         headers = {
-            'x-api-key': self._messages._client.api_key,  # type: ignore[attr-defined]
+            'x-api-key': self._messages._client.api_key,
             'Content-Type': 'application/json',
         }
         data = {
@@ -104,23 +104,23 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
 
 class LegacyAsyncMessages(AsyncMessages):
     @cached_property
-    def with_raw_response(self) -> LegacyAsyncMessagesWithRawResponse:  # type: ignore[override]
+    def with_raw_response(self) -> LegacyAsyncMessagesWithRawResponse:
         return LegacyAsyncMessagesWithRawResponse(self)
 
 
 class LegacyAsyncBeta(AsyncBeta):
     @cached_property
-    def messages(self) -> LegacyAsyncMessages:  # type: ignore[override]
+    def messages(self) -> LegacyAsyncMessages:
         return LegacyAsyncMessages(self._client)
 
 
 class LegacyAsyncBetaWithRawResponse(AsyncBetaWithRawResponse):
     @cached_property
-    def messages(self) -> LegacyAsyncMessagesWithRawResponse:  # type: ignore[override]
+    def messages(self) -> LegacyAsyncMessagesWithRawResponse:
         return LegacyAsyncMessagesWithRawResponse(self._beta.messages)
 
 
 class LegacyUseClient(AsyncAnthropic):
     @cached_property
-    def beta(self) -> LegacyAsyncBeta:  # type: ignore[override]
+    def beta(self) -> LegacyAsyncBeta:
         return LegacyAsyncBeta(self)
