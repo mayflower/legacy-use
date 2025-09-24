@@ -51,7 +51,7 @@ import DuplicateApiDialog from './DuplicateApiDialog';
 
 const ApiList = () => {
   const navigate = useNavigate();
-  const { selectedSessionId, setSelectedSessionId } = useContext(SessionContext);
+  const { selectSessionId, clearSelectedSession } = useContext(SessionContext);
   const [apis, setApis] = useState<APIDefinition[]>([]);
   const [targets, setTargets] = useState<Target[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<string>('');
@@ -89,17 +89,16 @@ const ApiList = () => {
 
       // Set selected target if available
       if (targetsData.length > 0) {
-        // If target parameter exists and is valid, use it
         if (targetParam && targetsData.some(t => t.id === targetParam)) {
           setSelectedTarget(targetParam);
-          setSelectedSessionId(sessionParam || targetParam); // Use sessionId if available, otherwise use targetId
-        } else if (selectedSessionId) {
-          // If there's a session in context, use it
-          setSelectedTarget(selectedSessionId);
         } else {
-          // Otherwise, don't pre-select any target
           setSelectedTarget('');
-          setSelectedSessionId('');
+        }
+
+        if (sessionParam) {
+          selectSessionId(sessionParam);
+        } else if (!targetParam) {
+          clearSelectedSession();
         }
       }
 
@@ -125,7 +124,7 @@ const ApiList = () => {
       setError('Failed to load API data. Please try again later.');
       setLoading(false);
     }
-  }, [selectedSessionId, setSelectedSessionId, showArchived]);
+  }, [selectSessionId, clearSelectedSession, showArchived]);
 
   useEffect(() => {
     fetchData();
@@ -135,7 +134,7 @@ const ApiList = () => {
   const handleTargetChange = (event: any) => {
     const newTargetId = event.target.value as string;
     setSelectedTarget(newTargetId);
-    setSelectedSessionId(newTargetId); // Keep for compatibility with session context
+    clearSelectedSession();
 
     // Update URL with target parameter if a target is selected
     const url = new URL(window.location.href);

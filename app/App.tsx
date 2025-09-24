@@ -10,7 +10,7 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import ApiKeyDialog from './components/ApiKeyDialog';
 import ApiList from './components/ApiList';
@@ -50,11 +50,20 @@ const darkTheme = createTheme({
 });
 
 // Context for sharing selected session across components
-export const SessionContext = React.createContext({
-  selectedSessionId: null as string | null,
-  setSelectedSessionId: (_id: string | null) => {},
-  currentSession: null as Session | null,
-  setCurrentSession: (_session: Session | null) => {},
+type SessionContextValue = {
+  selectedSessionId: string | null;
+  selectSessionId: (sessionId: string | null, initialData?: Session | null) => void;
+  currentSession: Session | null;
+  refreshCurrentSession: () => Promise<Session | null>;
+  clearSelectedSession: () => void;
+};
+
+export const SessionContext = React.createContext<SessionContextValue>({
+  selectedSessionId: null,
+  selectSessionId: () => {},
+  currentSession: null,
+  refreshCurrentSession: async () => null,
+  clearSelectedSession: () => {},
 });
 
 // Placeholder component for archived sessions
@@ -151,6 +160,68 @@ const AppLayout = () => {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const { isProviderValid } = useAiProvider();
+  const sessionPollingRef = useRef<number | null>(null);
+
+  const clearSessionPolling = useCallback(() => {
+    if (sessionPollingRef.current !== null) {
+      window.clearInterval(sessionPollingRef.current);
+      sessionPollingRef.current = null;
+    }
+  }, []);
+
+  const refreshSessionById = useCallback(
+    async (sessionId: string) => {
+      try {
+        const sessionData = await getSession(sessionId);
+        if (selectedSessionId === sessionId) {
+          setCurrentSession(sessionData);
+        }
+        return sessionData;
+      } catch (err) {
+        console.error('Error fetching session details:', err);
+        if (selectedSessionId === sessionId) {
+          setCurrentSession(null);
+        }
+        return null;
+      }
+    },
+    [selectedSessionId],
+  );
+
+  const refreshCurrentSession = useCallback(async () => {
+    if (!selectedSessionId) {
+      setCurrentSession(null);
+      return null;
+    }
+
+    return refreshSessionById(selectedSessionId);
+  }, [refreshSessionById, selectedSessionId]);
+
+  const selectSessionId = useCallback(
+    (sessionId: string | null, initialData?: Session | null) => {
+      const hasChanged = selectedSessionId !== sessionId;
+      setSelectedSessionId(sessionId);
+
+      if (!sessionId) {
+        setCurrentSession(null);
+        clearSessionPolling();
+        return;
+      }
+
+      if (hasChanged) {
+        clearSessionPolling();
+      }
+
+      if (initialData && initialData.id === sessionId) {
+        setCurrentSession(initialData);
+      }
+    },
+    [clearSessionPolling, selectedSessionId],
+  );
+
+  const clearSelectedSession = useCallback(() => {
+    selectSessionId(null);
+  }, [selectSessionId]);
 
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
@@ -171,67 +242,46 @@ const AppLayout = () => {
 
       if (sessionIdIndex > 0 && sessionIdIndex < pathParts.length) {
         const newSessionId = pathParts[sessionIdIndex];
-        setSelectedSessionId(newSessionId);
+        selectSessionId(newSessionId);
       }
     }
-  }, [isSessionDetail, location.pathname]);
+  }, [isSessionDetail, location.pathname, selectSessionId]);
 
-  // Load details for the session referenced in the global context
   useEffect(() => {
     if (!selectedSessionId) {
-      setCurrentSession(null);
+      clearSessionPolling();
       return;
     }
 
-    let isActive = true;
+    let cancelled = false;
 
-    const fetchSessionDetails = async () => {
-      try {
-        const sessionData = await getSession(selectedSessionId);
-        if (isActive) {
-          setCurrentSession(sessionData);
-        }
-      } catch (err) {
-        console.error('Error fetching session details:', err);
-        if (isActive) {
-          setCurrentSession(null);
-        }
+    const startPolling = async () => {
+      const session = await refreshSessionById(selectedSessionId);
+      if (cancelled) {
+        return;
       }
+
+      clearSessionPolling();
+
+      if (session?.is_archived) {
+        return;
+      }
+
+      sessionPollingRef.current = window.setInterval(async () => {
+        const updatedSession = await refreshSessionById(selectedSessionId);
+        if (updatedSession?.is_archived) {
+          clearSessionPolling();
+        }
+      }, 5000);
     };
 
-    fetchSessionDetails();
+    startPolling();
 
     return () => {
-      isActive = false;
+      cancelled = true;
+      clearSessionPolling();
     };
-  }, [selectedSessionId, setCurrentSession]);
-
-  // Poll for session updates so views like JobDetails stay in sync
-  useEffect(() => {
-    if (!selectedSessionId || currentSession?.is_archived) {
-      return;
-    }
-
-    let isActive = true;
-
-    const pollSessionDetails = async () => {
-      try {
-        const sessionData = await getSession(selectedSessionId);
-        if (isActive) {
-          setCurrentSession(sessionData);
-        }
-      } catch (err) {
-        console.error('Error polling session details:', err);
-      }
-    };
-
-    const intervalId = window.setInterval(pollSessionDetails, 5000);
-
-    return () => {
-      isActive = false;
-      clearInterval(intervalId);
-    };
-  }, [selectedSessionId, currentSession?.is_archived, setCurrentSession]);
+  }, [selectedSessionId, clearSessionPolling, refreshSessionById]);
 
   // Check if user has completed onboarding
   useEffect(() => {
@@ -284,10 +334,10 @@ const AppLayout = () => {
       const sessionIdParam = searchParams.get('sessionId');
 
       if (sessionIdParam) {
-        setSelectedSessionId(sessionIdParam);
+        selectSessionId(sessionIdParam);
       }
     }
-  }, [isTargetDetail, location.search, setSelectedSessionId]);
+  }, [isTargetDetail, location.search, selectSessionId]);
 
   // Determine if we should show the VNC viewer
   // Show it for session details, job details, API page with a selected session, or target details with a selected session
@@ -349,7 +399,13 @@ const AppLayout = () => {
 
   return (
     <SessionContext.Provider
-      value={{ selectedSessionId, setSelectedSessionId, currentSession, setCurrentSession }}
+      value={{
+        selectedSessionId,
+        selectSessionId,
+        currentSession,
+        refreshCurrentSession,
+        clearSelectedSession,
+      }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <AppHeader />
