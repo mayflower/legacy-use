@@ -1,9 +1,8 @@
-import CssBaseline from '@mui/material/CssBaseline';
-
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -17,13 +16,13 @@ import CreateSession from './components/CreateSession';
 import CreateTarget from './components/CreateTarget';
 import Dashboard from './components/Dashboard';
 import EditApiDefinition from './components/EditApiDefinition';
-import TeachingMode from './components/TeachingMode';
 import JobDetails from './components/JobDetails';
 import JobsList from './components/JobsList';
-import Settings from './components/Settings';
 import SessionList from './components/SessionList';
+import Settings from './components/Settings';
 import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
+import TeachingMode from './components/TeachingMode';
 import VncViewer from './components/VncViewer';
 import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
@@ -296,9 +295,7 @@ const AppLayout = () => {
         {/* Show warning if no ai provider is configured */}
         {!isProviderValid && (
           <Box sx={{ p: 2 }}>
-            <Alert
-              severity="warning"
-            >
+            <Alert severity="warning">
               No AI provider configured. Configure an AI provider to enable model-driven features in
               the app.
             </Alert>
