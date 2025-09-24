@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { updateProviderSettings } from '../services/apiService';
 
@@ -29,6 +29,9 @@ const Settings = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const previousProviderId = useRef<string | null>(null);
+
+  const activeModelLabelId = useId();
+  const editProviderLabelId = useId();
 
   useEffect(() => {
     if (!loading && providers.length > 0) {
@@ -156,10 +159,10 @@ const Settings = () => {
       ) : (
         <>
           <FormControl fullWidth disabled={!hasProviders}>
-            <InputLabel id="active-ai-model-label">Active AI Model</InputLabel>
+            <InputLabel id={activeModelLabelId}>Active AI Model</InputLabel>
             <Select
-              labelId="active-ai-model-label"
-              id="active-ai-model"
+              labelId={activeModelLabelId}
+              id={`${activeModelLabelId}-select`}
               label="Active AI Model"
               value={hasProviders ? activeProviderValue : ''}
               disabled
@@ -236,10 +239,10 @@ const Settings = () => {
               </Typography>
 
               <FormControl fullWidth>
-                <InputLabel id="edit-provider-label">Provider</InputLabel>
+                <InputLabel id={editProviderLabelId}>Provider</InputLabel>
                 <Select
-                  labelId="edit-provider-label"
-                  id="edit-provider"
+                  labelId={editProviderLabelId}
+                  id={`${editProviderLabelId}-select`}
                   label="Provider"
                   value={selectedProviderId}
                   onChange={(event: SelectChangeEvent<string>) =>
