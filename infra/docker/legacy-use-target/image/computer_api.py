@@ -59,10 +59,9 @@ async def check_program_connection() -> bool:
         elif REMOTE_CLIENT_TYPE == 'vnc':
             return await check_vnc_ready()
         else:
-            print(f'{REMOTE_CLIENT_TYPE} is not supported')
-            return False
+            raise ValueError(f'Invalid remote client type: {REMOTE_CLIENT_TYPE}')
 
-    except (TimeoutError, Exception):
+    except TimeoutError:
         print(f'Error checking for established connections for {REMOTE_CLIENT_TYPE}')
         return False
 
@@ -77,8 +76,11 @@ async def check_vnc_ready() -> bool:
             return False
 
         return True
-    except Exception as e:
-        print(f'VNC readiness check failed: {e}')
+    except TimeoutError as exc:
+        print(f'VNC readiness check timed out: {exc}')
+        return False
+    except OSError as exc:
+        print(f'VNC readiness check failed: {exc}')
         return False
 
 
@@ -108,8 +110,11 @@ async def check_rdp_ready() -> bool:
 
         return True
 
-    except Exception as e:
-        print(f'RDP readiness check failed: {e}')
+    except TimeoutError as exc:
+        print(f'RDP readiness check timed out: {exc}')
+        return False
+    except OSError as exc:
+        print(f'RDP readiness check failed: {exc}')
         return False
 
 
