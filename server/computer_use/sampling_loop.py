@@ -116,13 +116,13 @@ async def sampling_loop(
     # Create tools (no longer need database service)
     tools = []
     for ToolCls in tool_group.tools:
-        if isinstance(ToolCls, CustomActionTool):
+        if ToolCls == CustomActionTool:
             # get api_def specific custom actions
             custom_actions = db_tenant.get_custom_actions(
                 job_data['api_definition_version_id'],
             )
             tools.append(ToolCls(custom_actions, job_data['parameters']))
-        elif isinstance(ToolCls, ExtractionTool):
+        elif ToolCls == ExtractionTool:
             response_example = api_definition_runtime.get_extraction_example()
             response_schema = infer_schema_from_response_example(response_example)
             tools.append(ToolCls(response_schema))

@@ -49,7 +49,12 @@ def with_db(tenant_schema: Optional[str]):
         yield db
 
 
-def tenant_create(name: str, schema: str, host: str) -> None:
+def tenant_create(
+    name: str,
+    schema: str,
+    host: str,
+    clerk_user_id: str | None = None,
+) -> None:
     """Create a new tenant with its schema and tables."""
 
     # Check schema name against blacklist
@@ -63,6 +68,7 @@ def tenant_create(name: str, schema: str, host: str) -> None:
             name=name,
             host=host,
             schema=schema,
+            clerk_user_id=clerk_user_id,
         )
         db_tenant.add(tenant)
 
@@ -97,3 +103,21 @@ def get_tenant_by_schema(schema: str) -> Optional[Tenant]:
     """Get tenant by schema."""
     with db_session.Session() as session:
         return session.query(Tenant).filter(Tenant.schema == schema).first()
+
+
+def get_tenant_by_clerk_user_id(
+    clerk_user_id: str, include_api_key: bool = False
+) -> Optional[Tenant]:
+    """Get tenant by clerk creation ID."""
+    with db_session.Session() as session:
+        tenant = (
+            session.query(Tenant).filter(Tenant.clerk_user_id == clerk_user_id).first()
+        )
+        if tenant and include_api_key:
+            # Load API key from tenant settings
+            from server.settings_tenant import get_tenant_setting
+
+            api_key = get_tenant_setting(str(tenant.schema), 'API_KEY')
+            # Attach API key to tenant object for convenience
+            tenant.api_key = api_key
+        return tenant

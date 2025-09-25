@@ -7,6 +7,7 @@ import logging
 import os
 
 import sentry_sdk
+from clerk_backend_api import AuthenticateRequestOptions, Clerk
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -25,6 +26,7 @@ from server.routes import (
 )
 from server.routes.sessions import session_router, websocket_router
 from server.routes.settings import settings_router
+from server.routes.tenants import tenants_router
 from server.settings_tenant import get_tenant_setting
 from server.utils.api_prefix import api_prefix
 from server.utils.auth import get_api_key
@@ -32,8 +34,8 @@ from server.utils.exceptions import TenantInactiveError, TenantNotFoundError
 from server.utils.job_execution import initiate_graceful_shutdown, start_shared_workers
 from server.utils.log_pruning import scheduled_log_pruning
 from server.utils.maintenance_leader import (
-    acquire_maintenance_leadership,
     release_maintenance_leadership,
+    wait_for_maintenance_leadership,
 )
 from server.utils.session_monitor import start_session_monitor
 from server.utils.telemetry import posthog_middleware
@@ -148,10 +150,37 @@ async def auth_middleware(request: Request, call_next):
         whitelist_patterns.append(rf'^{api_prefix}/specs(/.*)?$')
         whitelist_patterns.append(rf'^{api_prefix}/openapi.json$')
 
+    # Clerk auth API patterns
+    clerk_auth_api_patterns = [
+        rf'^{api_prefix}/tenants(/.*)?$',
+    ]
+
     # Check if request path matches any whitelist pattern
     for pattern in whitelist_patterns:
         if re.match(pattern, request.url.path):
             return await call_next(request)
+
+    # Check if request path matches any admin API patterns
+    for pattern in clerk_auth_api_patterns:
+        if re.match(pattern, request.url.path):
+            sdk = Clerk(bearer_auth=settings.CLERK_SECRET_KEY)
+            reqeuest_state = sdk.authenticate_request(
+                request, AuthenticateRequestOptions()
+            )
+            if (
+                reqeuest_state.is_authenticated
+                and reqeuest_state.payload
+                and reqeuest_state.payload.get('sub')
+            ):
+                # add clerk user id to request state
+                request.state.clerk_user_id = reqeuest_state.payload.get('sub')
+                return await call_next(request)
+
+            logger.error('Unauthorized request to admin API:', reqeuest_state.reason)
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={'detail': 'Unauthorized'},
+            )
 
     try:
         # We check for tenant first, so the web-app can redirect if no tenant is found
@@ -304,6 +333,9 @@ app.include_router(tools_router, prefix=api_prefix)
 # Include monitoring router
 app.include_router(health_router, prefix=api_prefix)
 
+# Include tenants router
+app.include_router(tenants_router, prefix=api_prefix)
+
 
 # Root endpoint
 @app.get('/')
@@ -338,24 +370,17 @@ For more information, please refer to the migration documentation.
     # Start background maintenance tasks only if we are the leader
     leader_key = 'legacy_use_maintenance_v1'
 
-    async def start_maintenance_tasks() -> bool:
-        if acquire_maintenance_leadership(leader_key):
-            asyncio.create_task(scheduled_log_pruning())
-            logger.info('Started background task for pruning old logs (leader)')
+    async def start_maintenance_tasks_when_leader() -> None:
+        logger.info('Waiting to acquire maintenance leadership lock')
+        await asyncio.to_thread(wait_for_maintenance_leadership, leader_key)
 
-            start_session_monitor()
-            logger.info('Started session state monitor (leader)')
-            return True
-        logger.info('Another process holds maintenance leadership; skipping monitors')
-        return False
+        # Once the blocking call returns we own the lock in this process.
+        asyncio.create_task(scheduled_log_pruning())
+        logger.info('Started background task for pruning old logs (leader)')
+        start_session_monitor()
+        logger.info('Started session state monitor (leader)')
 
-    async def ensure_maintenance_leadership() -> None:
-        while True:
-            if await start_maintenance_tasks():
-                break
-            await asyncio.sleep(settings.MAINTENANCE_LEADER_RETRY_INTERVAL)
-
-    asyncio.create_task(ensure_maintenance_leadership())
+    asyncio.create_task(start_maintenance_tasks_when_leader())
 
     # No need to load API definitions on startup anymore
     # They will be loaded on demand when needed

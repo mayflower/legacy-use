@@ -28,6 +28,18 @@ export const ApiKeyProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [apiKey]);
 
+  // Handle API key from URL search params
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const apiKeyFromUrl = url.searchParams.get('api_key');
+    if (apiKeyFromUrl) {
+      setApiKey(apiKeyFromUrl);
+      // Clean up the URL by removing the api_key parameter
+      url.searchParams.delete('api_key');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
   // Function to set the API key
   const setApiKey = (key: string | null) => {
     setApiKeyState(key);

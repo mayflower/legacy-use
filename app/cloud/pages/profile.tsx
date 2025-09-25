@@ -1,7 +1,8 @@
-import { useUser } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import {
   Avatar,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -10,12 +11,13 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import { useEffect, useState } from 'react';
+import { CreateNewTenant } from '../components/CreateNewTenant';
+import { SoftwareAutomationQuestion } from '../components/SoftwareAutomationQuestion';
 
 export default function ProfilePage() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useAuth();
   const [softwareToAutomate, setSoftwareToAutomate] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showHello, setShowHello] = useState(
@@ -23,6 +25,24 @@ export default function ProfilePage() {
   );
 
   const name = user?.fullName || user?.username;
+
+  const handleSaveAutomationSoftware = async () => {
+    if (!user) return;
+    if (!softwareToAutomate.trim()) return;
+
+    try {
+      setIsSaving(true);
+      await user.update({
+        unsafeMetadata: {
+          ...(user as any).unsafeMetadata,
+          softwareToAutomate: softwareToAutomate.trim(),
+        },
+      });
+      setShowHello(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   useEffect(() => {
     // Reflect saved answer from user metadata
@@ -88,52 +108,12 @@ export default function ProfilePage() {
                   </Typography>
                 </Stack>
 
-                {/* Question: What software to automate */}
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 2,
-                    background: 'white',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
-                  }}
-                >
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-                    <Typography variant="h6">What software would you like to automate?</Typography>
-                  </Stack>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                    <TextField
-                      fullWidth
-                      placeholder="e.g., DATEV, SAP, Lexware, Navision, ..."
-                      variant="outlined"
-                      value={softwareToAutomate}
-                      onChange={e => setSoftwareToAutomate(e.target.value)}
-                    />
-                    <Button
-                      variant="contained"
-                      disabled={!softwareToAutomate.trim() || isSaving}
-                      onClick={async () => {
-                        if (!user) return;
-                        if (!softwareToAutomate.trim()) return;
-                        try {
-                          setIsSaving(true);
-                          await user.update({
-                            unsafeMetadata: {
-                              ...(user as any).unsafeMetadata,
-                              softwareToAutomate: softwareToAutomate.trim(),
-                            },
-                          });
-                          setShowHello(true);
-                        } finally {
-                          setIsSaving(false);
-                        }
-                      }}
-                    >
-                      {isSaving ? 'Saving...' : 'Save'}
-                    </Button>
-                  </Stack>
-                </Box>
+                <SoftwareAutomationQuestion
+                  value={softwareToAutomate}
+                  onValueChange={value => setSoftwareToAutomate(value)}
+                  onSave={handleSaveAutomationSoftware}
+                  isSaving={isSaving}
+                />
               </Stack>
             </CardContent>
           </Card>
@@ -176,7 +156,12 @@ export default function ProfilePage() {
                   {/* User Information */}
                   {user && (
                     <Box>
-                      <Stack spacing={2} alignItems="center">
+                      <Stack
+                        direction="row"
+                        spacing={3}
+                        alignItems="center"
+                        justifyContent="center"
+                      >
                         <Avatar
                           src={user.imageUrl}
                           alt={user.fullName || user.username || 'User'}
@@ -187,7 +172,7 @@ export default function ProfilePage() {
                           }}
                         />
 
-                        <Stack spacing={1} alignItems="center">
+                        <Stack alignItems="flex-start">
                           {name && <Typography variant="h5">{name}</Typography>}
 
                           {user.primaryEmailAddress && (
@@ -196,7 +181,7 @@ export default function ProfilePage() {
                             </Typography>
                           )}
 
-                          {user.createdAt && (
+                          {user.createdAt && !name && (
                             <Chip
                               label={`Member since ${new Date(user.createdAt).toLocaleDateString()}`}
                               variant="outlined"
@@ -208,10 +193,6 @@ export default function ProfilePage() {
                     </Box>
                   )}
 
-                  <Typography variant="body1">
-                    You're all set, we will send you an email with your credentials shortly.
-                  </Typography>
-
                   {/* Description */}
                   <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
                     Start automating work in your desktop applications and expose workflows as
@@ -220,6 +201,17 @@ export default function ProfilePage() {
                 </Stack>
               </CardContent>
             </Card>
+
+            <CreateNewTenant />
+
+            {/* Logout button */}
+            {user && (
+              <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1200 }}>
+                <Button variant="contained" onClick={() => signOut()}>
+                  Logout
+                </Button>
+              </Box>
+            )}
 
             {/* Additional Info */}
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
