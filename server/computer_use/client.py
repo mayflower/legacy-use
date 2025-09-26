@@ -21,12 +21,15 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
     def __init__(self, messages: AsyncMessages) -> None:
         super().__init__(messages)
         self.create = self._legacy_use_create
+        if not settings.LEGACYUSE_PROXY_BASE_URL:
+            raise ValueError('LEGACYUSE_PROXY_BASE_URL is not set')
+        self.base_url = settings.LEGACYUSE_PROXY_BASE_URL
 
     def with_parse(self, response_json: dict) -> LegacyAPIResponse[BetaMessage]:
         # Create a proper httpx.Response with request information
         request = httpx.Request(
             method='POST',
-            url=settings.LEGACYUSE_PROXY_BASE_URL + 'create',
+            url=self.base_url + 'create',
             headers={'Content-Type': 'application/json'},
         )
         raw_response = httpx.Response(
@@ -41,7 +44,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
             stream_cls=None,
             options=FinalRequestOptions(
                 method='POST',
-                url=settings.LEGACYUSE_PROXY_BASE_URL + 'create',
+                url=self.base_url + 'create',
                 headers={'Content-Type': 'application/json'},
                 json_data=response_json,
                 post_parser=NotGiven(),
@@ -60,7 +63,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
         betas: list[str],
         **kwargs,
     ) -> LegacyAPIResponse[BetaMessage]:
-        url = settings.LEGACYUSE_PROXY_BASE_URL + 'create'
+        url = self.base_url + 'create'
         headers = {
             'x-api-key': self._messages._client.api_key,
             'Content-Type': 'application/json',
