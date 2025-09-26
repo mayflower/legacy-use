@@ -25,7 +25,8 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
             raise ValueError('LegacyUseClient requires an Anthropic API key')
         if not settings.LEGACYUSE_PROXY_BASE_URL:
             raise ValueError('LEGACYUSE_PROXY_BASE_URL is not set')
-        self.base_url = settings.LEGACYUSE_PROXY_BASE_URL
+        # Normalize base URL by trimming whitespace and ensuring exactly one trailing slash
+        self.base_url = settings.LEGACYUSE_PROXY_BASE_URL.rstrip('/') + '/'
 
         self.create = self._legacy_use_create
 
@@ -81,8 +82,6 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
             'betas': betas,
             **kwargs,
         }
-
-        logger.info(f'Sending request to {url} with headers: {headers}')
 
         async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(url, headers=headers, json=data)

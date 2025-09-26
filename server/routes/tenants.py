@@ -1,4 +1,4 @@
-import requests
+import httpx
 from fastapi import APIRouter, HTTPException, Request
 
 from server.computer_use.config import APIProvider
@@ -11,7 +11,7 @@ tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
 
 async def signup_legacy_use_proxy(email: str):
-    response = requests.post(
+    response = httpx.post(
         f'{settings.LEGACYUSE_PROXY_BASE_URL}signup',
         json={'email': email, 'skipEmailSending': True},
     )

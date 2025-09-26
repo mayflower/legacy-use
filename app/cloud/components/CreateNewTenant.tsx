@@ -73,6 +73,11 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   ) => {
     const clerkJwt = await getToken();
     const clerkEmail = user?.emailAddresses[0]?.emailAddress;
+
+    if (!clerkEmail) {
+      throw new Error('Clerk email is required but not available');
+    }
+
     const authHeaders = clerkJwt
       ? { Authorization: `Bearer ${clerkJwt}`, 'X-Clerk-Email': clerkEmail }
       : undefined;
