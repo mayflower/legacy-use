@@ -87,6 +87,7 @@ class Settings(BaseSettings):
     TOKEN_LIMIT: int = 500000
 
     GOOGLE_GENAI_API_KEY: str | None = None
+
     LEGACYUSE_PROXY_BASE_URL: str = 'https://api.legacy-use.com/'
 
     ENVIRONMENT: str = 'development'

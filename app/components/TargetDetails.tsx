@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation, useParams } from 'react-router-dom';
 import type { Job, Session, Target, TargetBlockingJobsAnyOfItem } from '@/gen/endpoints';
 import { SessionContext } from '../App';
@@ -18,7 +18,7 @@ import TargetInfoCard from './TargetInfoCard';
 const TargetDetails = () => {
   const { targetId } = useParams();
   const location = useLocation();
-  const { setCurrentSession, setSelectedSessionId } = useContext(SessionContext);
+  const { currentSession, setCurrentSession, setSelectedSessionId } = useContext(SessionContext);
 
   // Get sessionId from URL query params if it exists
   const queryParams = new URLSearchParams(location.search);
@@ -40,6 +40,32 @@ const TargetDetails = () => {
   const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [copySnackbarOpen, setCopySnackbarOpen] = useState(false);
+
+  const fetchJobsForSession = useCallback(async () => {
+    try {
+      // Fetch jobs for this target without filtering by session
+      const jobsData = await getJobs(targetId as string);
+      setJobs(jobsData);
+
+      // Get the target to get blocking jobs information
+      const targetData = await getTarget(targetId as string);
+
+      // Group locally: running, queued, executed based on jobs + target info
+      const blocking = targetData.blocking_jobs || [];
+      const running = jobsData.find(job => job.status === 'running') || null;
+      const queued = jobsData.filter(job => job.status === 'queued');
+      const blockingIds = new Set(blocking.map(job => job.id));
+      const executed = jobsData.filter(job => job.status !== 'queued' && !blockingIds.has(job.id));
+
+      setRunningJob(running);
+      setQueuedJobs(queued);
+      setBlockingJobs(blocking);
+      setExecutedJobs(executed);
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+      setError(`Failed to fetch jobs: ${err.message}`);
+    }
+  }, [targetId]);
 
   useEffect(() => {
     const fetchTargetDetails = async () => {
@@ -107,75 +133,32 @@ const TargetDetails = () => {
       setCurrentSession(null);
       setSelectedSessionId(null);
     };
-  }, [targetId, sessionIdFromUrl, setCurrentSession, setSelectedSessionId]);
+  }, [targetId, sessionIdFromUrl, setCurrentSession, setSelectedSessionId, fetchJobsForSession]);
 
-  // Add polling for session state updates
   useEffect(() => {
-    // Only poll if we have a selected session and it's not archived
-    if (selectedSession && !selectedSession.is_archived) {
-      const pollInterval = window.setInterval(async () => {
-        try {
-          // Fetch the latest sessions data
-          const sessionsData = await getSessions(true);
-          const updatedSessions = sessionsData.filter(s => s.target_id === targetId);
-          setTargetSessions(updatedSessions);
-
-          // Update the selected session if it exists
-          const updatedSession = updatedSessions.find(
-            s => s.id === (selectedSession as Session).id,
-          );
-          if (updatedSession) {
-            // Fetch detailed session information including container_status
-            try {
-              const detailedSession = await getSession(updatedSession.id);
-              setSelectedSession(detailedSession as any);
-              setCurrentSession(detailedSession as any);
-            } catch (err) {
-              console.error('Error fetching detailed session during polling:', err);
-              // Fallback to basic session data
-              setSelectedSession(updatedSession);
-              setCurrentSession(updatedSession);
-            }
-          }
-
-          // Fetch the latest jobs
-          if (selectedSession) {
-            fetchJobsForSession();
-          }
-        } catch (err) {
-          console.error('Error polling updates:', err);
-        }
-      }, 5000); // Poll every 5 seconds
-
-      return () => clearInterval(pollInterval);
+    if (!currentSession || currentSession.target_id !== targetId) {
+      return;
     }
-  }, [selectedSession, targetId, setCurrentSession]);
 
-  const fetchJobsForSession = async () => {
-    try {
-      // Fetch jobs for this target without filtering by session
-      const jobsData = await getJobs(targetId as string);
-      setJobs(jobsData);
+    setSelectedSession(currentSession);
 
-      // Get the target to get blocking jobs information
-      const targetData = await getTarget(targetId as string);
+    setTargetSessions(prevSessions => {
+      if (!prevSessions.length) {
+        return prevSessions;
+      }
 
-      // Group locally: running, queued, executed based on jobs + target info
-      const blocking = targetData.blocking_jobs || [];
-      const running = jobsData.find(job => job.status === 'running') || null;
-      const queued = jobsData.filter(job => job.status === 'queued');
-      const blockingIds = new Set(blocking.map(job => job.id));
-      const executed = jobsData.filter(job => job.status !== 'queued' && !blockingIds.has(job.id));
+      const index = prevSessions.findIndex(session => session.id === currentSession.id);
+      if (index === -1) {
+        return prevSessions;
+      }
 
-      setRunningJob(running);
-      setQueuedJobs(queued);
-      setBlockingJobs(blocking);
-      setExecutedJobs(executed);
-    } catch (err) {
-      console.error('Error fetching jobs:', err);
-      setError(`Failed to fetch jobs: ${err.message}`);
-    }
-  };
+      const updatedSessions = [...prevSessions];
+      updatedSessions[index] = { ...updatedSessions[index], ...currentSession };
+      return updatedSessions;
+    });
+
+    fetchJobsForSession();
+  }, [currentSession, targetId, fetchJobsForSession]);
 
   const handleSessionChange = (event: any) => {
     const sessionId = event.target.value as string;
@@ -352,7 +335,7 @@ const TargetDetails = () => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [targetSessions, setCurrentSession, setSelectedSessionId]);
+  }, [targetSessions, setCurrentSession, setSelectedSessionId, fetchJobsForSession]);
 
   const handleCopyToClipboard = (text: string, event?: any) => {
     if (event) event.stopPropagation();

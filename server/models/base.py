@@ -2,6 +2,7 @@
 Base models for the API Gateway.
 """
 
+import json
 from datetime import datetime
 from enum import Enum, StrEnum
 from typing import Any, Dict, List, Optional, Union
@@ -80,7 +81,7 @@ IMPORTANT INSTRUCTIONS FOR RETURNING RESULTS:
 1. When you've found the requested information, you MUST use the extraction tool to return the result. Use these parameters:
 
    ```
-   {self.get_extraction_example()}
+{json.dumps(self.get_extraction_example(), indent=2)}
    ```
 
 2. The API call will ONLY succeed if:
