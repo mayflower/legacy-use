@@ -236,7 +236,7 @@ VITE_PUBLIC_DISABLE_TRACKING=true
 ```
 
 **Full transparency**: See exactly what we track in the code:
-`app/index.jsx`, `app/components/OnboardingWizard.jsx`, `app/services/telemetryService.jsx`, `server/server.py`, `server/utils/telemetry.py`
+`app/main.tsx`, `app/services/telemetryService.tsx`, `server/server.py`, `server/utils/telemetry.py`
 
 ---
 

@@ -1,4 +1,5 @@
 import posthog from 'posthog-js';
+
 const IP_ADDRESS_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
 
 const extractTenantFromHostname = (hostname: string): string | null => {
