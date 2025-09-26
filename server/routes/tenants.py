@@ -5,7 +5,7 @@ from server.computer_use.config import APIProvider
 from server.database.multi_tenancy import get_tenant_by_clerk_user_id
 from server.settings import settings
 from server.settings_tenant import set_tenant_setting
-from server.tenant_manager import create_tenant
+from server.tenant_manager import create_tenant, delete_tenant
 
 tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
@@ -49,7 +49,7 @@ async def create_new_tenant(request: Request, name: str, schema: str, host: str)
         print('signup_response', signup_response)
         legacy_use_proxy_key = signup_response.get('api_key')
     except Exception as e:
-        # TODO: rollback tenant creation
+        delete_tenant(schema)
         raise HTTPException(status_code=400, detail=str(e))
 
     try:
@@ -60,8 +60,7 @@ async def create_new_tenant(request: Request, name: str, schema: str, host: str)
         )
         set_tenant_setting(schema, 'API_PROVIDER', APIProvider.LEGACYUSE_PROXY.value)
     except Exception as e:
-        # TODO: rollback tenant creation
-        # TODO: rollback legacy-use-proxy signup
+        delete_tenant(schema)
         raise HTTPException(status_code=400, detail=str(e))
 
     return {'api_key': new_tenant_api_key}
