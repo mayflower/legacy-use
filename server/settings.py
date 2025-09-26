@@ -88,7 +88,7 @@ class Settings(BaseSettings):
 
     GOOGLE_GENAI_API_KEY: str | None = None
 
-    LEGACYUSE_PROXY_BASE_URL: str | None = None
+    LEGACYUSE_PROXY_BASE_URL: str = 'https://api.legacy-use.com/'
 
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
