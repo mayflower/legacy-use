@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
-import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useId, useMemo, useState } from 'react';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { updateProviderSettings } from '../services/apiService';
 
@@ -28,7 +28,6 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const previousProviderId = useRef<string | null>(null);
 
   const activeModelLabelId = useId();
   const editProviderLabelId = useId();
@@ -63,24 +62,11 @@ const Settings = () => {
       );
       setCredentials(emptyCredentials);
       setSaveError(null);
+      setSaveSuccess(false);
     } else {
       setCredentials({});
     }
   }, [selectedProvider]);
-
-  useEffect(() => {
-    if (!selectedProviderId) {
-      previousProviderId.current = null;
-      return;
-    }
-
-    if (previousProviderId.current !== selectedProviderId) {
-      if (previousProviderId.current !== null) {
-        setSaveSuccess(false);
-      }
-      previousProviderId.current = selectedProviderId;
-    }
-  }, [selectedProviderId]);
 
   const credentialKeys = useMemo(() => {
     if (!selectedProvider) {
