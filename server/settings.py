@@ -137,3 +137,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
+settings.LEGACYUSE_PROXY_BASE_URL
