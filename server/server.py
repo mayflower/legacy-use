@@ -171,9 +171,12 @@ async def auth_middleware(request: Request, call_next):
                 reqeuest_state.is_authenticated
                 and reqeuest_state.payload
                 and reqeuest_state.payload.get('sub')
+                and request.headers.get('X-Clerk-Email')
             ):
+                logger.info('Authenticated request to admin API.')
                 # add clerk user id to request state
                 request.state.clerk_user_id = reqeuest_state.payload.get('sub')
+                request.state.clerk_email = request.headers.get('X-Clerk-Email')
                 return await call_next(request)
 
             logger.error('Unauthorized request to admin API:', reqeuest_state.reason)

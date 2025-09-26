@@ -65,6 +65,26 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<InferredTenant | null>(null);
 
+  // Wrapper to execute an API request with Clerk auth headers (JWT + email)
+  const withClerkAuth = async <T,>(
+    request: (headers: Record<string, string> | undefined) => Promise<T>,
+  ): Promise<T> => {
+    const clerkJwt = await getToken();
+    const clerkEmail = user?.emailAddresses[0]?.emailAddress;
+
+    console.log('clerkEmail', clerkEmail);
+    console.log('clerkJwt', clerkJwt);
+
+    const headers = clerkJwt
+      ? {
+          Authorization: `Bearer ${clerkJwt}`,
+          'X-Clerk-Email': clerkEmail as unknown as string,
+        }
+      : undefined;
+
+    return request(headers);
+  };
+
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
 
@@ -73,19 +93,13 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       setError(null);
 
       const inferred = inferTenantDetails(tenantName);
-      const clerkId = user?.id;
-      const clerkJwt = await getToken();
 
-      const headers = clerkJwt
-        ? {
-            Authorization: `Bearer ${clerkJwt}`,
-          }
-        : undefined;
-
-      const response = await apiClient.post('/tenants/', null, {
-        params: { ...inferred, clerk_id: clerkId },
-        headers,
-      });
+      const response = await withClerkAuth(headers =>
+        apiClient.post('/tenants/', null, {
+          params: { ...inferred },
+          headers,
+        }),
+      );
 
       if (response.data.api_key) {
         setSuccess({ ...inferred, api_key: response.data.api_key });
@@ -112,7 +126,9 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   };
 
   const handleGetTenant = async () => {
-    const response = await apiClient.get('/tenants/');
+    const response = await withClerkAuth(headers =>
+      apiClient.get('/tenants/', { headers }),
+    );
     return response.data;
   };
 
