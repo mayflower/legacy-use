@@ -6,7 +6,6 @@ import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useEffect, useState } from 'react';
-import type { AxiosResponse } from 'axios';
 import { apiClient } from '../../services/apiService';
 
 type CreateNewTenantProps = {
@@ -66,38 +65,25 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<InferredTenant | null>(null);
 
-  // Wrapper to execute an API request with Clerk auth headers (JWT + email)
-  async function withClerkAuth(
-    type: 'get' | 'post' | 'put' | 'delete',
+  // Minimal wrapper to add Clerk headers for a single request
+  const clerkRequest = async (
+    method: 'get' | 'post' | 'put' | 'delete',
     url: string,
-    headers?: Record<string, string>,
-    query?: Record<string, any>,
-    body?: any
-  ): Promise<AxiosResponse<any, any>> {
+    config?: any,
+  ) => {
     const clerkJwt = await getToken();
     const clerkEmail = user?.emailAddresses[0]?.emailAddress;
-
     const authHeaders = clerkJwt
-      ? {
-          Authorization: `Bearer ${clerkJwt}`,
-          'X-Clerk-Email': clerkEmail,
-          ...headers,
-        }
-      : headers;
+      ? { Authorization: `Bearer ${clerkJwt}`, 'X-Clerk-Email': clerkEmail }
+      : undefined;
 
-    switch (type) {
-      case 'get':
-        return apiClient.get(url, { headers: authHeaders, params: query });
-      case 'post':
-        return apiClient.post(url, body, { headers: authHeaders, params: query });
-      case 'put':
-        return apiClient.put(url, body, { headers: authHeaders, params: query });
-      case 'delete':
-        return apiClient.delete(url, { headers: authHeaders, params: query });
-      default:
-        throw new Error(`Unsupported request type: ${type}`);
-    }
-  }
+    return apiClient.request({
+      method,
+      url,
+      ...config,
+      headers: { ...(config?.headers || {}), ...(authHeaders || {}) },
+    });
+  };
 
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -108,7 +94,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
 
       const inferred = inferTenantDetails(tenantName);
 
-      const response = await withClerkAuth('post', '/tenants/', undefined, inferred, undefined);
+      const response = await clerkRequest('post', '/tenants/', { params: inferred });
 
       if (response.data.api_key) {
         setSuccess({ ...inferred, api_key: response.data.api_key });
@@ -135,7 +121,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   };
 
   const handleGetTenant = async () => {
-    const response = await withClerkAuth('get', '/tenants/', undefined, undefined, undefined);
+    const response = await clerkRequest('get', '/tenants/');
     return response.data;
   };
 
