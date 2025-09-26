@@ -20,14 +20,21 @@ from server.settings import settings
 class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
     def __init__(self, messages: AsyncMessages) -> None:
         super().__init__(messages)
-        self._api_key = getattr(messages._client, 'api_key', None)
+        self.api_key = getattr(messages._client, 'api_key', None)
+        if not self.api_key:
+            raise ValueError('LegacyUseClient requires an Anthropic API key')
+        if not settings.LEGACYUSE_PROXY_BASE_URL:
+            raise ValueError('LEGACYUSE_PROXY_BASE_URL is not set')
+        # Normalize base URL by trimming whitespace and ensuring exactly one trailing slash
+        self.base_url = settings.LEGACYUSE_PROXY_BASE_URL.rstrip('/') + '/'
+
         self.create = self._legacy_use_create
 
     def with_parse(self, response_json: dict) -> LegacyAPIResponse[BetaMessage]:
         # Create a proper httpx.Response with request information
         request = httpx.Request(
             method='POST',
-            url=settings.LEGACYUSE_PROXY_BASE_URL + 'create',
+            url=self.base_url + 'create',
             headers={'Content-Type': 'application/json'},
         )
         raw_response = httpx.Response(
@@ -42,7 +49,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
             stream_cls=None,
             options=FinalRequestOptions(
                 method='POST',
-                url=settings.LEGACYUSE_PROXY_BASE_URL + 'create',
+                url=self.base_url + 'create',
                 headers={'Content-Type': 'application/json'},
                 json_data=response_json,
                 post_parser=NotGiven(),
@@ -61,13 +68,9 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
         betas: list[str],
         **kwargs,
     ) -> LegacyAPIResponse[BetaMessage]:
-        url = settings.LEGACYUSE_PROXY_BASE_URL + 'create'
-        api_key = self._api_key
-        if not api_key:
-            raise ValueError('LegacyUseClient requires an Anthropic API key')
-
+        url = self.base_url + 'create'
         headers = {
-            'x-api-key': api_key,
+            'x-api-key': self.api_key,
             'Content-Type': 'application/json',
         }
         data = {
@@ -79,8 +82,6 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
             'betas': betas,
             **kwargs,
         }
-
-        logger.info(f'Sending request to {url} with headers: {headers}')
 
         async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(url, headers=headers, json=data)

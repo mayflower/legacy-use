@@ -65,6 +65,34 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<InferredTenant | null>(null);
 
+  // Minimal wrapper to add Clerk headers for a single request
+  const clerkRequest = async (
+    method: 'get' | 'post' | 'put' | 'delete',
+    url: string,
+    config?: any,
+  ) => {
+    const clerkJwt = await getToken();
+    const clerkEmail = user?.emailAddresses[0]?.emailAddress;
+
+    if (!clerkJwt) {
+      throw new Error('Clerk JWT is required but not available');
+    }
+    if (!clerkEmail) {
+      throw new Error('Clerk email is required but not available');
+    }
+
+    const authHeaders = clerkJwt
+      ? { Authorization: `Bearer ${clerkJwt}`, 'X-Clerk-Email': clerkEmail }
+      : undefined;
+
+    return apiClient.request({
+      method,
+      url,
+      ...config,
+      headers: { ...(config?.headers || {}), ...(authHeaders || {}) },
+    });
+  };
+
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
 
@@ -73,19 +101,8 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
       setError(null);
 
       const inferred = inferTenantDetails(tenantName);
-      const clerkId = user?.id;
-      const clerkJwt = await getToken();
 
-      const headers = clerkJwt
-        ? {
-            Authorization: `Bearer ${clerkJwt}`,
-          }
-        : undefined;
-
-      const response = await apiClient.post('/tenants/', null, {
-        params: { ...inferred, clerk_id: clerkId },
-        headers,
-      });
+      const response = await clerkRequest('post', '/tenants/', { params: inferred });
 
       if (response.data.api_key) {
         setSuccess({ ...inferred, api_key: response.data.api_key });
@@ -112,7 +129,7 @@ export function CreateNewTenant({ onSuccess }: CreateNewTenantProps) {
   };
 
   const handleGetTenant = async () => {
-    const response = await apiClient.get('/tenants/');
+    const response = await clerkRequest('get', '/tenants/');
     return response.data;
   };
 
