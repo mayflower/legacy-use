@@ -11,8 +11,8 @@ tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
 
 async def signup_legacy_use_proxy(email: str):
-    base_url = settings.LEGACYUSE_PROXY_BASE_URL.rstrip('/') + '/'
-    url = f'{base_url}signup'
+    base_url = settings.LEGACYUSE_PROXY_BASE_URL.rstrip('/')
+    url = f'{base_url}/signup'
     async with httpx.AsyncClient(timeout=300.0) as client:
         response = await client.post(
             url,
