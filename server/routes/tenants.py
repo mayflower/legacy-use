@@ -11,7 +11,6 @@ tenants_router = APIRouter(prefix='/tenants', tags=['Tenants'])
 
 
 async def signup_legacy_use_proxy(email: str):
-    print(f'{settings.LEGACYUSE_PROXY_BASE_URL}signup')
     response = requests.post(
         f'{settings.LEGACYUSE_PROXY_BASE_URL}signup',
         json={'email': email, 'skipEmailSending': True},
@@ -46,7 +45,6 @@ async def create_new_tenant(request: Request, name: str, schema: str, host: str)
 
     try:
         signup_response = await signup_legacy_use_proxy(clerk_email)
-        print('signup_response', signup_response)
         legacy_use_proxy_key = signup_response.get('api_key')
     except Exception as e:
         delete_tenant(schema)

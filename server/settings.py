@@ -87,10 +87,8 @@ class Settings(BaseSettings):
     TOKEN_LIMIT: int = 500000
 
     GOOGLE_GENAI_API_KEY: str | None = None
-    # TODO: move to api.legacy-use.com/
-    LEGACYUSE_PROXY_BASE_URL: str = (
-        'https://zwheoeahsu2qubitwdvx4bkt6i0rvzxe.lambda-url.eu-central-1.on.aws/'
-    )
+
+    LEGACYUSE_PROXY_BASE_URL: str | None = None
 
     ENVIRONMENT: str = 'development'
     API_SENTRY_DSN: str | None = None
