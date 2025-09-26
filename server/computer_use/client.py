@@ -20,10 +20,14 @@ from server.settings import settings
 class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
     def __init__(self, messages: AsyncMessages) -> None:
         super().__init__(messages)
-        self.create = self._legacy_use_create
+        self.api_key = getattr(messages._client, 'api_key', None)
+        if not self.api_key:
+            raise ValueError('LegacyUseClient requires an Anthropic API key')
         if not settings.LEGACYUSE_PROXY_BASE_URL:
             raise ValueError('LEGACYUSE_PROXY_BASE_URL is not set')
         self.base_url = settings.LEGACYUSE_PROXY_BASE_URL
+
+        self.create = self._legacy_use_create
 
     def with_parse(self, response_json: dict) -> LegacyAPIResponse[BetaMessage]:
         # Create a proper httpx.Response with request information
@@ -65,7 +69,7 @@ class LegacyAsyncMessagesWithRawResponse(AsyncMessagesWithRawResponse):
     ) -> LegacyAPIResponse[BetaMessage]:
         url = self.base_url + 'create'
         headers = {
-            'x-api-key': self._messages._client.api_key,
+            'x-api-key': self.api_key,
             'Content-Type': 'application/json',
         }
         data = {
