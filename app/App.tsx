@@ -1,4 +1,3 @@
-// biome-ignore assist/source/organizeImports: must be on top
 import CssBaseline from '@mui/material/CssBaseline';
 
 import Alert from '@mui/material/Alert';
@@ -176,25 +175,55 @@ const AppLayout = () => {
     }
   }, [isSessionDetail, location.pathname]);
 
-  // Fetch session details when selectedSessionId changes
+  const shouldPollSession = Boolean(
+    selectedSessionId &&
+      (isSessionDetail || isJobDetail || isTargetDetail || location.pathname === '/apis'),
+  );
+
+  // Fetch session details when selectedSessionId changes and optionally keep polling
   useEffect(() => {
-    if (selectedSessionId) {
-      const fetchSessionDetails = async () => {
-        try {
-          const sessionsData = await getSessions(true); // Include archived sessions
-          const sessionData = sessionsData.find(s => s.id === selectedSessionId);
-          setCurrentSession(sessionData || null);
-        } catch (err) {
+    if (!selectedSessionId) {
+      setCurrentSession(null);
+      return;
+    }
+
+    let isCancelled = false;
+    let pollInterval: number | null = null;
+
+    const fetchSessionDetails = async () => {
+      try {
+        const sessionsData = await getSessions(true); // Include archived sessions
+        const sessionData = sessionsData.find(s => s.id === selectedSessionId) || null;
+
+        if (!isCancelled) {
+          setCurrentSession(sessionData);
+
+          if (sessionData?.is_archived && pollInterval !== null) {
+            window.clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
           console.error('Error fetching session details:', err);
           setCurrentSession(null);
         }
-      };
+      }
+    };
 
-      fetchSessionDetails();
-    } else {
-      setCurrentSession(null);
+    fetchSessionDetails();
+
+    if (shouldPollSession) {
+      pollInterval = window.setInterval(fetchSessionDetails, 5000);
     }
-  }, [selectedSessionId]);
+
+    return () => {
+      isCancelled = true;
+      if (pollInterval !== null) {
+        window.clearInterval(pollInterval);
+      }
+    };
+  }, [selectedSessionId, shouldPollSession]);
 
   // Check if user has completed onboarding
   useEffect(() => {
