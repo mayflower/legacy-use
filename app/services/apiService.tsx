@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {
-  type APIDefinition,
+  type APIDefinitionWithSchema,
   addCustomActionApiDefinitionsApiNameCustomActionsPost,
   analyzeVideoTeachingModeAnalyzeVideoPost,
   archiveApiDefinitionApiDefinitionsApiNameDelete,
@@ -128,7 +128,7 @@ apiClient.interceptors.response.use(
 );
 
 // Function to test if an API key is valid
-export const testApiKey = async (apiKey: string): Promise<APIDefinition[]> => {
+export const testApiKey = async (apiKey: string): Promise<APIDefinitionWithSchema[]> => {
   // Create a temporary axios instance with the API key
   const tempClient = axios.create({
     baseURL: API_BASE_URL,
@@ -179,7 +179,9 @@ export const checkApiProviderConfiguration = async () => {
 };
 
 // API Definitions
-export const getApiDefinitions = async (include_archived = false): Promise<APIDefinition[]> => {
+export const getApiDefinitions = async (
+  include_archived = false,
+): Promise<APIDefinitionWithSchema[]> => {
   return getApiDefinitionsApiDefinitionsGet({ include_archived });
 };
 
