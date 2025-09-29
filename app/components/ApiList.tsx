@@ -132,7 +132,7 @@ const ApiList = () => {
   }, [fetchData]);
 
   // Handle target change
-  const handleTargetChange = (event) => {
+  const handleTargetChange = event => {
     const newTargetId = event.target.value as string;
     setSelectedTarget(newTargetId);
     setSelectedSessionId(newTargetId); // Keep for compatibility with session context
@@ -290,7 +290,7 @@ const ApiList = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = async event => {
     const file = event.target.files?.[0];
     if (!file) return;
 

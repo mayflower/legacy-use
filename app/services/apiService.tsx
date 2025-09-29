@@ -179,7 +179,9 @@ export const checkApiProviderConfiguration = async () => {
 };
 
 // API Definitions
-export const getApiDefinitions = async (include_archived = false): Promise<APIDefinitionWithSchema[]> => {
+export const getApiDefinitions = async (
+  include_archived = false,
+): Promise<APIDefinitionWithSchema[]> => {
   return getApiDefinitionsApiDefinitionsGet({ include_archived });
 };
 
