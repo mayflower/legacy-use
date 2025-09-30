@@ -1,12 +1,14 @@
 import axios from 'axios';
 import {
-  type APIDefinition,
+  type APIDefinitionWithSchema,
+  addCustomActionApiDefinitionsApiNameCustomActionsPost,
   analyzeVideoTeachingModeAnalyzeVideoPost,
   archiveApiDefinitionApiDefinitionsApiNameDelete,
   cancelJobTargetsTargetIdJobsJobIdCancelPost,
   createJobTargetsTargetIdJobsPost,
   createSessionSessionsPost,
   createTargetTargetsPost,
+  deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete,
   deleteSessionSessionsSessionIdDelete,
   deleteTargetTargetsTargetIdDelete,
   exportApiDefinitionApiDefinitionsApiNameExportGet,
@@ -17,11 +19,14 @@ import {
   getJobHttpExchangesTargetsTargetIdJobsJobIdHttpExchangesGet,
   getJobLogsTargetsTargetIdJobsJobIdLogsGet,
   getJobTargetsTargetIdJobsJobIdGet,
+  getKeysToolsKeysGet,
   getProvidersSettingsProvidersGet,
   getSessionContainerLogsSessionsSessionIdContainerLogsGet,
   getSessionRecordingStatusSessionsSessionIdRecordingStatusGet,
   getSessionSessionsSessionIdGet,
   getTargetTargetsTargetIdGet,
+  // Generated: Tools & Custom Actions
+  getToolsGroupToolsGroupGroupNameGet,
   type HttpExchangeLog,
   hardDeleteSessionSessionsSessionIdHardDelete,
   hardDeleteTargetTargetsTargetIdHardDelete,
@@ -32,6 +37,7 @@ import {
   type JobCreate,
   type JobLogEntry,
   listAllJobsJobsGet,
+  listCustomActionsApiDefinitionsApiNameCustomActionsGet,
   listSessionsSessionsGet,
   listTargetJobsTargetsTargetIdJobsGet,
   listTargetsTargetsGet,
@@ -54,12 +60,6 @@ import {
   updateApiDefinitionApiDefinitionsApiNamePut,
   updateProviderSettingsSettingsProvidersPost,
   updateTargetTargetsTargetIdPut,
-  // Generated: Tools & Custom Actions
-  getToolsGroupToolsGroupGroupNameGet,
-  getKeysToolsKeysGet,
-  addCustomActionApiDefinitionsApiNameCustomActionsPost,
-  listCustomActionsApiDefinitionsApiNameCustomActionsGet,
-  deleteCustomActionApiDefinitionsApiNameCustomActionsActionNameDelete,
 } from '../gen/endpoints';
 import { API_BASE_URL } from '../utils/apiConstants';
 import { forwardDistinctId } from './telemetryService';
@@ -128,7 +128,7 @@ apiClient.interceptors.response.use(
 );
 
 // Function to test if an API key is valid
-export const testApiKey = async (apiKey: string): Promise<APIDefinition[]> => {
+export const testApiKey = async (apiKey: string): Promise<APIDefinitionWithSchema[]> => {
   // Create a temporary axios instance with the API key
   const tempClient = axios.create({
     baseURL: API_BASE_URL,
@@ -179,7 +179,9 @@ export const checkApiProviderConfiguration = async () => {
 };
 
 // API Definitions
-export const getApiDefinitions = async (include_archived = false): Promise<APIDefinition[]> => {
+export const getApiDefinitions = async (
+  include_archived = false,
+): Promise<APIDefinitionWithSchema[]> => {
   return getApiDefinitionsApiDefinitionsGet({ include_archived });
 };
 

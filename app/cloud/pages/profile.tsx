@@ -206,7 +206,7 @@ export default function ProfilePage() {
 
             {/* Logout button */}
             {user && (
-              <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1200 }}>
+              <Box sx={{ position: 'fixed', bottom: 24, left: 24, zIndex: 1200 }}>
                 <Button variant="contained" onClick={() => signOut()}>
                   Logout
                 </Button>

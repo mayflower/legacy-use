@@ -129,7 +129,6 @@ class AnthropicHandler(BaseProviderHandler):
                     'LEGACYUSE_PROXY_API_KEY is required for LegacyUseClient'
                 )
             client = LegacyUseClient(api_key=proxy_key)
-            client = cast(AsyncAnthropic, client)
         else:
             raise ValueError(f'Unsupported Anthropic provider: {self.provider}')
 

@@ -14,12 +14,12 @@ import {
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import type { APIDefinition, Job, Session, Target } from '@/gen/endpoints';
+import type { APIDefinitionWithSchema, Job, Session, Target } from '@/gen/endpoints';
 import { getAllJobs, getApiDefinitions, getSessions, getTargets } from '../services/apiService';
 import { getJobStatusChipColor } from '../utils/jobStatus';
 
 const Dashboard = () => {
-  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [apis, setApis] = useState<APIDefinitionWithSchema[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [targets, setTargets] = useState<Target[]>([]);
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
         setJobs(sortedJobs);
         setLoading(false);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data');
         setLoading(false);

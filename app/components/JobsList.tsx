@@ -29,7 +29,7 @@ import {
 } from '@mui/material';
 import { type ChangeEvent, useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { APIDefinition, Job, Target } from '@/gen/endpoints';
+import type { APIDefinitionWithSchema, Job, Target } from '@/gen/endpoints';
 import { cancelJob, getAllJobs, getApiDefinitions, getTargets } from '../services/apiService';
 import { getJobStatusChipColor } from '../utils/jobStatus';
 
@@ -60,7 +60,7 @@ const JobsList = () => {
     'canceled',
   ]);
   const [targets, setTargets] = useState<Target[]>([]);
-  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [apis, setApis] = useState<APIDefinitionWithSchema[]>([]);
   const [loadingOptions, setLoadingOptions] = useState<boolean>(false);
   const [cancelingJobId, setCancelingJobId] = useState<string | null>(null);
 
@@ -151,7 +151,7 @@ const JobsList = () => {
     fetchJobs();
   };
 
-  const handleRowClick = (event: any, job: Job) => {
+  const handleRowClick = (event, job: Job) => {
     if (event.ctrlKey || event.metaKey) {
       // Open in new tab/window if Ctrl key (or Command key on Mac) is pressed
       window.open(`/jobs/${job.target_id}/${job.id}`, '_blank');
@@ -167,7 +167,7 @@ const JobsList = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleCancelJob = async (event: any, job: Job) => {
+  const handleCancelJob = async (event, job: Job) => {
     // Prevent row click event
     event.stopPropagation();
 

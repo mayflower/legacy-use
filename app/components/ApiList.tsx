@@ -35,7 +35,7 @@ import {
 } from '@mui/material';
 import { useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { APIDefinition, Target } from '@/gen/endpoints';
+import type { APIDefinitionWithSchema, Target } from '@/gen/endpoints';
 import { SessionContext } from '../App';
 import {
   archiveApiDefinition,
@@ -52,7 +52,7 @@ import DuplicateApiDialog from './DuplicateApiDialog';
 const ApiList = () => {
   const navigate = useNavigate();
   const { selectedSessionId, setSelectedSessionId } = useContext(SessionContext);
-  const [apis, setApis] = useState<APIDefinition[]>([]);
+  const [apis, setApis] = useState<APIDefinitionWithSchema[]>([]);
   const [targets, setTargets] = useState<Target[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -120,7 +120,7 @@ const ApiList = () => {
       setExpandedApis(initialExpandedState);
 
       setLoading(false);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching API data:', err);
       setError('Failed to load API data. Please try again later.');
       setLoading(false);
@@ -132,7 +132,7 @@ const ApiList = () => {
   }, [fetchData]);
 
   // Handle target change
-  const handleTargetChange = (event: any) => {
+  const handleTargetChange = event => {
     const newTargetId = event.target.value as string;
     setSelectedTarget(newTargetId);
     setSelectedSessionId(newTargetId); // Keep for compatibility with session context
@@ -164,7 +164,7 @@ const ApiList = () => {
     }));
   };
 
-  const handleExecuteApi = async (api: APIDefinition) => {
+  const handleExecuteApi = async (api: APIDefinitionWithSchema) => {
     if (!selectedTarget) {
       setExecutionResult({
         ...executionResult,
@@ -253,7 +253,7 @@ const ApiList = () => {
 
       // Navigate to the job details page with the logs tab active
       navigate(`/jobs/${selectedTarget}/${result.id}`);
-    } catch (err: any) {
+    } catch (err) {
       console.error(`Error executing API ${api.name}:`, err);
       setExecutionResult({
         ...executionResult,
@@ -280,7 +280,7 @@ const ApiList = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (err: any) {
+    } catch (err) {
       console.error(`Error exporting API definition for ${apiName}:`, err);
       setError(`Failed to export API definition for ${apiName}`);
     }
@@ -290,7 +290,7 @@ const ApiList = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = async (event: any) => {
+  const handleFileUpload = async event => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -355,7 +355,7 @@ const ApiList = () => {
     fetchData();
   };
 
-  const handleArchiveApi = async (apiName: string, event: any) => {
+  const handleArchiveApi = async (apiName: string, event) => {
     // Stop event propagation to prevent card expansion
     event.stopPropagation();
 
@@ -368,14 +368,14 @@ const ApiList = () => {
 
       // Refresh the API list
       fetchData();
-    } catch (err: any) {
+    } catch (err) {
       console.error(`Error archiving API ${apiName}:`, err);
       setSnackbarMessage(`Failed to archive API: ${err.message || 'Unknown error'}`);
       setSnackbarOpen(true);
     }
   };
 
-  const handleUnarchiveApi = async (apiName: string, event: any) => {
+  const handleUnarchiveApi = async (apiName: string, event) => {
     // Stop event propagation to prevent card expansion
     event.stopPropagation();
 
@@ -414,7 +414,7 @@ const ApiList = () => {
           console.error('Error fetching API data:', err);
           setError('Failed to load API data. Please try again later.');
         });
-    } catch (err: any) {
+    } catch (err) {
       console.error(`Error unarchiving API ${apiName}:`, err);
       setSnackbarMessage(`Failed to unarchive API: ${err.message || 'Unknown error'}`);
       setSnackbarOpen(true);
