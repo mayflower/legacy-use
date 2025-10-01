@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ProviderConfiguration } from '@/gen/endpoints';
 import { getProviders } from '../services/apiService';
+import { useApiKey } from './ApiKeyContext';
 
 // Create the context
 export const AiProviderContext = createContext({
@@ -18,7 +19,8 @@ export const AiProvider = ({ children }) => {
   const [currentProvider, setCurrentProvider] = useState<string | null>(null);
   const [hasConfiguredProvider, setHasConfiguredProvider] = useState<boolean>(false);
   const [isProviderValid, setIsProviderValid] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const { apiKey } = useApiKey();
 
   // Function to refresh provider data
   const refreshProviders = async () => {
@@ -48,10 +50,12 @@ export const AiProvider = ({ children }) => {
     }
   };
 
-  // Initial load of providers
+  // Load providers whenever an API key becomes available/changes
   useEffect(() => {
-    refreshProviders();
-  }, []);
+    if (apiKey) {
+      refreshProviders();
+    }
+  }, [apiKey]);
 
   // Context value
   const value = {
