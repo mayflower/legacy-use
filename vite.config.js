@@ -21,7 +21,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['.local.legacy-use.com'],
+    allowedHosts: ['.az.mayflower.cloud'],
     watch: {
       ignored: ['**/.venv/**', '**/.git/**', '**/server/**', '**/node_modules/**'],
     },
