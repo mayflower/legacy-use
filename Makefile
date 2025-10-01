@@ -29,7 +29,7 @@ docker-dev: ensure-env
 	docker-compose -f docker-compose.yml -f docker-compose.dev-override.yml up
 
 docker-prod: ensure-env
-	@echo "🚀 Starting legacy-use in PRODUCTION mode..."
+	@echo "🚀  Starting legacy-use in PRODUCTION mode..."
 	@if curl -s --connect-timeout 1 http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1; then \
 		echo "🌐 Detected AWS environment"; \
 		echo "🔐 Retrieving DATABASE_URL from AWS Secrets Manager"; \
