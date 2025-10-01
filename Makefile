@@ -87,3 +87,41 @@ docker-linux-vm:
 		--health-timeout=2s \
 		--health-retries=10 \
 		legacy-use-core-linux-machine:local
+
+
+## MF-Demo in Az:
+GIT_SHORT_HASH := $(shell git rev-parse --short HEAD)
+
+mf-azlogin: ## Login onto Azure with user principal
+	az login --tenant ${AZ_TENANT_ID}
+
+mf-azdockerlogin: ## Login onto Azure Container Registry
+	az acr login -n ${AZ_ACR_NAME}
+
+mf-build-demo-db:
+	az acr build \
+		--registry ${AZ_ACR_NAME} \
+		--image legacy-use-db:${GIT_SHORT_HASH} \
+		--image legacy-use-db:latest \
+		-f infra/docker/legacy-use-demo-db/Dockerfile \
+		.
+
+mf-build-demo-backend:
+	az acr build \
+		--registry ${AZ_ACR_NAME} \
+		--image legacy-use-backend:${GIT_SHORT_HASH} \
+		--image legacy-use-backend:latest \
+		-f infra/docker/legacy-use-backend/Dockerfile \
+		.
+
+mf-build-demo-frontend:
+	az acr build \
+		--registry ${AZ_ACR_NAME} \
+		--image legacy-use-frontend:${GIT_SHORT_HASH} \
+		--image legacy-use-frontend:latest \
+		-f infra/docker/legacy-use-frontend/Dockerfile \
+		.
+mf-build-demo-all: mf-azlogin mf-azdockerlogin mf-build-demo-db mf-build-demo-backend mf-build-demo-frontend
+
+mf-vmssh:
+	az ssh vm -n ${AZ_DEMO_VM_NAME} -g ${AZ_DEMO_VM_RG} -- -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
