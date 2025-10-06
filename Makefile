@@ -125,3 +125,6 @@ mf-build-demo-all: mf-azlogin mf-azdockerlogin mf-build-demo-db mf-build-demo-ba
 
 mf-vmssh:
 	az ssh vm -n ${AZ_DEMO_VM_NAME} -g ${AZ_DEMO_VM_RG} -- -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+
+mf-deploy-demo:
+	./mf-deploy-demo.sh

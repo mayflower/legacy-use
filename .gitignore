@@ -195,3 +195,6 @@ terraform.tfstate.backup
 # Generated OpenAPI schema
 openapi.json
 openapi.yaml
+
+# MF azure demo
+.env.az

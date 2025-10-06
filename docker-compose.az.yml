@@ -28,8 +28,7 @@ services:
     container_name: legacy-use-backend
     user: root
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/legacy_use
-      - LEGACY_USE_DEBUG=0
+      - LEGACY_USE_DEBUG=1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -49,7 +48,7 @@ services:
     container_name: legacy-use-frontend
     environment:
       - VITE_PROXY_TARGET=backend
-      - LEGACY_USE_DEBUG=0
+      - LEGACY_USE_DEBUG=1
     ports:
       - "5173:5173"
     depends_on:
