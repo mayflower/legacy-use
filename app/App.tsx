@@ -26,6 +26,7 @@ import TargetDetails from './components/TargetDetails';
 import TargetList from './components/TargetList';
 import TeachingMode from './components/TeachingMode';
 import VncViewer from './components/VncViewer';
+import OnboardingWizard from './components/OnboardingWizard';
 import { AiProvider, useAiProvider } from './contexts/AiProviderContext';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import type { Session } from './gen/endpoints';
@@ -148,6 +149,7 @@ const AppLayout = () => {
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);
   const { isProviderValid } = useAiProvider();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
@@ -266,6 +268,23 @@ const AppLayout = () => {
     }
   }, [isTargetDetail, location.search, setSelectedSessionId]);
 
+  useEffect(() => {
+    const wizardCompleted = localStorage.getItem('onboardingCompleted');
+    const urlParams = new URLSearchParams(window.location.search);
+    const showWizard = urlParams.get('showWizard');
+
+    if (showWizard && wizardCompleted !== 'true') {
+      setShowOnboarding(true);
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [location.search]);
+
+  const handleWizardComplete = () => {
+    localStorage.setItem('onboardingCompleted', 'true');
+    setShowOnboarding(false);
+  };
+
   // Determine if we should show the VNC viewer
   // Show it for session details, job details, API page with a selected session, or target details with a selected session
   // But don't show it for archived sessions or sessions not in ready state
@@ -369,6 +388,11 @@ const AppLayout = () => {
       </Box>
 
       {/* API Key Dialog */}
+      <OnboardingWizard
+        open={showOnboarding}
+        onComplete={handleWizardComplete}
+        onSkip={handleWizardComplete}
+      />
       <ApiKeyDialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} />
     </SessionContext.Provider>
   );
