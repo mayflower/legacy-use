@@ -3,6 +3,7 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import KeyIcon from '@mui/icons-material/Key';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import ReplayIcon from '@mui/icons-material/Replay';
 import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -18,8 +19,13 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeyDialog from './ApiKeyDialog';
+import { Help, HelpCenter, HelpCenterOutlined, HelpCenterRounded, HelpOutlined } from '@mui/icons-material';
 
-const AppHeader = () => {
+type AppHeaderProps = {
+  onRestartOnboarding: () => void;
+};
+
+const AppHeader = ({ onRestartOnboarding }: AppHeaderProps) => {
   const location = useLocation();
   const { apiKey, clearApiKey, isApiKeyValid } = useApiKey();
   const { hasConfiguredProvider, isProviderValid } = useAiProvider();
@@ -125,6 +131,12 @@ const AppHeader = () => {
             </Tooltip>
           </Box>
 
+          <Tooltip title="Restart the onboarding wizard">
+            <IconButton color="inherit" onClick={onRestartOnboarding} size="large">
+              <Help color={aiProviderStatus} />
+            </IconButton>
+          </Tooltip>
+
           <Tooltip title={`AI Provider: ${aiProviderStatusText}`}>
             <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
               <PsychologyIcon color={aiProviderStatus} />
@@ -140,6 +152,7 @@ const AppHeader = () => {
               <KeyIcon />
             </IconButton>
           </Tooltip>
+          
 
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={handleOpenApiKeyDialog}>

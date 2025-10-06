@@ -151,6 +151,11 @@ const AppLayout = () => {
   const { isProviderValid } = useAiProvider();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  const handleRestartOnboarding = () => {
+    localStorage.removeItem('onboardingCompleted');
+    setShowOnboarding(true);
+  };
+
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
     location.pathname.includes('/sessions/') && !location.pathname.includes('/sessions/new');
@@ -339,7 +344,7 @@ const AppLayout = () => {
       value={{ selectedSessionId, setSelectedSessionId, currentSession, setCurrentSession }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <AppHeader />
+        <AppHeader onRestartOnboarding={handleRestartOnboarding} />
 
         {/* Show warning if no ai provider is configured */}
         {!isProviderValid && (
