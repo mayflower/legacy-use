@@ -95,24 +95,54 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                   '& > li': { display: 'list-item' },
                 }}
               >
-                <Typography component="li" variant="body2" color="text.secondary">
-                  Name – add whatever label helps you recognize the machine.
-                </Typography>
-                <Typography component="li" variant="body2" color="text.secondary">
-                  Type – select the screen sharing protocol, and note if it is paired with a VPN.
-                </Typography>
-                <Typography component="li" variant="body2" color="text.secondary">
-                  VPN Config – include details such as your Tailscale auth key when you connect via VPN.
-                </Typography>
-                <Typography component="li" variant="body2" color="text.secondary">
-                  VNC/RDP Username – provide the username required by the screen sharing protocol.
-                </Typography>
-                <Typography component="li" variant="body2" color="text.secondary">
-                  VNC/RDP Password – enter the password the protocol uses.
-                </Typography>
-                <Typography component="li" variant="body2" color="text.secondary">
-                  Width/Height – specify the screen resolution exposed over VNC or RDP.
-                </Typography>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Name
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add whatever label helps you recognize the machine.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Type
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Select the screen sharing protocol and note if you pair it with a VPN.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    VPN Config
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Include details such as your Tailscale auth key when you connect via VPN.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    VNC/RDP Username
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Provide the username required by the screen sharing protocol.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    VNC/RDP Password
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Enter the password the protocol uses.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Width/Height
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Specify the screen resolution exposed over VNC or RDP.
+                  </Typography>
+                </Box>
               </Stack>
               <Stack spacing={1.5} pt={4}>
                 <Typography variant="body2" color="text.secondary">
@@ -160,41 +190,66 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
               <Typography variant="body1">
                 APIs define what should happen when your automation runs.
               </Typography>
-              <Stack spacing={1.5}>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>
+              <Typography variant="body2" color="text.secondary">
+                Configure each part to describe the workflow and its inputs:
+              </Typography>
+              <Stack
+                component="ul"
+                spacing={1}
+                sx={{
+                  pl: 2,
+                  m: 0,
+                  listStyleType: 'disc',
+                  '& > li': { display: 'list-item' },
+                }}
+              >
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
                     Parameters
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Insert dynamic values with {'{{parameter_name}}'} placeholders.
+                    Pass dynamic values into the workflow and inject them into prompts with {'{{parameter_name}}'} placeholders.
                   </Typography>
                 </Box>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Prompt Configuration
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Describe the steps in natural language and follow the HOW_TO_PROMPT guidelines.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Cleanup Prompt
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Optionally add instructions to reset the desktop after the workflow, like closing open windows.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
                     Response Example
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Describe the structure of the data you expect back.
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    Prompt
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Provide step-by-step instructions. Follow HOW_TO_PROMPT guidelines.
+                    Outline the JSON structure you expect to receive back.
                   </Typography>
                 </Box>
               </Stack>
-              <Box>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Prompt best practices
-                </Typography>
+              <Stack spacing={1.5}>
                 <Typography variant="body2" color="text.secondary">
-                  Keep one action per step, describe expected UI before actions, and prefer keyboard
-                  shortcuts when possible.
+                  Detailed instructions on how to write a good prompt:
                 </Typography>
-              </Box>
+                <Button
+                  component="a"
+                  href="https://github.com/legacy-use/legacy-use/blob/main/HOW_TO_PROMPT.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ alignSelf: { xs: 'stretch', sm: 'start' } }}
+                >
+                  HOW_TO_PROMPT
+                </Button>
+              </Stack>
             </Stack>
             <Box
               component="img"
@@ -218,22 +273,54 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
               <Typography variant="body1">
                 Run your API once you have a target and prompt ready.
               </Typography>
-              <Stack spacing={1.5}>
-                <Typography variant="body2" color="text.secondary">
-                  1. Open the APIs page and choose your API.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  2. Select a target from the dropdown.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  3. Click execute to start a job.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  4. The job runs on a session instance on that target.
-                </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Launch your first automation with these steps:
+              </Typography>
+              <Stack
+                component="ul"
+                spacing={1}
+                sx={{
+                  pl: 2,
+                  m: 0,
+                  listStyleType: 'disc',
+                  '& > li': { display: 'list-item' },
+                }}
+              >
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Choose Your API
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Open the APIs page and pick the workflow you want to run.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Select a Target
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Use the target dropdown to choose the machine that has the required session setup.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Execute the Job
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Click execute to spin up a session and run the automation on that target.
+                  </Typography>
+                </Box>
+                <Box component="li" sx={{ pl: 0.5 }}>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Monitor the Run
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Watch the live stream and review job output to confirm the workflow completes as expected.
+                  </Typography>
+                </Box>
               </Stack>
               <Typography variant="body1" fontWeight={600}>
-                You're all set! Start automating your workflows.
+                You're all set - trigger your API and start automating!
               </Typography>
             </Stack>
             <Box
