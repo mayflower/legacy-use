@@ -29,7 +29,7 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
         title: 'Welcome to Legacy Use',
         content: (
           <Stack spacing={2.5} alignItems="center" sx={{ maxWidth: 520, mx: 'auto' }}>
-            <Typography variant="body1" fontWeight="bold">
+            <Typography variant="body1" fontWeight="bold" textAlign={'center'}>
               Legacy Use helps you automate workflows on any computer through a few core building blocks.
             </Typography>
             <Stack spacing={2}>
@@ -216,7 +216,7 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Prompt Configuration
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Describe the steps in natural language and follow the HOW_TO_PROMPT guidelines.
+                    This is the most important part. Describe the workflow you want to automate, step by step, in natural language.
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ pl: 0.5 }}>
