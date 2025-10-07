@@ -7,7 +7,7 @@ from enum import StrEnum
 from server.computer_use.tools.groups import ToolVersion
 
 # Beta feature flags
-COMPUTER_USE_BETA_FLAG = 'computer-use-2024-10-22'
+COMPUTER_USE_BETA_FLAG = 'computer-use-2025-01-24'
 PROMPT_CACHING_BETA_FLAG = 'prompt-caching-2024-07-31'
 
 
