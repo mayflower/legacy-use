@@ -2,6 +2,9 @@ FROM node:alpine
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+ARG VITE_PROXY_TARGET=backend
+ENV VITE_PROXY_TARGET=$VITE_PROXY_TARGET
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -18,6 +21,9 @@ COPY ./vite.config.js /web/vite.config.js
 COPY ./orval.config.ts /web/orval.config.ts
 COPY ./index.html /web/index.html
 
+# Build with Environment
+RUN pnpm build
+
 EXPOSE 5173
 
-CMD [ "pnpm", "start" ]
+CMD [ "pnpm", "run", "preview", "--port", "5173" ]

@@ -120,7 +120,9 @@ mf-build-demo-frontend:
 		--image legacy-use-frontend:${GIT_SHORT_HASH} \
 		--image legacy-use-frontend:latest \
 		-f infra/docker/legacy-use-frontend/Dockerfile \
+		--build-arg VITE_PROXY_TARGET=https://tenant-default.legacy-use.az.mayflower.cloud \
 		.
+
 mf-build-demo-all: mf-azlogin mf-azdockerlogin mf-build-demo-db mf-build-demo-backend mf-build-demo-frontend
 
 mf-vmssh:

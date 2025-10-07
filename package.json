@@ -8,7 +8,7 @@
     "start": "vite",
     "build": "tsc -b && vite build",
     "build-lazy": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port 5173",
     "test": "vite test",
     "typecheck": "tsc --noEmit",
     "generate-openapi-schema": "uv run generate_openapi_schema.py && orval",
