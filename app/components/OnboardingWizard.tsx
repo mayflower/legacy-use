@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Dialog, DialogContent, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 
 type OnboardingWizardProps = {
@@ -30,7 +23,8 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
         content: (
           <Stack spacing={2.5} alignItems="center" sx={{ maxWidth: 520, mx: 'auto' }}>
             <Typography variant="body1" fontWeight="bold" textAlign={'center'}>
-              Legacy Use helps you automate workflows on any computer through a few core building blocks.
+              Legacy Use helps you automate workflows on any computer through a few core building
+              blocks.
             </Typography>
             <Stack spacing={2}>
               <Box>
@@ -148,7 +142,12 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                 <Typography variant="body2" color="text.secondary">
                   These guides show you how to setup a target with VNC and Tailscale:
                 </Typography>
-                <Stack spacing={1.5} direction={{ xs: 'column', sm: 'row' }} flexWrap="wrap" useFlexGap>
+                <Stack
+                  spacing={1.5}
+                  direction={{ xs: 'column', sm: 'row' }}
+                  flexWrap="wrap"
+                  useFlexGap
+                >
                   <Button
                     component="a"
                     href="https://docs.google.com/document/d/14FuYaEbZLvMHW0FzXbrlaPgjwleD_kTB9ATG5krFlDU/"
@@ -208,7 +207,8 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Parameters
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Pass dynamic values into the workflow and inject them into prompts with {'{{parameter_name}}'} placeholders.
+                    Pass dynamic values into the workflow and inject them into prompts with{' '}
+                    {'{{parameter_name}}'} placeholders.
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ pl: 0.5 }}>
@@ -216,7 +216,8 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Prompt Configuration
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    This is the most important part. Describe the workflow you want to automate, step by step, in natural language.
+                    This is the most important part. Describe the workflow you want to automate,
+                    step by step, in natural language.
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ pl: 0.5 }}>
@@ -224,7 +225,8 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Cleanup Prompt
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Optionally add instructions on how to reset the desktop after the workflow, like closing all open windows.
+                    Optionally add instructions on how to reset the desktop after the workflow, like
+                    closing all open windows.
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ pl: 0.5 }}>
@@ -299,7 +301,8 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Select a Target
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Use the target dropdown to choose the machine that has the required session setup.
+                    Use the target dropdown to choose the machine that has the required session
+                    setup.
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ pl: 0.5 }}>
@@ -315,7 +318,8 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Monitor the Run
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Watch the live stream and review job output to confirm the workflow completes as expected.
+                    Watch the live stream and review job output to confirm the workflow completes as
+                    expected.
                   </Typography>
                 </Box>
               </Stack>
@@ -424,12 +428,7 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
             >
               Previous
             </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleNext}
-              sx={{ minWidth: 140 }}
-            >
+            <Button variant="contained" color="primary" onClick={handleNext} sx={{ minWidth: 140 }}>
               {isLastStep ? 'Get Started' : 'Next'}
             </Button>
           </Stack>
