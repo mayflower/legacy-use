@@ -7,7 +7,7 @@ from enum import StrEnum
 from server.computer_use.tools.groups import ToolVersion
 
 # Beta feature flags
-COMPUTER_USE_BETA_FLAG = 'computer-use-2024-10-22'
+COMPUTER_USE_BETA_FLAG = 'computer-use-2025-01-24'
 PROMPT_CACHING_BETA_FLAG = 'prompt-caching-2024-07-31'
 
 
@@ -21,8 +21,8 @@ class APIProvider(StrEnum):
 
 
 PROVIDER_TO_DEFAULT_MODEL_NAME: dict[APIProvider, str] = {
-    APIProvider.ANTHROPIC: 'claude-sonnet-4-20250514',
-    APIProvider.BEDROCK: 'eu.anthropic.claude-sonnet-4-20250514-v1:0',
+    APIProvider.ANTHROPIC: 'claude-sonnet-4-5',
+    APIProvider.BEDROCK: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
     APIProvider.VERTEX: 'claude-sonnet-4@20250514',
     APIProvider.LEGACYUSE_PROXY: 'legacy-use-sonnet-4',  # model selection is handled server side
     APIProvider.OPENAI: 'gpt-5',
