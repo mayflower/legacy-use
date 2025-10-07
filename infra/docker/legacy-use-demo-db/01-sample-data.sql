@@ -128,27 +128,27 @@ CREATE INDEX IF NOT EXISTS ix_job_messages_job_id ON job_messages (job_id);
 CREATE INDEX IF NOT EXISTS ix_jobmessage_job_id_sequence ON job_messages (job_id, sequence);
 
 -- Insert current migration version
-INSERT INTO alembic_version (version_num) VALUES ('3814b7855961') 
-ON CONFLICT (version_num) DO NOTHING;
+-- INSERT INTO alembic_version (version_num) VALUES ('3814b7855961')
+-- ON CONFLICT (version_num) DO NOTHING;
 
 -- Sample Targets
 INSERT INTO targets (
-    id, 
-    name, 
-    type, 
-    host, 
-    port, 
-    username, 
-    password, 
-    width, 
-    height, 
-    created_at, 
-    updated_at, 
+    id,
+    name,
+    type,
+    host,
+    port,
+    username,
+    password,
+    width,
+    height,
+    created_at,
+    updated_at,
     is_archived,
     vpn_config,
     vpn_username,
     vpn_password
-) VALUES 
+) VALUES
 (
     '360553ec-2ad2-4dfa-90b5-b6d49b1e7bf3',
     'example',
@@ -176,7 +176,7 @@ INSERT INTO api_definitions (
     created_at,
     updated_at,
     is_archived
-) VALUES 
+) VALUES
 (
     'de28fb1e-3d79-4357-8db7-4c438b579d95',
     'GnuCash - Read Account Information',
@@ -206,7 +206,7 @@ INSERT INTO api_definition_versions (
     response_example,
     created_at,
     is_active
-) VALUES 
+) VALUES
 (
     'b6541819-4853-4bb5-ad42-8bb45067055a',
     'de28fb1e-3d79-4357-8db7-4c438b579d95',
@@ -287,10 +287,10 @@ The "R" column indicates the reconciliation status of a transaction:
 ON CONFLICT (id) DO NOTHING;
 
 -- Log successful initialization
-DO $$ 
-BEGIN 
+DO $$
+BEGIN
     RAISE NOTICE 'Legacy Use database initialized with sample data successfully!';
-    RAISE NOTICE 'Created % targets and % API definitions', 
+    RAISE NOTICE 'Created % targets and % API definitions',
         (SELECT COUNT(*) FROM targets WHERE is_archived = false),
         (SELECT COUNT(*) FROM api_definitions);
-END $$; 
+END $$;
