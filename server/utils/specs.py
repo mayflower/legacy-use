@@ -114,8 +114,7 @@ def convert_api_definition_to_openapi_path(
                 if isinstance(value, str):
                     response_properties[key] = {'type': 'string'}
                 elif isinstance(value, int):
-                    # Treating integers as numbers to ease validation strictness
-                    response_properties[key] = {'type': 'number'}
+                    response_properties[key] = {'type': 'integer'}
                 elif isinstance(value, float):
                     response_properties[key] = {'type': 'number'}
                 elif isinstance(value, bool):

@@ -46,7 +46,8 @@ def infer_schema_from_response_example(response_example: Any) -> Dict[str, Any]:
         if isinstance(value, bool):
             return {'type': 'boolean'}
         if isinstance(value, int):
-            return {'type': 'integer'}
+            # Treating integers as numbers to ease validation strictness
+            return {'type': 'number'}
         if isinstance(value, float):
             return {'type': 'number'}
         if isinstance(value, str):
