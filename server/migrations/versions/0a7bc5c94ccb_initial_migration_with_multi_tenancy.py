@@ -54,7 +54,7 @@ def upgrade() -> None:
             gen_random_uuid(),
             'Default Tenant',
             'tenant_default',
-            'tenant-default.local.legacy-use.com',
+            'tenant-default.legacy-use.az.mayflower.cloud',
             NOW(),
             NOW(),
             TRUE
