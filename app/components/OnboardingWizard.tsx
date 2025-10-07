@@ -224,7 +224,7 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                     Cleanup Prompt
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Optionally add instructions to reset the desktop after the workflow, like closing open windows.
+                    Optionally add instructions on how to reset the desktop after the workflow, like closing all open windows.
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ pl: 0.5 }}>
@@ -236,9 +236,9 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
                   </Typography>
                 </Box>
               </Stack>
-              <Stack spacing={1.5}>
+              <Stack spacing={1.5} pt={4}>
                 <Typography variant="body2" color="text.secondary">
-                  Detailed instructions on how to write a good prompt:
+                  Guide on how to write a good prompt:
                 </Typography>
                 <Button
                   component="a"
