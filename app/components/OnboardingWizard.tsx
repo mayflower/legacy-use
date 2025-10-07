@@ -29,39 +29,39 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
         title: 'Welcome to Legacy Use',
         content: (
           <Stack spacing={2.5} alignItems="center" sx={{ maxWidth: 520, mx: 'auto' }}>
-            <Typography variant="body1">
-              Legacy Use helps you automate workflows through a few core building blocks.
+            <Typography variant="body1" fontWeight="bold">
+              Legacy Use helps you automate workflows on any computer through a few core building blocks.
             </Typography>
-            <Stack spacing={1.5}>
+            <Stack spacing={2}>
               <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  Target
+                <Typography variant="subtitle1" textAlign={'center'} fontWeight={600}>
+                  🖥️ Target
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  A computer you want to automate.
+                <Typography variant="body2" color="text.secondary" textAlign={'center'}>
+                  A computer you want to automate a workflow on.
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  API
+                <Typography variant="subtitle1" fontWeight={600} textAlign={'center'}>
+                  ⚡ API
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  A prompt describing the automation task you want to run.
+                <Typography variant="body2" color="text.secondary" textAlign={'center'}>
+                  A prompt describing the workflow you want to run.
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  Session
+                <Typography variant="subtitle1" fontWeight={600} textAlign={'center'}>
+                  🗂️ Session
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" textAlign={'center'}>
                   An instance of legacy-use running on a target.
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  Job
+                <Typography variant="subtitle1" fontWeight={600} textAlign={'center'}>
+                  🏃 Job
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" textAlign={'center'}>
                   A running execution of an API on a session.
                 </Typography>
               </Box>
@@ -82,25 +82,60 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
               <Typography variant="body1">
                 Targets need remote access configured so legacy-use can operate them securely.
               </Typography>
-              <Stack spacing={1.5} direction="row" flexWrap="wrap" useFlexGap>
-                <Button
-                  component="a"
-                  href="https://docs.google.com/document/d/14FuYaEbZLvMHW0FzXbrlaPgjwleD_kTB9ATG5krFlDU/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outlined"
-                >
-                  Installing UltraVNC
-                </Button>
-                <Button
-                  component="a"
-                  href="https://docs.google.com/document/d/1s-9Qc75tlVaWu1sCExr5-WTUgrRB4hCJFYSYiV_Wp_0/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outlined"
-                >
-                  Setting up Tailscale
-                </Button>
+              <Typography variant="body2" color="text.secondary">
+                Capture these details when you create a target:
+              </Typography>
+              <Stack
+                component="ul"
+                spacing={1}
+                sx={{
+                  pl: 2,
+                  m: 0,
+                  listStyleType: 'disc',
+                  '& > li': { display: 'list-item' },
+                }}
+              >
+                <Typography component="li" variant="body2" color="text.secondary">
+                  Name – add whatever label helps you recognize the machine.
+                </Typography>
+                <Typography component="li" variant="body2" color="text.secondary">
+                  Type – select the screen sharing protocol, and note if it is paired with a VPN.
+                </Typography>
+                <Typography component="li" variant="body2" color="text.secondary">
+                  VPN Config – include details such as your Tailscale auth key when you connect via VPN.
+                </Typography>
+                <Typography component="li" variant="body2" color="text.secondary">
+                  VNC/RDP Username – provide the username required by the screen sharing protocol.
+                </Typography>
+                <Typography component="li" variant="body2" color="text.secondary">
+                  VNC/RDP Password – enter the password the protocol uses.
+                </Typography>
+                <Typography component="li" variant="body2" color="text.secondary">
+                  Width/Height – specify the screen resolution exposed over VNC or RDP.
+                </Typography>
+              </Stack>
+              <Stack spacing={1.5} pt={4}>
+                <Typography variant="body2" color="text.secondary">
+                  These guides show you how to setup a target with VNC and Tailscale:
+                </Typography>
+                <Stack spacing={1.5} direction={{ xs: 'column', sm: 'row' }} flexWrap="wrap" useFlexGap>
+                  <Button
+                    component="a"
+                    href="https://docs.google.com/document/d/14FuYaEbZLvMHW0FzXbrlaPgjwleD_kTB9ATG5krFlDU/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Installing UltraVNC
+                  </Button>
+                  <Button
+                    component="a"
+                    href="https://docs.google.com/document/d/1s-9Qc75tlVaWu1sCExr5-WTUgrRB4hCJFYSYiV_Wp_0/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Setting up Tailscale
+                  </Button>
+                </Stack>
               </Stack>
             </Stack>
             <Box
@@ -278,7 +313,7 @@ const OnboardingWizard = ({ open, onComplete, onSkip }: OnboardingWizardProps) =
               flexGrow: 1,
               backgroundColor: 'rgba(20, 24, 29, 0.92)',
               borderRadius: 3,
-              maxWidth: '75%',
+              // maxWidth: '75%',
               p: { xs: 3, sm: 4 },
               overflowY: 'auto',
               border: '1px solid rgba(255, 255, 255, 0.08)',
