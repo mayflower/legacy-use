@@ -18,8 +18,13 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeyDialog from './ApiKeyDialog';
+import { Help } from '@mui/icons-material';
 
-const AppHeader = () => {
+type AppHeaderProps = {
+  onRestartOnboarding: () => void;
+};
+
+const AppHeader = ({ onRestartOnboarding }: AppHeaderProps) => {
   const location = useLocation();
   const { apiKey, clearApiKey, isApiKeyValid } = useApiKey();
   const { hasConfiguredProvider, isProviderValid } = useAiProvider();
@@ -124,6 +129,17 @@ const AppHeader = () => {
               </Button>
             </Tooltip>
           </Box>
+
+          <Tooltip title="Restart the onboarding wizard">
+            <IconButton
+              color="inherit"
+              aria-label="restart onboarding"
+              onClick={onRestartOnboarding}
+              size="large"
+            >
+              <Help color={aiProviderStatus} />
+            </IconButton>
+          </Tooltip>
 
           <Tooltip title={`AI Provider: ${aiProviderStatusText}`}>
             <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
