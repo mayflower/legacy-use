@@ -18,9 +18,7 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeyDialog from './ApiKeyDialog';
-import {
-  Help
-} from '@mui/icons-material';
+import { Help } from '@mui/icons-material';
 
 type AppHeaderProps = {
   onRestartOnboarding: () => void;
