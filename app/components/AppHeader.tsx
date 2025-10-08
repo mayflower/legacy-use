@@ -3,7 +3,6 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import KeyIcon from '@mui/icons-material/Key';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import PsychologyIcon from '@mui/icons-material/Psychology';
-import ReplayIcon from '@mui/icons-material/Replay';
 import WorkIcon from '@mui/icons-material/Work';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -19,13 +18,7 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAiProvider } from '../contexts/AiProviderContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeyDialog from './ApiKeyDialog';
-import {
-  Help,
-  HelpCenter,
-  HelpCenterOutlined,
-  HelpCenterRounded,
-  HelpOutlined,
-} from '@mui/icons-material';
+import { Help } from '@mui/icons-material';
 
 type AppHeaderProps = {
   onRestartOnboarding: () => void;
