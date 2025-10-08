@@ -1,11 +1,13 @@
 keys:
   - &woody age1rrvzmn23380w49fdce7zuuu9wplwd6c5hzzv5zt48v5exun4nf7s8rsv03
   - &jo age10a0e7jfdmrylc77cr8vllhcpjj0u2scnz698vzy7m2jsm97d05esp5ghj3
+  - &alex age1ryw3z7mdzsemsd48ae2p5j3rc7unkcapzg5uaf7zkv3z5p8xgvhqry994d
 key_groups:
   - &devs
     age:
       - *woody
       - *jo
+      - *alex
 creation_rules:
   - path_regex: secrets/.*\.(yaml|yml|json|env)$
     key_groups:
