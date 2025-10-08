@@ -103,7 +103,7 @@ def test_infer_schema_from_response_example_duplicate_array_items():
     )
     assert 'anyOf' in heterogeneous_items
     any_of_types = [item.get('type') for item in heterogeneous_items.get('anyOf', [])]
-    assert 'integer' in any_of_types
+    assert 'number' in any_of_types
     assert 'string' in any_of_types
     assert 'boolean' in any_of_types
 
@@ -113,10 +113,10 @@ def test_infer_schema_from_response_example_duplicate_array_items():
     )
     assert 'anyOf' in duplicate_items
     any_of_schemas = duplicate_items.get('anyOf', [])
-    # Should only have 2 unique schemas: integer and string
+    # Should only have 2 unique schemas: number and string
     assert len(any_of_schemas) == 2
     any_of_types = [item.get('type') for item in any_of_schemas]
-    assert 'integer' in any_of_types
+    assert 'number' in any_of_types
     assert 'string' in any_of_types
 
 
