@@ -1,0 +1,25 @@
+{
+  "name": "Example - Calculator",
+  "description": "Adds two numbers, using the OS calculator",
+  "version_number": "1.0.0",
+  "parameters": [
+    {
+      "name": "number_a",
+      "type": "string",
+      "default": "1",
+      "description": "The first number to add"
+    },
+    {
+      "name": "number_b",
+      "type": "string",
+      "default": "1",
+      "description": "The second number to add"
+    }
+  ],
+  "prompt": "### Process: Calculate the Sum of Two Numbers in the Calculator App\n\n> Important: If the UI at any point does not match the expected description, stop and use the `ui_not_as_expected` tool.\n\n---\n\n### Step 1: Open Calculator App\n\n**Expected UI:**\n\nThe main system interface (home screen or app menu) is visible. No app is currently open.\n\n**Action:**\n\nClick on the \"Calculator\" app icon to open it.\n\n---\n\n### Step 2: Enter First Number\n\n**Expected UI:**\n\nThe calculator app is open. The display area is empty or shows \"0\". The keypad with digits and operators is visible.\n\n**Action:**\n\nClick on the number {{number_a}} on the keypad.\n\n---\n\n### Step 3: Select Addition Operator\n\n**Expected UI:**\n\nThe first number ({{number_a}}) is displayed in the input field at the top. The \"+\" button is visible among the operators.\n\n**Action:**\n\nClick on the \"+\" button.\n\n---\n\n### Step 4: Enter Second Number\n\n**Expected UI:**\n\nThe display now shows the first number followed by the \"+\" symbol.\n\n**Action:**\n\nClick on the number {{number_b}} on the keypad.\n\n---\n\n### Step 5: Calculate Result\n\n**Expected UI:**\n\nThe input shows {{number_a}} + {{number_b}}. The \"=\" button is visible.\n\n**Action:**\n\nClick on the \"=\" button.\n\n---\n\n### Step 6: Extract Result\n\n**Expected UI:**\n\nThe calculator display now shows the computed result.\n\n**Action:**\n\nReturn the displayed value using the `extract_tool`.",
+  "prompt_cleanup": "Close the calculator.",
+  "response_example": {
+    "result": 2
+  },
+  "custom_actions": {}
+}

@@ -13,6 +13,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Pin Python so uv pulls wheels for shapely/GEOS
+env:
+  UV_PYTHON: "3.12"
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,7 +27,7 @@ jobs:
         with:
           enable-cache: true
       - name: Install python
-        run: uv python install
+        run: uv python install 3.12
       - name: Install dependencies
         run: uv sync
       - name: Setup environment

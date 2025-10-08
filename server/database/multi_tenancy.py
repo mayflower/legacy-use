@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from server.database.models import Base, Tenant
 from server.database.service import DatabaseService
+from server.database.tenant_bootstrap import bootstrap_tenant_defaults
 
 # Single default DatabaseService (engine + pool) reused across tenant sessions
 db_session = DatabaseService()
@@ -75,6 +76,9 @@ def tenant_create(
         # Create schema and tables
         db_tenant.execute(sa.schema.CreateSchema(schema))
         get_tenant_specific_metadata().create_all(bind=db_tenant.connection())
+
+        # Seed default tenant data
+        bootstrap_tenant_defaults(db_tenant)
 
         db_tenant.commit()
 
