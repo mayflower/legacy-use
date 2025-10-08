@@ -51,7 +51,10 @@ function inferTenantDetails(name: string): InferredTenant {
 
 function handleForwardToNewTenant(host: string, api_key: string) {
   if (host.includes('localhost') || host.includes('local.legacy-use.com')) {
-    window.open(`http://${host}:${window.location.port}?api_key=${api_key}&showWizard=true`, '_blank');
+    window.open(
+      `http://${host}:${window.location.port}?api_key=${api_key}&showWizard=true`,
+      '_blank',
+    );
   } else {
     window.open(`https://${host}?api_key=${api_key}&showWizard=true`, '_blank');
   }
