@@ -131,7 +131,12 @@ const AppHeader = ({ onRestartOnboarding }: AppHeaderProps) => {
           </Box>
 
           <Tooltip title="Restart the onboarding wizard">
-            <IconButton color="inherit" aria-label="restart onboarding" onClick={onRestartOnboarding} size="large">
+            <IconButton
+              color="inherit"
+              aria-label="restart onboarding"
+              onClick={onRestartOnboarding}
+              size="large"
+            >
               <Help color={aiProviderStatus} />
             </IconButton>
           </Tooltip>
