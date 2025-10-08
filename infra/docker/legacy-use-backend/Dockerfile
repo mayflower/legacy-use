@@ -4,6 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV USERNAME=legacy-use-mgmt
 ENV HOME=/home/$USERNAME
+ENV UV_PYTHON=3.12
 
 # Install all system dependencies and create user in one layer
 RUN apt-get update && \
