@@ -17,7 +17,7 @@ def test_infer_schema_types():
     }
     schema = infer_schema_from_response_example(example)
     assert schema.get('type') == 'object'
-    assert schema.get('properties', {}).get('id').get('type') == 'integer'
+    assert schema.get('properties', {}).get('id').get('type') == 'number'
     assert schema.get('properties', {}).get('name').get('type') == 'string'
     assert schema.get('properties', {}).get('active').get('type') == 'boolean'
     assert schema.get('properties', {}).get('items').get('type') == 'array'
@@ -38,7 +38,7 @@ def test_infer_schema_nested_objects():
     }
     schema = infer_schema_from_response_example(example)
     assert schema.get('type') == 'object'
-    assert schema.get('properties', {}).get('shallow_value').get('type') == 'integer'
+    assert schema.get('properties', {}).get('shallow_value').get('type') == 'number'
     assert schema.get('properties', {}).get('nested_value').get('type') == 'object'
     assert (
         schema.get('properties', {})
@@ -46,7 +46,7 @@ def test_infer_schema_nested_objects():
         .get('properties', {})
         .get('id')
         .get('type')
-        == 'integer'
+        == 'number'
     )
     assert (
         schema.get('properties', {})
@@ -95,7 +95,7 @@ def test_infer_schema_from_response_example_duplicate_array_items():
     homogeneous_items = (
         schema.get('properties', {}).get('homogeneous_array', {}).get('items', {})
     )
-    assert homogeneous_items.get('type') == 'integer'
+    assert homogeneous_items.get('type') == 'number'
 
     # Heterogeneous array should use anyOf
     heterogeneous_items = (
@@ -154,24 +154,24 @@ def test_infer_schema_from_response_example_nested_objects_in_arrays():
     obj2_properties = object_schemas[1].get('properties', {})
 
     # First object should have 'id' and 'name'
-    assert obj1_properties.get('id', {}).get('type') == 'integer'
+    assert obj1_properties.get('id', {}).get('type') == 'number'
     assert obj1_properties.get('name', {}).get('type') == 'string'
 
     # Second object should have 'id' and 'number'
-    assert obj2_properties.get('id', {}).get('type') == 'integer'
-    assert obj2_properties.get('number', {}).get('type') == 'integer'
+    assert obj2_properties.get('id', {}).get('type') == 'number'
+    assert obj2_properties.get('number', {}).get('type') == 'number'
 
 
 def test_openapi_to_make_schema():
     openapi_schema = {
         'type': 'object',
         'properties': {
-            'integer': {'type': 'integer'},
+            'integer': {'type': 'number'},
             'boolean': {'type': 'boolean'},
-            'array': {'type': 'array', 'items': {'type': 'integer'}},
+            'array': {'type': 'array', 'items': {'type': 'number'}},
             'object': {
                 'type': 'object',
-                'properties': {'id': {'type': 'integer'}, 'name': {'type': 'string'}},
+                'properties': {'id': {'type': 'number'}, 'name': {'type': 'string'}},
             },
             'text_fallback': {'type': 'notAType'},
         },
@@ -214,7 +214,7 @@ def test_openapi_to_make_schema_items_anyof_under_items():
                 'type': 'array',
                 'items': {
                     'anyOf': [
-                        {'type': 'integer'},
+                        {'type': 'number'},
                         {'type': 'string'},
                     ]
                 },
@@ -241,7 +241,7 @@ def test_openapi_to_make_schema_array_of_objects_includes_nested_spec():
                 'items': {
                     'type': 'object',
                     'properties': {
-                        'id': {'type': 'integer'},
+                        'id': {'type': 'number'},
                         'name': {'type': 'string'},
                     },
                 },
