@@ -20,6 +20,7 @@ import Dashboard from './components/Dashboard';
 import EditApiDefinition from './components/EditApiDefinition';
 import JobDetails from './components/JobDetails';
 import JobsList from './components/JobsList';
+import OnboardingWizard from './components/OnboardingWizard';
 import SessionList from './components/SessionList';
 import Settings from './components/Settings';
 import TargetDetails from './components/TargetDetails';
@@ -148,6 +149,12 @@ const AppLayout = () => {
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [isValidatingApiKey, setIsValidatingApiKey] = useState(true);
   const { isProviderValid } = useAiProvider();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const handleRestartOnboarding = () => {
+    localStorage.removeItem('onboardingCompleted');
+    setShowOnboarding(true);
+  };
 
   // Check if we're on a session detail page or job detail page
   const isSessionDetail =
@@ -177,6 +184,21 @@ const AppLayout = () => {
     selectedSessionId &&
       (isSessionDetail || isJobDetail || isTargetDetail || location.pathname === '/apis'),
   );
+
+  useEffect(() => {
+    const wizardCompleted = localStorage.getItem('onboardingCompleted');
+    const urlParams = new URLSearchParams(window.location.search);
+    const showWizard = urlParams.get('showWizard');
+
+    if (showWizard && wizardCompleted !== 'true') {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleWizardComplete = () => {
+    localStorage.setItem('onboardingCompleted', 'true');
+    setShowOnboarding(false);
+  };
 
   // Fetch session details when selectedSessionId changes and optionally keep polling
   useEffect(() => {
@@ -322,7 +344,7 @@ const AppLayout = () => {
       value={{ selectedSessionId, setSelectedSessionId, currentSession, setCurrentSession }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <AppHeader />
+        <AppHeader onRestartOnboarding={handleRestartOnboarding} />
 
         {/* Show warning if no ai provider is configured */}
         {!isProviderValid && (
@@ -369,6 +391,11 @@ const AppLayout = () => {
       </Box>
 
       {/* API Key Dialog */}
+      <OnboardingWizard
+        open={showOnboarding}
+        onComplete={handleWizardComplete}
+        onSkip={handleWizardComplete}
+      />
       <ApiKeyDialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} />
     </SessionContext.Provider>
   );
