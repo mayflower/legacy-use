@@ -49,6 +49,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+  gnucach:
+    image: legacyuse.azurecr.io/target-machine-gnucash:latest
 
 volumes:
   postgres_data:

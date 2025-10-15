@@ -26,7 +26,7 @@ server-tests:
 # Docker Compose Commands
 docker-dev: ensure-env
 	@echo "🚀 Starting legacy-use in DEVELOPMENT mode with hot-reloading..."
-	docker-compose -f docker-compose.yml -f docker-compose.dev-override.yml up
+	docker compose -f docker-compose.yml -f docker-compose.dev-override.yml up -d
 
 docker-prod: ensure-env
 	@echo "🚀  Starting legacy-use in PRODUCTION mode..."
@@ -120,10 +120,18 @@ mf-build-demo-frontend:
 		--image legacy-use-frontend:${GIT_SHORT_HASH} \
 		--image legacy-use-frontend:latest \
 		-f infra/docker/legacy-use-frontend/Dockerfile \
-		--build-arg VITE_PROXY_TARGET=https://tenant-default.legacy-use.az.mayflower.cloud \
+		$(shell grep '^VITE_' .env.az | sed 's/^/--build-arg /') \
 		.
 
-mf-build-demo-all: mf-azlogin mf-azdockerlogin mf-build-demo-db mf-build-demo-backend mf-build-demo-frontend
+mf-build-demo-target-gnucash:
+	az acr build \
+		--registry ${AZ_ACR_NAME} \
+		--image target-machine-gnucash:${GIT_SHORT_HASH} \
+		--image target-machine-gnucash:latest \
+		-f infra/docker/linux-machine/Dockerfile \
+		.
+
+mf-build-demo-all: mf-azlogin mf-azdockerlogin mf-build-demo-db mf-build-demo-backend mf-build-demo-frontend mf-build-demo-target-gnucash
 
 mf-vmssh:
 	az ssh vm -n ${AZ_DEMO_VM_NAME} -g ${AZ_DEMO_VM_RG} -- -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
