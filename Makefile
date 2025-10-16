@@ -71,6 +71,7 @@ docker-build-all: docker-build-target docker-build-backend docker-build-frontend
 # Legacy alias for backward compatibility
 docker-build: docker-build-all
 
+# gnucash machine
 docker-linux-vm:
 	docker run -d \
 		--name legacy-use-linux-machine \
@@ -98,43 +99,81 @@ mf-azlogin: ## Login onto Azure with user principal
 mf-azdockerlogin: ## Login onto Azure Container Registry
 	az acr login -n ${AZ_ACR_NAME}
 
-mf-build-demo-db:
+mf-build-db:
 	az acr build \
 		--registry ${AZ_ACR_NAME} \
 		--image legacy-use-db:${GIT_SHORT_HASH} \
 		--image legacy-use-db:latest \
+		--image legacy-use-demo-db:local \
+		--image legacy-use-core-demo-db:local \
 		-f infra/docker/legacy-use-demo-db/Dockerfile \
 		.
 
-mf-build-demo-backend:
+mf-build-backend:
 	az acr build \
 		--registry ${AZ_ACR_NAME} \
 		--image legacy-use-backend:${GIT_SHORT_HASH} \
 		--image legacy-use-backend:latest \
+		--image legacy-use-core-backend:local \
 		-f infra/docker/legacy-use-backend/Dockerfile \
 		.
 
-mf-build-demo-frontend:
+mf-build-frontend:
 	az acr build \
 		--registry ${AZ_ACR_NAME} \
 		--image legacy-use-frontend:${GIT_SHORT_HASH} \
 		--image legacy-use-frontend:latest \
+		--image legacy-use-frontend:local \
+		--image legacy-use-core-frontend:local \
 		-f infra/docker/legacy-use-frontend/Dockerfile \
 		$(shell grep '^VITE_' .env.az | sed 's/^/--build-arg /') \
 		.
 
-mf-build-demo-target-gnucash:
+mf-build-target:
+	az acr build \
+		--registry ${AZ_ACR_NAME} \
+		--image legacy-use-core-linux-machine:${GIT_SHORT_HASH} \
+		--image legacy-use-core-linux-machine:latest \
+		--build-arg TARGETARCH=amd64 \
+		-f infra/docker/legacy-use-target/Dockerfile \
+		.
+
+mf-build-gnucash:
 	az acr build \
 		--registry ${AZ_ACR_NAME} \
 		--image target-machine-gnucash:${GIT_SHORT_HASH} \
 		--image target-machine-gnucash:latest \
+		--image legacy-use-core-linux-machine:local \
+		--image linux-machine:local \
 		-f infra/docker/linux-machine/Dockerfile \
 		.
 
-mf-build-demo-all: mf-azlogin mf-azdockerlogin mf-build-demo-db mf-build-demo-backend mf-build-demo-frontend mf-build-demo-target-gnucash
+
+mf-build-all: mf-azlogin mf-azdockerlogin mf-build-db mf-build-backend mf-build-frontend mf-build-target mf-build-gnucash
 
 mf-vmssh:
 	az ssh vm -n ${AZ_DEMO_VM_NAME} -g ${AZ_DEMO_VM_RG} -- -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+
+mf-get-vm-ip:
+	@IP=$$(az vm show \
+		--resource-group ${AZ_DEMO_VM_RG} \
+		--name ${AZ_DEMO_VM_NAME} \
+		-d \
+		--query "publicIps" \
+		-o tsv); \
+	if [ -z "$$IP" ]; then \
+		echo "❌ Keine öffentliche IP gefunden!"; \
+		exit 1; \
+	fi; \
+	echo "$$IP"
+
+mf-ssh:
+	@IP=$$(make -s mf-get-vm-ip); \
+	ssh -i ~/.ssh/id_legacyuse_rsa azureuser@$$IP -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+
+mf-copy-to-vm:
+	@IP=$$(make -s mf-get-vm-ip); \
+	scp -i ~/.ssh/id_legacyuse_rsa ./test.file.txt azureuser@$$IP:/srv/
 
 mf-deploy-demo:
 	./mf-deploy-demo.sh
