@@ -17,6 +17,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    profiles: ["default"]
 
   # Backend Service
   backend:
@@ -35,6 +36,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    profiles: ["default"]
 
   # Frontend Service
   frontend:
@@ -49,12 +51,38 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-  gnucach:
+    profiles: ["default"]
+
+  gnucashvm:
     image: legacyuse.azurecr.io/target-machine-gnucash:latest
+    networks:
+      - caddy_net
+    container_name: gnucashvm
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5900:5900"
+    volumes:
+      - linux-home:/home/developer
+      - linux-workspace:/workspace
+      - /dev/shm:/dev/shm
+    working_dir: /workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+    profiles: ["default"]
+
+  target-session:
+    image: legacyuse.azurecr.io/legacy-use-target:local
+    profiles: ["pull-only"]
 
 volumes:
   postgres_data:
-
+  linux-home:
+  linux-workspace:
 networks:
   caddy_net:
     external: true
