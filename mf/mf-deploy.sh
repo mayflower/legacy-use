@@ -25,7 +25,7 @@ VM_IP=$(az vm show \
   -o tsv)
 
 # create docker-compose.yml and .env file on vm
-scp -i ${SSH_PRIVATE_KEY} ${SCRIPT_DIR}/docker-compose.az.yml ${VM_USER}@${VM_IP}:/srv/app/docker-compose.yml
+scp -i ${SSH_PRIVATE_KEY} ${SCRIPT_DIR}/docker-compose.yml ${VM_USER}@${VM_IP}:/srv/app/docker-compose.yml
 sops -d ${SECRETS_DIR}/demo-vm.env | ssh -i ${SSH_PRIVATE_KEY} ${VM_USER}@${VM_IP} "cat > /srv/app/.env"
 ssh -i ${SSH_PRIVATE_KEY} ${VM_USER}@${VM_IP} "cd /srv/app && chown ${VM_USER}:docker docker-compose.yml .env"
 # login with system managed identity
