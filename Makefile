@@ -89,4 +89,4 @@ docker-linux-vm:
 		--health-retries=10 \
 		legacy-use-core-linux-machine:local
 
-include $(dir $(lastword $(MAKEFILE_LIST)))/mf/infra-targets.mk
+include $(CURDIR)/mf/infra-targets.mk
