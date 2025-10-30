@@ -109,6 +109,9 @@ class Settings(BaseSettings):
     # Total number of concurrent jobs this process can run across all tenants
     JOB_WORKERS: int = 2
 
+    # Session inactivity timeout in minutes
+    SESSION_INACTIVITY_TIMEOUT_MINUTES: int = 60
+
     model_config = SettingsConfigDict(
         env_file=get_setting_env_file(),
         extra='allow',

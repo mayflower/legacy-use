@@ -15,13 +15,14 @@ from server.utils.docker_manager import (
     get_container_status,
 )
 from server.utils.tenant_utils import get_active_tenants
+from server.settings import settings
 
 logger = logging.getLogger(__name__)
 
 # How often to check session states (in seconds)
 INIT_CHECK_INTERVAL = 5  # Check every second during initialization
 READY_CHECK_INTERVAL = 30  # Check every 30 seconds once ready
-INACTIVE_SESSION_THRESHOLD = 60 * 60  # 60 minutes in seconds
+INACTIVE_SESSION_THRESHOLD = settings.SESSION_INACTIVITY_TIMEOUT_MINUTES * 60  # Convert minutes to seconds
 
 
 async def monitor_sessions_for_tenant(tenant_schema: str):
